@@ -1,0 +1,11 @@
+Source: maxsorto/openfpga-GBC, commit 666c4f33b70880047ab9e0a1987fa439ebfd78bb
+
+## Credits, license and legal
+
+- The emulation is the MiSTer Gameboy core by its contributors, ported to the Pocket by budude2. The openFPGA framework files are Analogue's. Their code keeps its original terms.
+- The cover picker module, the testbenches and the tools in `tools/` are MIT.
+- The 5x7 font is the Adafruit GFX glcdfont (BSD).
+- Box art in the screenshots comes from the libretro-thumbnails community scans. Covers are not in the repo. `fetch_boxart.py` downloads them on your machine. The in-game frame under the pause panel is a libretro-thumbnails snap.
+- Game Boy, Game Boy Color and Analogue Pocket are trademarks of their owners. This project is not affiliated with Nintendo or Analogue.
+- Bring your own ROMs and BIOS. If you own something shown here and want it removed, open an issue and it will come down.
+

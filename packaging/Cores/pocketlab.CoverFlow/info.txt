@@ -1,0 +1,4 @@
+CoverFlow Chinese Menu for Analogue Pocket (GB/GBC).
+Menu based on maxsorto Cover Flow; Pocket port by budude2; Gameboy implementation by MiSTer contributors.
+Chinese font: GNU Unifont 18.0.01, SIL OFL 1.1.
+See source repository for component licenses and validation scope.

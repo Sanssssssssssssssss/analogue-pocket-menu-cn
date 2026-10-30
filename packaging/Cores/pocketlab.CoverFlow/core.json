@@ -1,0 +1,38 @@
+{
+  "core": {
+    "magic": "APF_VER_1",
+    "metadata": {
+      "platform_ids": [
+        "gbclab",
+        "gb",
+        "gbc"
+      ],
+      "shortname": "CoverFlow",
+      "description": "GB/GBC Chinese cover-flow menu",
+      "author": "pocketlab",
+      "url": "https://github.com/Sanssssssssssssssss/analogue-pocket-menu-cn",
+      "version": "0.1.2-public.1",
+      "date_release": "2026-10-31"
+    },
+    "framework": {
+      "target_product": "Analogue Pocket",
+      "version_required": "1.1",
+      "sleep_supported": true,
+      "dock": {
+        "supported": true,
+        "analog_output": false
+      },
+      "hardware": {
+        "link_port": false,
+        "cartridge_adapter": "0x80000000"
+      }
+    },
+    "cores": [
+      {
+        "name": "default",
+        "id": 0,
+        "filename": "gbc.rbf_r"
+      }
+    ]
+  }
+}

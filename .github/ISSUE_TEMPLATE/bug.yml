@@ -1,0 +1,29 @@
+name: Bug report / 问题反馈
+description: Report a reproducible menu, library or installation issue.
+body:
+  - type: markdown
+    attributes:
+      value: Please do not upload ROMs, BIOS, saves, card inventories or private paths. 请勿上传游戏、BIOS、存档和整卡清单。
+  - type: input
+    id: version
+    attributes:
+      label: Release tag / 版本标签
+    validations:
+      required: true
+  - type: input
+    id: firmware
+    attributes:
+      label: Pocket firmware and computer OS / 固件与电脑系统
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Reproduction and exact error / 复现步骤与报错
+      description: Include GB/GBC, expected result, actual result, and whether the original core works.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Sanitized logs or screenshot / 去除私人信息后的日志或截图
