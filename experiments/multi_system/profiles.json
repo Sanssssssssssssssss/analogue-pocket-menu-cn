@@ -1,0 +1,43 @@
+{
+  "gba": {
+    "repository": "mincer-ray/openfpga-GBA",
+    "commit": "a61eaf2e8d50631f5dd32bda5c84229a0c54ab78",
+    "archive_sha256": "6fe99ab7597b6438f4561445cd850195d1ff4c39758223f06f4e616f7b693753",
+    "data_json": "pkg/Cores/mincer_ray.GBA/data.json",
+    "rom_slot": 1,
+    "rom_address": "0x10000000",
+    "save_slot": 10,
+    "save_address": "0x20000000",
+    "rtc_slot": 11,
+    "rtc_address": "0x21000000",
+    "bios_slot": 4,
+    "bios_bytes": 16384,
+    "maximum_rom_bytes": 33554432,
+    "launch_route": "native-adapter-required"
+  },
+  "nes": {
+    "repository": "agg23/openfpga-NES",
+    "commit": "be5f1303a0df15d012155cb248b6174bb81e64b6",
+    "archive_sha256": "8699f04685f156d2887712d7f148623419b94c2739c3e4981ebb795a65ed6c0f",
+    "data_json": "pkg/pocket/Cores/agg23.NES/data.json",
+    "rom_slot": 0,
+    "rom_address": "0x10000000",
+    "save_slot": 10,
+    "save_address": "0x20000000",
+    "maximum_rom_bytes": 16777216,
+    "launch_route": "native-adapter-required"
+  },
+  "snes": {
+    "repository": "agg23/openfpga-SNES",
+    "commit": "1a08c84ddef760bedd30a376114fc2e97527df19",
+    "archive_sha256": "0a1151ccb8d1a53538d6ea121e09d0ae5059cecfb93d9ee68659944982743c94",
+    "data_json": "pkg/pocket/Cores/agg23.SNES/data.json",
+    "rom_slot": 0,
+    "rom_address": "0x10000000",
+    "save_slot": 10,
+    "save_address": "0x20000000",
+    "maximum_rom_bytes": 16777728,
+    "launch_route": "upstream-chip32-required",
+    "bitstreams": ["main", "SPCSDD1", "PAL"]
+  }
+}

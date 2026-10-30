@@ -22,6 +22,8 @@
 
 当前版本 **`v0.1.2-public.1`（公开预览）**。FPGA 程序与已经使用者验收的 `0.1.2-cn-lab` 相同；公开版新增通用打包／安装工具及文档。新工具已用合成文件测试，尚未完成多台 Pocket 实机验收。启动游戏偶尔短暂闪屏、加载稍慢仍是已知问题。
 
+当前实验分支新增 [GBA / NES / SNES 接入实验](experiments/multi_system/README.md)：原生中文页面、加载接口检查和菜单模块资源验证。它尚未集成完整游戏核心，没有可安装的多机种版本。
+
 ## 快速开始
 
 需要 Analogue Pocket、microSD 读卡器、Python 3.11+，以及你自己的 GB/GBC ROM 和 2,304 字节 GBC BIOS。原实机报告使用 Analogue OS 2.5；其他固件版本未在此项目逐一验证。本项目不提供游戏、BIOS 或个人存档。

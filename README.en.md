@@ -1,5 +1,7 @@
 # Analogue Pocket CoverFlow Chinese Menu
 
+This experimental branch also contains an [offline GBA / NES / SNES integration probe](experiments/multi_system/README.md). It validates native menu pages, loader contracts and standalone menu resources. It does not include an installable multi-system core or game execution.
+
 A native **openFPGA GB/GBC cover-flow frontend for Analogue Pocket**, with Simplified Chinese controls, Unicode game titles, folders and a black background.
 
 [简体中文](README.md) · [Releases](https://github.com/Sanssssssssssssssss/analogue-pocket-menu-cn/releases) · [Validation](docs/VALIDATION.md) · [Build](docs/BUILD.md) · [License](LICENSE.md)

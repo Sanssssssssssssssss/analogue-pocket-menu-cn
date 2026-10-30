@@ -8,6 +8,11 @@ node_modules/
 *.gb
 *.gbc
 *.gba
+*.nes
+*.sfc
+*.smc
+*.rtc
+*.state
 *.sav
 *.srm
 *.sus

@@ -9,7 +9,7 @@ This repository contains components under different licenses. It is not a blanke
 | Analogue Platform Framework | [Analogue APF notice](LICENSES/APF-Notice.txt), also retained in source; the notice specifies precedence for applicable MIT/GPL terms. |
 | GNU Unifont 18.0.01 and menu subset | [Font license](LICENSES/Unifont-LICENSE.txt), [SIL OFL 1.1](LICENSES/Unifont-OFL-1.1.txt). The full compressed font and generated subset are included; font names and source attribution are retained. |
 | Upstream 5×7 font | Adafruit GFX glcdfont, [BSD license](LICENSES/Adafruit-GFX.txt); upstream attribution retained. |
-| New top-level `tools/`, `tests/`, original placeholder art and project documents | [MIT](LICENSES/MIT.txt), Pocket CoverFlow Chinese contributors. |
+| New top-level `tools/`, `tests/`, `experiments/multi_system/` code, original placeholder art and project documents | [MIT](LICENSES/MIT.txt), Pocket CoverFlow Chinese contributors. Downloaded upstream experimental inputs retain their own licenses and are not vendored here. |
 
 Generated Intel/Altera IP keeps its original notices. Source for the distributed bitstream is included under `core/src/`; compiler version, build input hashes, generated build identifier and binary checksum are documented in [BUILD](docs/BUILD.md).
 

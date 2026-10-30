@@ -1,0 +1,13 @@
+{
+  "scope": "Actual frozen GBA/NES ingress RTL with Intel FIFO simulation model; no CPU, game or physical memory",
+  "cold_load": "passed endian/address/backpressure/completion checks",
+  "reload": "upstream GBA simulation guard rejects second transaction after startup fence",
+  "reload_limit": "guard is simulation-only; this does not prove a hardware failure",
+  "physical_card_access": false,
+  "input_hashes": {
+    "tb_ingress.sv": "283608142f6d7d91cf0513134b67c1cac7a43e8ca1b97dcd7b5f602f654cf690",
+    "apf_write_ingress.sv": "6fab4aed363d2293a48e36512924246a7fd20a082068f0da534befe6051325fc",
+    "data_loader.sv": "1baf6316609bc9e2483bb32bd97cd5396a505152e2b77f76ebf2c2851d29d101",
+    "altera_mf.v": "bfdfde8688adb0f2223e6aba5ff56fba569d5ed2ed87866982c2f511aef0f7a6"
+  }
+}
