@@ -20,6 +20,8 @@
 
 保存失败时保留运行中的游戏，A 重试保存，B 继续。首版关闭 APF Memories 和休眠；不导入即时存档。请先用可舍弃进度验证“启动 → 游戏内保存 → 保存并返回 → 再次启动”的完整过程，再验证重要进度。
 
+这里持久化的是游戏原本的普通存档：先在游戏内执行保存，再从中文暂停菜单“保存并返回”。它不会记录尚未写入游戏存档的当前房间、战斗或即时现场。
+
 普通进度按 ROM SHA256 前 20 位隔离到 `Saves/gbalab/common/<hash>.sav`，RTC 为同名 `.rtc`。64KB 默认容量覆盖 SRAM／EEPROM／64KB Flash，检测到 `FLASH1M_V` 后使用 128KB。每次换游戏先清空存档 RAM、重置类型检测和 RTC 加载状态，然后载入对应进度；暂停使用现有暂停接口，不重置 CPU。
 
 ## 验证范围
@@ -29,7 +31,7 @@
 - [像素仿真](evidence/pixels.json)：38,400 个像素与实际扫描输出逐像素比对；不完整／错序帧拒绝、重试及游戏画面交接。
 - 仿真不验证实体 SDRAM／PSRAM、SD 写入耐久性、声音、游戏兼容或掉电。完整编译结果与继承时序约束的范围记录在本目录证据中；原始板级例外不能据此升级为外部存储时序签核。
 
-[完整编译收据](evidence/build.json)、[资源摘要](evidence/gba.fit.summary)、[时序摘要](evidence/gba.sta.summary)：实际 `5CEBA4F23C8` 全引脚工程通过，15,605 ALM（84%）、277 M10K（90%）、27 DSP，虚拟引脚 0。四个模型的 104 条时序摘要均无负 slack、TNS 均为 0；最差 setup 0.494 ns、hold 0.097 ns。编译错误与 critical warning 均为 0，继承工程仍报告 22,560 条普通 warning。上游已有的 7 个卡槽输出未约束，完整板级／外设签核不在该结论内；保留这一边界，不通过添加 false path 隐藏它们。
+[完整编译收据](evidence/build.json)、[资源摘要](evidence/gba.fit.summary)、[时序摘要](evidence/gba.sta.summary)：实际 `5CEBA4F23C8` 全引脚工程通过，15,605 ALM（84%）、277 M10K（90%）、27 DSP，虚拟引脚 0。四个模型的 104 条时序摘要均无负 slack、TNS 均为 0；最差 setup 0.494 ns、hold 0.097 ns。编译错误与 critical warning 均为 0，继承工程仍报告 22,560 条普通 warning。上游已有的 7 个卡槽输出未约束，完整板级／外设签核不在该结论内。
 
 ## 本地构建
 
