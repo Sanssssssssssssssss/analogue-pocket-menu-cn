@@ -1,0 +1,12 @@
+{
+  "date": "2026-10-31",
+  "version": "0.2.0-gba.3",
+  "source": "User Pocket report after full power-off and card reload",
+  "bitstream_sha256": "73226a39e7fd25429ef939d0fd2668902b28674823c9ec65e1a0f0da13771af8",
+  "native_chinese_menu": "confirmed",
+  "game_launch": "confirmed",
+  "save_rtc_return": "not_yet_confirmed",
+  "compatibility_matrix": "not_performed",
+  "reported_limitations": ["Abrupt page transitions", "Separate GB/GBC and GBA core entries", "Incomplete GBA artwork", "Unwanted bottom A/B hints"],
+  "scope": "One user's device report; not complete game/save or multi-device certification"
+}

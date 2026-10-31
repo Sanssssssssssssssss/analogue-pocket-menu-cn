@@ -17,16 +17,16 @@
 | 封面、收藏操作、中文暂停菜单 | 已实现；暂停保存／恢复仍需更多实机反馈 |
 | 用户自己的 GB/GBC 目录与中文别名 | 公共 v9 生成器，读取原文件并在电脑生成菜单包 |
 | 安装前计划、版本备份、回读校验、回退 | 有；默认仅预览，明确加 `--apply` 才写卡 |
-| GBA / NES / SNES、全机种自动换核心 | 稳定版不含；GBA 实验待实机验收，NES/SNES 与自动换核未实现，见[路线图](docs/ROADMAP.md) |
+| GBA / NES / SNES、全机种自动换核心 | 稳定版不含；GBA 实验的中文菜单与游戏启动获单机确认，存档／返回待验收；NES/SNES 与自动换核未实现，见[路线图](docs/ROADMAP.md) |
 | Analogue OS 系统首页、系统设置汉化 | 不在当前功能范围；此界面运行于 GB/GBC 核心内 |
 
 当前版本 **`v0.1.2-public.1`（公开预览）**。FPGA 程序与已经使用者验收的 `0.1.2-cn-lab` 相同；公开版新增通用打包／安装工具及文档。新工具已用合成文件测试，尚未完成多台 Pocket 实机验收。启动游戏偶尔短暂闪屏、加载稍慢仍是已知问题。
 
-当前实验分支包含 [GBA / NES / SNES 接口实验](experiments/multi_system/README.md)，并继续进行[独立 GBA 完整核心接入](experiments/gba_menu/README.md)。GBA 的图标、封面、普通存档与 RTC 流程在本地验证；实机验收待完成，没有可安装的全机种公共发行版。
+当前实验分支包含 [GBA / NES / SNES 接口实验](experiments/multi_system/README.md)，并继续进行[独立 GBA 完整核心接入](experiments/gba_menu/README.md)。用户已确认 `0.2.0-gba.3` 的中文菜单与游戏启动可用；普通存档、RTC、保存返回和更多游戏仍待实机验收，没有可安装的全机种公共发行版。
 
 本分支还提供[机种图标菜单](docs/MACHINE-MENU.md)：GB / GBC 掌机图标 → 分类 → 原有游戏封面，经典系列集中在收藏入口。复用稳定核心，用户已确认新布局可用。
 
-已有菜单可用[显示素材更新工具](docs/DISPLAY-UPDATES.md)补中文名和封面，保留原游戏／存档关联。GBA 修正核心目录身份后，实机从黑屏推进到中文错误提示；诊断为完整帧数据已到桥接端，但菜单未持有画面缓冲区、接收像素数为零。当前[修复候选与验证范围](experiments/gba_menu/README.md)增加启动初始化、页面所有权和首次错误记录；**实机菜单启动仍未验收通过**。
+已有 GB/GBC 菜单可用[显示素材更新工具](docs/DISPLAY-UPDATES.md)补中文名和封面，保留原游戏／存档关联。GBA 的[素材与聚合实验](experiments/unified_frontend/README.md)另提供中文标题、封面和底部提示更新。两个核心已在本地试加共同的 Pocket Lab 系统关联，分组显示待实机确认；中文图标页内自动切换核心尚未实现。
 
 ## 快速开始
 

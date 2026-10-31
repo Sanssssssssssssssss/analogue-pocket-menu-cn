@@ -23,3 +23,5 @@ python tools/install.py --card X:/ --package dist/core --library .work/display-u
 可参考 [yingw/rom-name-cn](https://github.com/yingw/rom-name-cn) 的中文对照和 [libretro-thumbnails](https://github.com/libretro-thumbnails) 的包装图。处理私人库时，保留来源、修订和文件校验记录；不要把个人游戏清单、BIOS 或存档提交本仓库。中文显示名不能证明 ROM 是汉化版。
 
 English: `update_display.py` stages title/cover changes over an existing v9 library. Supply every game's display title on an updated game page so sorting and the letter index stay consistent. ROM/save/suspend paths, CRCs, favorite identities, parent links and log paths remain intact. Optional local covers require their SHA256; missing art can use clearly labeled text cards. Stage first, then use the existing backed-up installer. A translated display name does not translate the game itself.
+
+GBA 实验使用不同的 GBAF1 格式，请使用 [`experiments/gba_menu/display_update.py`](../experiments/gba_menu/display_update.py)，参数见[聚合实验](../experiments/unified_frontend/README.md)。它只生成电脑副本，不能用上面的 GB/GBC 安装命令写入。English: the separate GBAF1 updater stages files locally; the GB/GBC installer above does not install those GBA files.

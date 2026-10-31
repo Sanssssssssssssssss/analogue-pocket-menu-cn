@@ -1,12 +1,12 @@
 # GBA 原生中文菜单实验 / Native GBA menu experiment
 
-2026-10-31。**独立 GBA 核心的开发实验，实机游戏、存档及返回菜单尚待验收。** 稳定发行版 `v0.1.2-public.1` 继续只支持 GB/GBC。本目录不提供游戏、BIOS、个人进度或整卡清单；NES/SNES 与跨核心自动切换尚未接通。
+2026-10-31。**独立 GBA 核心的开发实验；用户已确认 `0.2.0-gba.3` 中文菜单与游戏启动可用，普通存档、RTC 和保存返回尚待实机验收。** [用户报告](evidence/hardware-acceptance.json)仅覆盖一台 Pocket，不代表完整兼容性认证。稳定发行版 `v0.1.2-public.1` 继续只支持 GB/GBC。本目录不提供游戏、BIOS、个人进度或整卡清单；NES/SNES 与跨核心自动切换尚未接通。
 
 实机首次测试在菜单出现前报告 `Error in core setup`。已发现并修正打包错误：目录 `pocketlab.GBA` 必须与 `author: pocketlab`、`shortname: GBA` 对应，见官方[打包要求](https://www.analogue.co/developer/docs/openfpga/packaging-a-core#for-development)。打包器和安装器现在检查此约束；该次身份修正未改变 FPGA 二进制。上游 mincer_ray 的署名与通知保留在源码及本文来源段落中。
 
 后续实机反馈：身份修正后点击 OS Run 黑屏，尚未看到中文菜单。[诊断读数](evidence/black-screen.json)的状态低字节对应 `FRAME_DRAIN`，最近的 Host/Target 命令均成功；高位所有权标记与首次启动预期不一致。`0.2.0-gba.2` 将 76,800 字节帧拆为 5 次、每次最多 16 KiB 的连续读取，并增加画面完成超时及计数诊断。**分块是本项目的传输策略，尚未证明固件存在 16 KiB 大小限制。**
 
-该版[实机复测](evidence/framebuffer-ownership.json)显示中文“操作失败”：首次 E=`0x22`，P=`0x4B000000` 表示 19,200 个桥接字全部到达、像素数为 0；M/V 显示菜单没有缓冲区所有权。按键重试后的 E=`0x53` 是后续保存错误，不能当作首次故障。候选 `0.2.0-gba.3` 在 APF Stop／启动时明确初始化生命周期，每次绘制菜单取得缓冲区所有权，并单独保留首次错误。残留状态注入使旧版失败、新版通过，但**首次实机为何失去所有权仍未完全解释；GBA 菜单可用性尚待复测**。
+该版[实机复测](evidence/framebuffer-ownership.json)显示中文“操作失败”：首次 E=`0x22`，P=`0x4B000000` 表示 19,200 个桥接字全部到达、像素数为 0；M/V 显示菜单没有缓冲区所有权。按键重试后的 E=`0x53` 是后续保存错误，不能当作首次故障。`0.2.0-gba.3` 在 APF Stop／启动时明确初始化生命周期，每次绘制菜单取得缓冲区所有权，并单独保留首次错误。残留状态注入使旧版失败、新版通过，用户随后确认中文菜单和游戏启动成功。首次实机为何失去所有权仍未完全解释。
 
 ![实际 RTL 输出的 GBA 中文机种页](evidence/menu.png)
 
@@ -43,7 +43,7 @@
 
 `0.2.0-gba.2` 的[完整编译收据](evidence/frame-fix-build.json)、[资源摘要](evidence/frame-fix.fit.summary)、[时序摘要](evidence/frame-fix.sta.summary)：15,816 ALM（86%）、277 M10K（90%）、27 DSP，虚拟引脚 0。104 条摘要均无负 slack、TNS 为 0，最差 setup 0.493 ns、hold 0.023 ns；0 错误、0 critical warning，22,566 条普通 warning。首次候选出现负时序余量，未用于安装；最终版将分段进度改为固定的 3 位段号，未放宽时序约束。上述 7 个板级例外继续保留。完整编译和电脑仿真通过仍不代表实机启动已通过。
 
-`0.2.0-gba.3` 的[完整编译收据](evidence/ownership-build.json)、[资源摘要](evidence/ownership.fit.summary)、[时序摘要](evidence/ownership.sta.summary)：15,940 ALM（86%）、277 M10K（90%）、27 DSP，虚拟引脚 0。104 条摘要均无负 slack，TNS 为 0；最差 setup 0.491 ns、hold 0.067 ns，0 错误、0 critical warning，22,566 条普通 warning。7 个继承的板级例外保留，完整编译已通过，实机仍待复测。
+`0.2.0-gba.3` 的[完整编译收据](evidence/ownership-build.json)、[资源摘要](evidence/ownership.fit.summary)、[时序摘要](evidence/ownership.sta.summary)：15,940 ALM（86%）、277 M10K（90%）、27 DSP，虚拟引脚 0。104 条摘要均无负 slack，TNS 为 0；最差 setup 0.491 ns、hold 0.067 ns，0 错误、0 critical warning，22,566 条普通 warning。7 个继承的板级例外保留，完整编译已通过；用户已确认中文菜单及游戏启动，存档与保存返回待验收。
 
 ## 本地构建
 
@@ -78,6 +78,8 @@ python experiments/gba_menu/install.py --card X:/ --package .work/gba-menu/packa
 
 `import_saves.py` 只向电脑副本复制普通存档；保留旧版 16 字节 RTC 尾部，短存档以 FF 补足，拒绝截断。相同 ROM 的原存档不一致时跳过；已知该使用哪份时，用 `--prefer Saves/gba/common/.../Example.sav` 指明。所有候选原文件保留。
 
+已有 GBA 菜单可用 [`display_update.py`](display_update.py) 在电脑生成封面／中文标题更新，去掉底部 A/B 提示。传入 `--titles` 才重绘名称，启动／存档记录始终逐字节保留；名称是显示别名，不会汉化游戏本身。参数及共同平台分组的限制见[聚合实验](../unified_frontend/README.md)。本次仅改素材工具，没有修改或重新编译 RTL；生硬的切换动画仍待改进。
+
 回退默认核对，补 `--apply` 才执行：
 
 ```sh
@@ -94,4 +96,4 @@ python experiments/gba_menu/install.py --card X:/ --backup <该次备份目录> 
 
 实验版 Core Settings 中的只读诊断：`M` 为菜单状态／标记，低 8 位 `0x0D` 表示菜单可操作，`0x0B` 表示等待帧完成；`P` 的高 16 位为桥接字数、低 16 位为像素数，完整帧为 `0x4B009600`；`V` 为帧握手标记；`E` 为最后错误码，`0x22` 表示画面未完整到达；`F` 为首次错误码，APF Stop／启动清零；`T` / `H` 为最后的 Target / Host 命令状态。字段名保持单字母以避免 OS 截断数值。它们不会写入游戏、存档或画面设置。
 
-English: isolated experimental GBA integration, native Chinese/icon/cover menus, ordinary saves and RTC. APF Memories/sleep and cross-core switching are disabled/unimplemented. After the core-folder identity fix, hardware black-screened; version 0.2.0-gba.2 then showed a Chinese error screen. First-run error 0x22 and P=0x4B000000 identify all bridge words received but zero pixels accepted, with menu ownership absent. Candidate 0.2.0-gba.3 explicitly initializes the lifecycle on APF Stop/boot, acquires ownership on paint and retains the first error. The original loss of ownership is not fully explained; hardware recovery remains unconfirmed. The joined simulation models the host, RAM table and ready/idle inputs; it does not execute a GBA CPU or validate physical memory/SD. Inherited board exceptions remain. No public GBA binary release or hardware compatibility claim is made.
+English: isolated experimental GBA integration. One user confirmed native Chinese menus and game launch in 0.2.0-gba.3; ordinary saves, RTC and save-return await hardware acceptance. APF Memories/sleep and cross-core switching are disabled/unimplemented. The previous ownership failure is addressed by explicit lifecycle initialization and ownership on paint, with a retained first-error code; its original hardware cause remains incompletely explained. Joined simulation models the host, RAM table and ready/idle inputs, without a GBA CPU or physical memory/SD validation. Inherited board exceptions remain. The display updater stages artwork, Chinese aliases and footer removal without changing launch/save records; transitions are unchanged. No public GBA binary release or broad hardware compatibility claim is made.

@@ -88,7 +88,6 @@ def frame(entries,index,covers=None):
         image.paste(cover,(position[0]+(size-cover.width)//2,position[1]+(size-cover.height)//2))
     for line,y in zip(title_lines(entries[index]['title']),(108,125)):
         text(image,line,y)
-    text(image,'A 选择   B 返回',144,color='#abb1bc')
     return image
 
 
@@ -97,7 +96,6 @@ def pause_frame(selected):
     text(image,'游戏已暂停',30)
     text(image,'继续游戏',70,color='#d2ab55' if selected==0 else '#abb1bc')
     text(image,'保存并返回',98,color='#d2ab55' if selected==1 else '#abb1bc')
-    text(image,'A 确认   B 继续',140,color='#abb1bc')
     return image
 
 
