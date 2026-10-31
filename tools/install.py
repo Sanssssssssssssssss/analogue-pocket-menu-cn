@@ -10,6 +10,7 @@ from pathlib import Path, PurePosixPath
 import shutil
 import tempfile
 from build_library import sha
+from apf_metadata import check_core
 
 PREFIXES = ('Cores/pocketlab.CoverFlow/', 'Assets/gbclab/common/')
 EXACT = ('Platforms/gbclab.json','Platforms/_images/gbclab.bin')
@@ -82,8 +83,8 @@ def plan(card, package, library):
     if not required.issubset({x['path'] for x in p['files']}):raise ValueError('Incomplete core package')
     if not {'Assets/gbclab/common/covers.bin','Assets/gbclab/common/gbc_bios.bin'}.issubset({x['path'] for x in lib['files']}):
         raise ValueError('Incomplete library/BIOS manifest')
-    metadata=json.loads((package/'Cores/pocketlab.CoverFlow/core.json').read_text(encoding='utf-8'))
-    if metadata['core']['metadata']['platform_ids']!=['gbclab','gb','gbc']:
+    metadata=check_core(package/'Cores/pocketlab.CoverFlow')
+    if metadata['metadata']['platform_ids']!=['gbclab','gb','gbc']:
         raise ValueError('Unexpected platform mapping')
     bios=library/'Assets/gbclab/common/gbc_bios.bin'
     if not bios.is_file() or bios.stat().st_size!=2304:

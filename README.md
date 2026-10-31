@@ -26,6 +26,8 @@
 
 本分支还提供[机种图标菜单](docs/MACHINE-MENU.md)：GB / GBC 掌机图标 → 分类 → 原有游戏封面，经典系列集中在收藏入口。复用稳定核心，用户已确认新布局可用。
 
+已有菜单可用[显示素材更新工具](docs/DISPLAY-UPDATES.md)补中文名和封面，保留原游戏／存档关联。GBA 实机曾报告启动时 `Error in core setup`；本分支已修正核心目录与作者／短名不匹配的打包错误，修正版仍待实机复测。
+
 ## 快速开始
 
 需要 Analogue Pocket、microSD 读卡器、Python 3.11+，以及你自己的 GB/GBC ROM 和 2,304 字节 GBC BIOS。原实机报告使用 Analogue OS 2.5；其他固件版本未在此项目逐一验证。本项目不提供游戏、BIOS 或个人存档。

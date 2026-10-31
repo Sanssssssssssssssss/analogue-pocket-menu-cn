@@ -6,6 +6,8 @@ The [machine icon menu](docs/MACHINE-MENU.md) uses the existing GB/GBC core: cho
 
 This branch also develops an [isolated full-core GBA integration](experiments/gba_menu/README.md), with local checks for Chinese/icon/cover menus, ordinary saves and RTC. Physical acceptance remains pending; the stable release still supports GB/GBC only.
 
+The GBA hardware trial reported `Error in core setup` before its menu appeared. The core folder/author/shortname mismatch has been corrected; the corrected package still needs a hardware retest. Existing GB/GBC libraries can use the [display update tool](docs/DISPLAY-UPDATES.md) to add titles/covers while preserving game/save identities.
+
 A native **openFPGA GB/GBC cover-flow frontend for Analogue Pocket**, with Simplified Chinese controls, Unicode game titles, folders and a black background.
 
 [简体中文](README.md) · [Releases](https://github.com/Sanssssssssssssssss/analogue-pocket-menu-cn/releases) · [Validation](docs/VALIDATION.md) · [Build](docs/BUILD.md) · [License](LICENSE.md)

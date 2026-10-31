@@ -2,6 +2,8 @@
 
 2026-10-31。**独立 GBA 核心的开发实验，实机游戏、存档及返回菜单尚待验收。** 稳定发行版 `v0.1.2-public.1` 继续只支持 GB/GBC。本目录不提供游戏、BIOS、个人进度或整卡清单；NES/SNES 与跨核心自动切换尚未接通。
 
+实机首次测试在菜单出现前报告 `Error in core setup`。已发现并修正打包错误：目录 `pocketlab.GBA` 必须与 `author: pocketlab`、`shortname: GBA` 对应，见官方[打包要求](https://www.analogue.co/developer/docs/openfpga/packaging-a-core#for-development)。打包器和安装器现在检查此约束；FPGA 二进制未改变。该修正通过离线检查，是否消除实机报错仍待复测。上游 mincer_ray 的署名与通知保留在源码及本文来源段落中。
+
 ![实际 RTL 输出的 GBA 中文机种页](evidence/menu.png)
 
 截图来自实际 `data_loader`、Intel FIFO 模型及修改后的 GBA `video_adapter`；不含游戏 CPU，也不是掌机照片。黑底、中文标题、机种／分类图标、可选游戏封面。菜单复用 GBA 的 240×160 帧缓冲区，在完整画面写完且到达垂直空白后显示；游戏保持 3:2 输出。
@@ -72,4 +74,4 @@ python experiments/gba_menu/install.py --card X:/ --backup <该次备份目录> 
 
 数据槽顺序固定为 `[100 菜单, 4 BIOS, 1 ROM, 10 Save, 11 RTC]`；存档大小写入对应 datatable 索引 7、9。目标命令使用官方[读／写／打开／刷新接口](https://www.analogue.co/developer/docs/openfpga/host-target-commands)，槽参数见 [data.json 文档](https://www.analogue.co/developer/docs/openfpga/core-definition-files/data-json)。这些命令没有通用换核心操作；当前通过 Analogue OS 选择不同平台。
 
-English: isolated experimental GBA integration, native Chinese/icon/cover menus, ordinary saves and RTC. APF Memories/sleep and cross-core switching are disabled/unimplemented. Full Quartus fit passed at 84% ALMs with positive reported timing; seven inherited cartridge output exceptions remain. Physical gameplay acceptance is pending. The scripts stage and verify a new `pocketlab.GBA` entry, preserve original ROMs/saves, and retain newly played progress during rollback. See the commands and evidence above; no public GBA binary release or hardware compatibility claim is made.
+English: isolated experimental GBA integration, native Chinese/icon/cover menus, ordinary saves and RTC. APF Memories/sleep and cross-core switching are disabled/unimplemented. Full Quartus fit passed at 84% ALMs with positive reported timing; seven inherited cartridge output exceptions remain. The first hardware attempt failed with `Error in core setup` before the menu. Packaging now enforces folder/author/shortname consistency and fixes the observed mismatch; the bitstream is unchanged and a hardware retest is pending. The scripts stage and verify a new `pocketlab.GBA` entry, preserve original ROMs/saves, and retain newly played progress during rollback. See the commands and evidence above; no public GBA binary release or hardware compatibility claim is made.

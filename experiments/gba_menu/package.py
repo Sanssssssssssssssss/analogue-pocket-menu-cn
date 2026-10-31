@@ -9,10 +9,13 @@ import re
 import shutil
 import subprocess
 import uuid
+import sys
 from prepare_build import prepare
 
 ROOT=Path(__file__).resolve().parents[2]
 CORE='pocketlab.GBA'
+sys.path.insert(0,str(ROOT/'tools'))
+from apf_metadata import check_core
 
 
 def sha(p):return hashlib.sha256(p.read_bytes()).hexdigest()
@@ -57,9 +60,9 @@ def stage(build,out,sources):
     for name in ('audio.json','input.json','interact.json','variants.json','video.json'):
         shutil.copy2(upstream/name,dst/name)
     meta=json.loads((upstream/'core.json').read_text())['core']
-    meta['metadata'].update(platform_ids=['gbalab','gba'],shortname='GBA Menu CN',
+    meta['metadata'].update(platform_ids=['gbalab','gba'],shortname='GBA',
         description='Chinese GBA menu. L+R+Select: pause, save and return.',
-        author='PocketLab + mincer_ray',url='https://github.com/Sanssssssssssssssss/analogue-pocket-menu-cn',
+        author='pocketlab',url='https://github.com/Sanssssssssssssssss/analogue-pocket-menu-cn',
         version='0.2.0-gba.1',date_release='2026-10-31')
     meta['framework']['sleep_supported']=False
     meta['cores']=[{'name':'default','id':0,'filename':'gba.rbf_r'}]
@@ -78,6 +81,7 @@ def stage(build,out,sources):
     (dst/'data.json').write_text(json.dumps({'data':{'magic':'APF_VER_1','data_slots':slots}},indent=2)+'\n')
     table=bytes(int(f'{i:08b}'[::-1],2) for i in range(256))
     (dst/'gba.rbf_r').write_bytes(raw.translate(table))
+    check_core(dst)
     platforms=pkg/'Platforms';(platforms/'_images').mkdir(parents=True)
     platform={'platform':{'category':'Handheld','name':'GBA Menu CN','manufacturer':'Pocket Lab','year':2026}}
     (platforms/'gbalab.json').write_text(json.dumps(platform,indent=2)+'\n')

@@ -13,6 +13,7 @@ ROOT=Path(__file__).resolve().parents[2]
 sys.path.insert(0,str(ROOT/'tools'))
 # Import generic path/publication primitives without changing the GB/GBC allowlist.
 import importlib.util
+from apf_metadata import check_core
 spec=importlib.util.spec_from_file_location('gb_install',ROOT/'tools/install.py')
 base=importlib.util.module_from_spec(spec);spec.loader.exec_module(base)
 sha,safe_path,identity,publish=base.sha,base.safe_path,base.identity,base.publish
@@ -47,7 +48,7 @@ def plan(card,package,library,saves=None):
             if p.stat().st_size!=item['bytes'] or sha(p)!=item['sha256']:raise ValueError('Staging differs: '+rel)
             changes.append({**item,'source':str(source)})
     if not {'cores/pocketlab.gba/core.json','assets/gbalab/common/menu.bin'}.issubset(seen):raise ValueError('Incomplete package')
-    meta=json.loads((package/'core/Cores/pocketlab.GBA/core.json').read_text())['core']
+    meta=check_core(package/'core/Cores/pocketlab.GBA')
     if meta['metadata']['platform_ids']!=['gbalab','gba'] or meta['framework']['sleep_supported']:
         raise ValueError('Unexpected core platform/sleep settings')
     slots=json.loads((package/'core/Cores/pocketlab.GBA/data.json').read_text())['data']['data_slots']
