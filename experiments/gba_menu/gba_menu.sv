@@ -23,6 +23,7 @@ module gba_menu #(
     output reg new_load=0,finish_load=0,game_bound=0,
     output wire fault,
     output reg [7:0] fault_code=0,
+    output reg [7:0] first_fault_code=0,
     output reg [7:0] state=0,
     output reg [10:0] selected=0
 );
@@ -130,10 +131,13 @@ module gba_menu #(
         end
     endtask
     task automatic fail(input [7:0] code);
-        begin fault_code<=code;state<=ERROR;menu_show<=0;end
+        begin
+            fault_code<=code;if(first_fault_code==0)first_fault_code<=code;
+            state<=ERROR;menu_show<=0;
+        end
     endtask
     task automatic paint(input [31:0] offset,input [7:0] next_state);
-        begin frame_offset<=offset;after_frame<=next_state;menu_show<=0;timer<=0;state<=FRAME_BLANK;end
+        begin frame_offset<=offset;after_frame<=next_state;menu_owned<=1;menu_show<=0;timer<=0;state<=FRAME_BLANK;end
     endtask
     assign fault=state==ERROR;
 
@@ -142,8 +146,13 @@ module gba_menu #(
         t_read<=0;t_open<=0;t_write<=0;t_flush<=0;new_load<=0;finish_load<=0;
         if(!load_ready)drain_was_low<=1;
         timer<=timer+1'b1;
-        case(state)
-            BOOT:if(ready && io_idle)begin selected<=0;state<=HEADER_REQ;end
+        // APF Stop/Run must establish ownership even when registers retain game state.
+        if(!ready || state==BOOT)begin
+            state<=BOOT;timer<=0;selected<=0;frame_request<=0;frame_chunk<=0;
+            menu_owned<=1;menu_show<=0;menu_reset<=1;menu_pause<=0;game_bound<=0;
+            fault_code<=0;first_fault_code<=0;go_back<=0;root_path<=0;command_armed<=0;
+            if(ready && io_idle)state<=HEADER_REQ;
+        end else case(state)
             HEADER_REQ:command(0,100,0,32'h70000000,64,HEADER_CHECK);
             HEADER_CHECK:if(result!=0 || header_magic!=32'h46414247 || header_version!=1 ||
                     count<1 || count>2047 || frame_base!=64+(count<<10) ||

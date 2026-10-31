@@ -28,7 +28,7 @@ rtl=[out/'commands.v' if x==command else out/'video.sv' if x==video else x for x
 r=subprocess.run(['iverilog','-g2012','-s','tb_boot','-o',str(out/'boot.sim'),*map(str,rtl)],capture_output=True,text=True,timeout=60)
 (out/'build.log').write_text(r.stdout+r.stderr);r.check_returncode()
 cases=[]
-for name,flags in [('complete',[]),('missing-tail',['+drop_last'])]:
+for name,flags in [('complete',[]),('retained-game-ownership',['+dirty_boot']),('missing-tail',['+drop_last'])]:
     r=subprocess.run(['vvp',str(out/'boot.sim'),*flags],cwd=out,capture_output=True,text=True,timeout=600)
     (out/(name+'.log')).write_text(r.stdout+r.stderr);print(r.stdout+r.stderr,flush=True);r.check_returncode()
     cases.append({'case':name,'result':'passed'})

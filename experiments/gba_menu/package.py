@@ -63,7 +63,7 @@ def stage(build,out,sources):
     meta['metadata'].update(platform_ids=['gbalab','gba'],shortname='GBA',
         description='Chinese GBA menu. L+R+Select: pause, save and return.',
         author='pocketlab',url='https://github.com/Sanssssssssssssssss/analogue-pocket-menu-cn',
-        version='0.2.0-gba.2',date_release='2026-10-31')
+        version='0.2.0-gba.3',date_release='2026-10-31')
     meta['framework']['sleep_supported']=False
     meta['cores']=[{'name':'default','id':0,'filename':'gba.rbf_r'}]
     (dst/'core.json').write_text(json.dumps({'core':meta},indent=2)+'\n')
@@ -84,6 +84,7 @@ def stage(build,out,sources):
     interact=json.loads((dst/'interact.json').read_text(encoding='utf8'))
     for label,address,id_ in [('M',0xF4000000,60000),('P',0xF4000004,60003),
                               ('V',0xF4000008,60004),('E',0xF400000C,60005),
+                              ('F',0xF4000010,60006),
                               ('T',0xF8001000,60001),('H',0xF8000000,60002)]:
         interact['interact']['variables'].append({'name':label,'id':id_,'type':'number_u32','enabled':False,'address':hex(address)})
     (dst/'interact.json').write_text(json.dumps(interact,indent=2)+'\n',encoding='utf8')
@@ -96,7 +97,7 @@ def stage(build,out,sources):
     sources={p.relative_to(build).as_posix():sha(p) for p in (build/'src').rglob('*') if p.is_file() and not any(t in p.parts for t in ('build','db','incremental_db','output_files'))}
     sources['src/fpga/build/ap_core.qsf']=sha(build/'src/fpga/build/ap_core.qsf')
     sources['src/fpga/build/gba_menu_error.hex']=sha(build/'src/fpga/build/gba_menu_error.hex')
-    receipt={'core':CORE,'version':'0.2.0-gba.2','hardware_playtest':'pending_black_screen_retest',
+    receipt={'core':CORE,'version':'0.2.0-gba.3','hardware_playtest':'pending_framebuffer_ownership_retest',
              'upstream':json.loads(Path(__file__).with_name('upstream-lock.json').read_text())['commit'],
              'bitstream_sha256':sha(dst/'gba.rbf_r'),'minimum_reported_slack_ns':min(slack),
              'timing_scope':'All inherited multi-corner constraints; board-level exceptions remain as upstream',

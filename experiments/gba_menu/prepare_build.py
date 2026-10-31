@@ -36,7 +36,7 @@ def integrate(out):
     insertion='''
 // Pocket Lab native menu: bridge-clock lifecycle, existing game framebuffer.
 wire ui_owned,ui_show,ui_reset,ui_pause,ui_new_load,ui_finish,ui_bound,ui_fault;
-wire [7:0] ui_fault_code,ui_state;
+wire [7:0] ui_fault_code,ui_first_fault_code,ui_state;
 wire [10:0] ui_selected;
 wire ui_frame_request,ui_frame_ack,ui_frame_started,ui_frame_valid,ui_frame_fault,game_frame_ready;
 wire ui_visible,ui_visible_bridge;
@@ -80,7 +80,7 @@ gba_menu menu (
     .frame_ack(ui_frame_ack_b),.frame_started(ui_frame_started_b),.frame_valid(ui_frame_valid_b),.frame_fault(ui_frame_fault_b),.visible(ui_visible_bridge),
     .prepare_ready(ui_prepare_ready_b),.load_ready(ui_load_ready_b),.io_idle(ui_io_idle_b),.save_capacity(ui_capacity),
     .frame_request(ui_frame_request),.menu_owned(ui_owned),.menu_show(ui_show),.menu_reset(ui_reset),.menu_pause(ui_pause),
-    .new_load(ui_new_load),.finish_load(ui_finish),.game_bound(ui_bound),.fault(ui_fault),.fault_code(ui_fault_code),
+    .new_load(ui_new_load),.finish_load(ui_finish),.game_bound(ui_bound),.fault(ui_fault),.fault_code(ui_fault_code),.first_fault_code(ui_first_fault_code),
     .state(ui_state),.selected(ui_selected));
 assign ui_prepare_ready=save_clear_done && !psram_busy;
 assign ui_load_ready=loader_drained && rtc_load_complete && save_clear_done;
@@ -137,6 +137,7 @@ assign savestate_load_ok=0;assign savestate_load_err=1;
             8'h04: bridge_rd_data <= {ui_frame_words,ui_received_pixels_b};
             8'h08: bridge_rd_data <= {24'd0,ui_show,ui_visible_bridge,ui_frame_fault_b,ui_frame_valid_b,ui_frame_started_b,ui_frame_ack_b,ui_frame_request,ui_owned};
             8'h0C: bridge_rd_data <= {24'd0,ui_fault_code};
+            8'h10: bridge_rd_data <= {24'd0,ui_first_fault_code};
             default: bridge_rd_data <= {3'd0,ui_bound,ui_owned,ui_reset,ui_pause,ui_fault,ui_selected,5'd0,ui_state};
         endcase
     end

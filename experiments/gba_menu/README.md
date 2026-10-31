@@ -4,7 +4,9 @@
 
 实机首次测试在菜单出现前报告 `Error in core setup`。已发现并修正打包错误：目录 `pocketlab.GBA` 必须与 `author: pocketlab`、`shortname: GBA` 对应，见官方[打包要求](https://www.analogue.co/developer/docs/openfpga/packaging-a-core#for-development)。打包器和安装器现在检查此约束；该次身份修正未改变 FPGA 二进制。上游 mincer_ray 的署名与通知保留在源码及本文来源段落中。
 
-后续实机反馈：身份修正后点击 OS Run 黑屏，尚未看到中文菜单。[诊断读数](evidence/black-screen.json)的状态低字节对应 `FRAME_DRAIN`，最近的 Host/Target 命令均成功；高位所有权标记与首次启动预期不一致，原因仍待核对。当前候选版 `0.2.0-gba.2` 将 76,800 字节帧拆为 5 次、每次最多 16 KiB 的连续读取，并增加画面完成超时及计数诊断。**分块是本项目的传输策略，尚未证明固件存在 16 KiB 大小限制，也尚未确认实机黑屏消失。**
+后续实机反馈：身份修正后点击 OS Run 黑屏，尚未看到中文菜单。[诊断读数](evidence/black-screen.json)的状态低字节对应 `FRAME_DRAIN`，最近的 Host/Target 命令均成功；高位所有权标记与首次启动预期不一致。`0.2.0-gba.2` 将 76,800 字节帧拆为 5 次、每次最多 16 KiB 的连续读取，并增加画面完成超时及计数诊断。**分块是本项目的传输策略，尚未证明固件存在 16 KiB 大小限制。**
+
+该版[实机复测](evidence/framebuffer-ownership.json)显示中文“操作失败”：首次 E=`0x22`，P=`0x4B000000` 表示 19,200 个桥接字全部到达、像素数为 0；M/V 显示菜单没有缓冲区所有权。按键重试后的 E=`0x53` 是后续保存错误，不能当作首次故障。候选 `0.2.0-gba.3` 在 APF Stop／启动时明确初始化生命周期，每次绘制菜单取得缓冲区所有权，并单独保留首次错误。残留状态注入使旧版失败、新版通过，但**首次实机为何失去所有权仍未完全解释；GBA 菜单可用性尚待复测**。
 
 ![实际 RTL 输出的 GBA 中文机种页](evidence/menu.png)
 
@@ -33,12 +35,13 @@
 - Python 检查覆盖菜单图与原文件保护、拒绝越界路径、无损复制普通进度、同 ROM 多份存档冲突，以及回退保留新进度。
 - [控制流仿真](evidence/control.json)：A/B、连续三次启动、64K/128K、暂停继续、普通存档＋RTC＋刷新后返回、保存失败保留游戏、超时和路径拒绝。另运行真实 `core_bridge_cmd`；带本地 Intel 模型时运行真实加载 FIFO、类型检测、RTC 加载模块。
 - [像素仿真](evidence/pixels.json)：38,400 个像素与实际扫描输出逐像素比对；不完整／错序帧拒绝、重试及游戏画面交接。
-- 当前候选的[控制流收据](evidence/frame-fix-control.json)、[像素收据](evidence/frame-fix-pixels.json)与[首屏收据](evidence/frame-fix-boot.json)包含输入哈希。`probe_boot.py` 联接真实菜单、APF 命令引擎、Intel FIFO 与扫描输出，检查首次 Run、页面元数据、五段帧读取、19,200 个桥接字和 38,400 个像素。另模拟宿主返回成功但缺少最后两个像素，检查超时转入可见错误。数据表 RAM、宿主和 ready/idle 输入由测试模型提供；没有 GBA CPU、实体 RAM 或真实 SD 服务。
+- `0.2.0-gba.2` 的[控制流收据](evidence/frame-fix-control.json)、[像素收据](evidence/frame-fix-pixels.json)与[首屏收据](evidence/frame-fix-boot.json)包含输入哈希。`probe_boot.py` 联接真实菜单、APF 命令引擎、Intel FIFO 与扫描输出，检查首次 Run、页面元数据、五段帧读取、19,200 个桥接字和 38,400 个像素。另模拟宿主返回成功但缺少最后两个像素，检查超时转入可见错误。数据表 RAM、宿主和 ready/idle 输入由测试模型提供；没有 GBA CPU、实体 RAM 或真实 SD 服务。
+- `0.2.0-gba.3` 的[控制流收据](evidence/ownership-control.json)验证绘制前丢失所有权、Stop／启动重置及多次错误后保留首次错误；[首屏收据](evidence/ownership-boot.json)覆盖正常启动、残留游戏所有权和缺少末尾数据三种情况。[旧版失败证据](evidence/ownership-reproduction.json)使用残留状态注入；它检验初始化缺口，不等同于证明实体 FPGA 的启动原因。像素模块及视频输出与上一候选保持相同输入哈希，沿用其逐像素扫描验证。
 - 仿真不验证实体 SDRAM／PSRAM、SD 写入耐久性、声音、游戏兼容或掉电。完整编译结果与继承时序约束的范围记录在本目录证据中；原始板级例外不能据此升级为外部存储时序签核。
 
 `0.2.0-gba.1` 的[完整编译收据](evidence/build.json)、[资源摘要](evidence/gba.fit.summary)、[时序摘要](evidence/gba.sta.summary)：实际 `5CEBA4F23C8` 全引脚工程通过，15,605 ALM（84%）、277 M10K（90%）、27 DSP，虚拟引脚 0。四个模型的 104 条时序摘要均无负 slack、TNS 均为 0；最差 setup 0.494 ns、hold 0.097 ns。编译错误与 critical warning 均为 0，继承工程仍报告 22,560 条普通 warning。上游已有的 7 个卡槽输出未约束，完整板级／外设签核不在该结论内。
 
-候选 `0.2.0-gba.2` 的[完整编译收据](evidence/frame-fix-build.json)、[资源摘要](evidence/frame-fix.fit.summary)、[时序摘要](evidence/frame-fix.sta.summary)：15,816 ALM（86%）、277 M10K（90%）、27 DSP，虚拟引脚 0。104 条摘要均无负 slack、TNS 为 0，最差 setup 0.493 ns、hold 0.023 ns；0 错误、0 critical warning，22,566 条普通 warning。首次候选出现负时序余量，未用于安装；最终版将分段进度改为固定的 3 位段号，未放宽时序约束。上述 7 个板级例外继续保留。完整编译和电脑仿真通过仍不代表实机启动已通过。
+`0.2.0-gba.2` 的[完整编译收据](evidence/frame-fix-build.json)、[资源摘要](evidence/frame-fix.fit.summary)、[时序摘要](evidence/frame-fix.sta.summary)：15,816 ALM（86%）、277 M10K（90%）、27 DSP，虚拟引脚 0。104 条摘要均无负 slack、TNS 为 0，最差 setup 0.493 ns、hold 0.023 ns；0 错误、0 critical warning，22,566 条普通 warning。首次候选出现负时序余量，未用于安装；最终版将分段进度改为固定的 3 位段号，未放宽时序约束。上述 7 个板级例外继续保留。完整编译和电脑仿真通过仍不代表实机启动已通过。
 
 ## 本地构建
 
@@ -56,7 +59,7 @@ python experiments/gba_menu/probe_control.py --build .work/gba-menu/build --out 
 python experiments/gba_menu/probe_boot.py --build .work/gba-menu/build --intel-model /path/to/altera_mf.v --out .work/gba-menu/boot
 ```
 
-该命令验证完整帧和宿主误报成功但缺少末尾数据的两种情况。`probe_control.py` 同样接受 `--intel-model`，用于运行加载 FIFO 与连续换游戏检查。
+该命令验证完整帧、残留游戏所有权和宿主误报成功但缺少末尾数据的三种情况。`probe_control.py` 同样接受 `--intel-model`，用于运行加载 FIFO 与连续换游戏检查，以及 Stop／启动、绘制所有权恢复和首次错误保留。
 
 进入 `.work/gba-menu/build/src/fpga/build` 执行 `quartus_sh --flow compile ap_core.qpf`。完整编译、布局布线、多温度模型时序均通过后，返回仓库根目录：
 
@@ -87,6 +90,6 @@ python experiments/gba_menu/install.py --card X:/ --backup <该次备份目录> 
 
 数据槽顺序固定为 `[100 菜单, 4 BIOS, 1 ROM, 10 Save, 11 RTC]`；存档大小写入对应 datatable 索引 7、9。目标命令使用官方[读／写／打开／刷新接口](https://www.analogue.co/developer/docs/openfpga/host-target-commands)，槽参数见 [data.json 文档](https://www.analogue.co/developer/docs/openfpga/core-definition-files/data-json)。这些命令没有通用换核心操作；当前通过 Analogue OS 选择不同平台。
 
-实验版 Core Settings 中的只读诊断：`M` 为菜单状态／标记，低 8 位 `0x0D` 表示菜单可操作，`0x0B` 表示等待帧完成；`P` 的高 16 位为桥接字数、低 16 位为像素数，完整帧为 `0x4B009600`；`V` 为帧握手标记；`E` 为错误码，`0x22` 表示画面未完整到达；`T` / `H` 为最后的 Target / Host 命令状态。字段名保持单字母以避免 OS 截断数值。它们不会写入游戏、存档或画面设置。
+实验版 Core Settings 中的只读诊断：`M` 为菜单状态／标记，低 8 位 `0x0D` 表示菜单可操作，`0x0B` 表示等待帧完成；`P` 的高 16 位为桥接字数、低 16 位为像素数，完整帧为 `0x4B009600`；`V` 为帧握手标记；`E` 为最后错误码，`0x22` 表示画面未完整到达；`F` 为首次错误码，APF Stop／启动清零；`T` / `H` 为最后的 Target / Host 命令状态。字段名保持单字母以避免 OS 截断数值。它们不会写入游戏、存档或画面设置。
 
-English: isolated experimental GBA integration, native Chinese/icon/cover menus, ordinary saves and RTC. APF Memories/sleep and cross-core switching are disabled/unimplemented. The first hardware attempt failed with `Error in core setup`; correcting the folder identity led to a black screen before the menu. Reported registers identify FRAME_DRAIN with the previous host/target commands successful. Candidate 0.2.0-gba.2 bounds frame reads to 16 KiB, adds a completion watchdog and word/pixel counters. A firmware size limit has not been established and hardware recovery remains unconfirmed. The joined first-screen simulation models the host, RAM table and ready/idle inputs; it does not execute a GBA CPU or validate physical memory/SD. Existing full-compile evidence and inherited board exceptions are documented above. No public GBA binary release or hardware compatibility claim is made.
+English: isolated experimental GBA integration, native Chinese/icon/cover menus, ordinary saves and RTC. APF Memories/sleep and cross-core switching are disabled/unimplemented. After the core-folder identity fix, hardware black-screened; version 0.2.0-gba.2 then showed a Chinese error screen. First-run error 0x22 and P=0x4B000000 identify all bridge words received but zero pixels accepted, with menu ownership absent. Candidate 0.2.0-gba.3 explicitly initializes the lifecycle on APF Stop/boot, acquires ownership on paint and retains the first error. The original loss of ownership is not fully explained; hardware recovery remains unconfirmed. The joined simulation models the host, RAM table and ready/idle inputs; it does not execute a GBA CPU or validate physical memory/SD. Inherited board exceptions remain. No public GBA binary release or hardware compatibility claim is made.

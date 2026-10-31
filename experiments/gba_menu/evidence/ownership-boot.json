@@ -1,0 +1,27 @@
+{
+  "scope": "Actual menu/APF command/FIFO/video integration; RAM table storage, host and ready/idle inputs modeled; no GBA CPU or physical device",
+  "cases": [
+    {
+      "case": "complete",
+      "result": "passed"
+    },
+    {
+      "case": "retained-game-ownership",
+      "result": "passed"
+    },
+    {
+      "case": "missing-tail",
+      "result": "passed"
+    }
+  ],
+  "input_hashes": {
+    "tb_boot.sv": "3052c2e3bb794f6756c28b1e53938a9119e1cfec619137fcf2125a76d1d15a49",
+    "gba_menu.sv": "26662a928ebc7dafbf6c103acfd2e9dfa6f4c4c477d19f6d2ee48c7699c389f4",
+    "gba_menu_pixels.sv": "78613cdf7f18d008ba58183d2e2c1281200ae3eb28ab3516fc8f756e7e48d19b",
+    "core_bridge_cmd.v": "6d9cfdfb7e2a159a9efd72ccbeeeb00e2d2e45bf6cc83ce7d14bde2b170da766",
+    "video_adapter.sv": "3c6ec1d47a1c1c8414556f51d78dff7c045b3715f9f34d680185c6351f3bfb8e",
+    "data_loader.sv": "835124f2993469f72c5ff1967cf386a58d6dec51b5035c70b0480a54d50dafb6",
+    "common.v": "c1615e2c6c12b111537f6ca11e826e5061eb91f405e349bdc649a17b48e24d4e",
+    "altera_mf.v": "bfdfde8688adb0f2223e6aba5ff56fba569d5ed2ed87866982c2f511aef0f7a6"
+  }
+}

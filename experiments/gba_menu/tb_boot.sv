@@ -54,6 +54,9 @@ module tb_boot;
     integer i,at,source,size,operations=0,chunks=0,frame_base;
     reg [31:0] destination,word;
     reg [15:0] expected_pixel;
+    initial if($test$plusargs("dirty_boot"))begin
+        #20;menu.menu_owned=0;menu.menu_reset=0;menu.game_bound=1;
+    end
     initial begin
         commands.tstate=0;commands.hstate=0;commands.target_0=0;commands.host_0=0;commands.host_cmd_start=0;
         commands.status_setup_done_1=0;
@@ -62,6 +65,8 @@ module tb_boot;
         host_command(16'h8f);
         wait(commands.target_0==32'h636d0140);write_word(32'hf8001000,32'h6f6b0000);
         host_command(16'h11);
+        repeat(4)@(negedge clk);
+        if(!owned || !menu_reset || bound)$fatal(1,"boot did not acquire framebuffer/reset game ownership");
         while(operations<7)begin
             wait(commands.target_0[31:16]==16'h636d);
             if(commands.target_0[15:0]!=16'h180 || commands.target_20!=100)$fatal(1,"unexpected menu command %h",commands.target_0);

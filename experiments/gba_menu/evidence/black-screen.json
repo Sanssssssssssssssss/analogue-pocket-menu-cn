@@ -9,5 +9,5 @@
   },
   "inference": "M low byte 0x0B is FRAME_DRAIN; last target and host commands report success. The reported upper ownership flags are inconsistent with an initial menu load and remain unexplained. This does not identify the missing pixel count or prove a firmware transfer-size limit.",
   "candidate": "Five bounded frame reads, frame-completion watchdog and read-only word/pixel/handshake diagnostics",
-  "candidate_hardware_result": "pending"
+  "candidate_hardware_result": "0.2.0-gba.2 shows a Chinese error screen, first-run E=0x22 and P=0x4B000000; see framebuffer-ownership.json"
 }

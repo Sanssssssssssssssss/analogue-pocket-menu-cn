@@ -12,7 +12,7 @@ module tb_menu;
     reg done=1;reg [2:0] error=0;
     reg frame_ack=0,frame_started=0,frame_valid=0,visible=0,prepare_ready=1,load_ready=1;
     wire req,owned,show,rst,pause,new_load,finish_load,bound,fault;
-    wire [7:0] code,state;wire [10:0] selected;
+    wire [7:0] code,state,first_code;wire [10:0] selected;
     reg [31:0] capacity=65536;
     gba_menu #(.TIMEOUT(34'd6000),.SETTLE_CYCLES(20'd16)) dut (
         .clk(clk),.ready(ready),.buttons(buttons),.bridge_wr(bw),.bridge_rd(br),
@@ -21,7 +21,7 @@ module tb_menu;
         .t_done(done),.t_error(error),.frame_ack(frame_ack),.frame_started(frame_started),.frame_valid(frame_valid),.frame_fault(1'b0),.visible(visible),
         .prepare_ready(prepare_ready),.load_ready(load_ready),.io_idle(1'b1),.save_capacity(capacity),
         .frame_request(req),.menu_owned(owned),.menu_show(show),.menu_reset(rst),.menu_pause(pause),
-        .new_load(new_load),.finish_load(finish_load),.game_bound(bound),.fault(fault),.fault_code(code),.state(state),.selected(selected));
+        .new_load(new_load),.finish_load(finish_load),.game_bound(bound),.fault(fault),.fault_code(code),.first_fault_code(first_code),.state(state),.selected(selected));
     reg [7:0] roots[0:2111],games[0:3135];
     initial begin $readmemh("root.hex",roots);$readmemh("games.hex",games);end
     integer page=0;
@@ -145,6 +145,8 @@ module tb_menu;
     task quit_game;
         begin open_pause;press(1);wait(state==34 && dut.pause_option==1);press(4);end
     endtask
+    // Lose ownership just before paint, independently of boot initialization.
+    initial begin wait(ready);wait(state==4);@(negedge clk);#1;dut.menu_owned=0;end
     initial begin
         add_file("/Assets/gbalab/common/menu.bin",0);add_file(`GAMES_PATH,0);
         add_file("/Assets/gba/common/First.gba",32768);add_file("/Assets/gba/common/Second.gba",32768);
@@ -172,8 +174,12 @@ module tb_menu;
         press(5);menu(0);if(page!=0)$fatal(1,"error did not recover Home");
         hold_done=1;press(4);wait(fault);
         if(code!=8'hFE||bound||!rst)$fatal(1,"stale done accepted or timeout unsafe");
+        if(first_code!=8'h54)$fatal(1,"retry overwrote first failure");
         if(frame_chunks<5 || frame_chunks%5)$fatal(1,"incomplete chunked frames");
-        $display("PASS: bounded contiguous frame chunks; GBA menu A/B, create/load saves, 64K/128K, pause/resume, save+RTC+flush before return, three launches, path rejection, stale-done timeout");
+        ready=0;hold_done=0;done=1;repeat(4)@(negedge clk);
+        if(state!=0 || !owned || !rst || bound || first_code || code)$fatal(1,"APF Stop did not reset lifecycle");
+        ready=1;menu(0);
+        $display("PASS: boot/paint ownership recovery, Stop/Run reset, first-fault retention; bounded frames, A/B, three launches, 64K/128K, pause, save+RTC+flush, path rejection and timeout");
         $finish;
     end
     initial begin #10000000;$fatal(1,"watchdog state=%0d code=%h page=%0d selected=%0d",state,code,page,selected);end

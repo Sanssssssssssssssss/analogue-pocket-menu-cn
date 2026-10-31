@@ -8,7 +8,7 @@ This branch also develops an [isolated full-core GBA integration](experiments/gb
 
 The GBA hardware trial reported `Error in core setup` before its menu appeared. The core folder/author/shortname mismatch has been corrected. Existing GB/GBC libraries can use the [display update tool](docs/DISPLAY-UPDATES.md) to add titles/covers while preserving game/save identities.
 
-The subsequent GBA retest black-screened after Run, waiting for framebuffer completion. The [current candidate](experiments/gba_menu/README.md) adds bounded reads, a completion watchdog and read-only counters. Native GBA menu startup has **not passed hardware acceptance**.
+The subsequent GBA retest advanced from a black screen to a Chinese error screen: all frame words reached the bridge, but zero pixels were accepted while menu ownership was absent. The [current candidate](experiments/gba_menu/README.md) adds explicit boot initialization, ownership on each paint and a retained first-error code. Native GBA menu startup has **not passed hardware acceptance**.
 
 A native **openFPGA GB/GBC cover-flow frontend for Analogue Pocket**, with Simplified Chinese controls, Unicode game titles, folders and a black background.
 
