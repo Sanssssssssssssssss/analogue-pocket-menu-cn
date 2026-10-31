@@ -43,6 +43,8 @@
 
 `0.2.0-gba.2` 的[完整编译收据](evidence/frame-fix-build.json)、[资源摘要](evidence/frame-fix.fit.summary)、[时序摘要](evidence/frame-fix.sta.summary)：15,816 ALM（86%）、277 M10K（90%）、27 DSP，虚拟引脚 0。104 条摘要均无负 slack、TNS 为 0，最差 setup 0.493 ns、hold 0.023 ns；0 错误、0 critical warning，22,566 条普通 warning。首次候选出现负时序余量，未用于安装；最终版将分段进度改为固定的 3 位段号，未放宽时序约束。上述 7 个板级例外继续保留。完整编译和电脑仿真通过仍不代表实机启动已通过。
 
+`0.2.0-gba.3` 的[完整编译收据](evidence/ownership-build.json)、[资源摘要](evidence/ownership.fit.summary)、[时序摘要](evidence/ownership.sta.summary)：15,940 ALM（86%）、277 M10K（90%）、27 DSP，虚拟引脚 0。104 条摘要均无负 slack，TNS 为 0；最差 setup 0.491 ns、hold 0.067 ns，0 错误、0 critical warning，22,566 条普通 warning。7 个继承的板级例外保留，完整编译已通过，实机仍待复测。
+
 ## 本地构建
 
 需要 Python 3.11+、本仓库 `requirements.txt`；控制流仿真需 Icarus Verilog，完整构建需 Quartus Prime Lite 22.1。所有输出使用新的电脑目录。
