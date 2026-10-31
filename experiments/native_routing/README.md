@@ -132,8 +132,31 @@ python experiments/native_routing/stage_trial.py --interaction --build .work/nat
 
 [Route8 不按键实机通过](evidence/route8-device-report.json)：几秒后蓝屏，ID=`0x504C4100`、M=`0xE2`、D=`0`。这确认修正后的初始化前轮询能够正常走完无输入分支，未计量精确等待时长。下一项 Route10 在完整初始化后等待输入：先松开 Run，再在前两秒短按 A，记录按键前是否已有蓝屏和最终 ID/M/D。
 
+随后 [Route10](evidence/route10-device-report.json) 与 [Route9](evidence/route9-device-report.json) 在用户短按 A 后仍为 M=`0xE2`、D=`0`、A 身份。两轮没有进入按键触发的换核分支；用户没有单独确认按键前的画面时序。当前证据无法区分按键时机、等待窗口和宿主是否在此阶段发送输入，不能把它们记成按键测试通过。
+
+## 计时与运行后重入对照
+
+新增两个离线候选入口，均沿用相同 A/B 硬件，文件操作仍只有只读的 16 字节合成槽。[31 项字节码模型检查](evidence/handoff-validation.json)包含旧回归、实测时长的输出格式、无时钟退出上限，以及模型中保存 R12 后的重入分支；模拟器不产生真实按键或 OS 重入事件。[编译复用收据](evidence/handoff-builds.json)与旧硬件报告分开保存。
+
+| 入口 | 用途 | 读数 |
+|---|---|---|
+| Route11 | 等待最多约 15 秒或达到轮询上限，累计 VM 期间读到的按键 | M 高字节 D1=捕获选择、D2=计时结束、D3=轮询上限；低 16 位为按键按位或；D 为实际经过的 FPGA 毫秒数 |
+| Route12 | 先结束 VM、正常运行 A，再从系统 UI 重载槽来重新调用 VM | 初始 M=C1、D=A；运行时按 B 后 C=2；重入成功切 B 后 M=C2、ID/D=B |
+
+[官方 data.json](https://www.analogue.co/developer/docs/openfpga/core-definition-files/data-json)说明 Chip32 下参数位 7 会软重启并保留 FPGA 和 VM 寄存器状态，之后由 VM 处理选中的槽。Route12 使用 `parameters=0x89`：可重载、只读、软重启，未设置 FPGA 完整重载位。VM 在重入时先读取 FPGA 锁存的选择，再执行 CORE。M=E6 表示未读到选择，M=E7 表示目标身份不符。
+
+Route12 的对照步骤：Run 后松开 A，蓝屏时短按 B；在 Core Settings 先确认 C=2，再选择 **Reload test**，重新选中 `probe.dat`。预期橙屏、M=C2、ID/D=`0x504C4201`。这一实验明确由 OS 的文件重载触发；按游戏菜单直接发起重入仍待研究，尚未生成自动统一前端。
+
+```sh
+python experiments/native_routing/prepare_handoff.py --reuse .work/native-routing/interaction --out .work/native-routing/handoff
+# 重新链接 vm_contract.rs 后，用 probe_handoff.py 代替 probe_isolation.py，参数相同。
+python experiments/native_routing/stage_trial.py --handoff --build .work/native-routing/handoff --validation .work/native-routing/handoff-check/receipt.json --out .work/native-routing/handoff-package
+```
+
+也可用 `prepare_handoff.py --archive /path/to/core-template.zip` 从固定官方模板准备新工程，再完成硬件编译。候选包为 23 个文件约 3.36 MB，其中 3 个为已存在的共用文件。此包目前仅在电脑准备，安装和实机结果另行记录。
+
 ## English
 
 This is a **native FPGA routing diagnostic**, not a unified frontend. Two official-template board projects carry immutable A/B identities; three assembled Chip32 loaders compare input visibility before initialization, after reset release, and after full initialization. The old logging VM must reject the absent FPGA identity instead of claiming a switch. Diagnostic EXIT 0 is not routing success: M=0xA0 is required for the A/B/A identity check.
 
-The local trial removes unused audio clocks and explicitly excepts APF protocol I/O. Internal timing passes; this is not external board-I/O signoff. Route0 confirmed basic startup and input. Truncated address expressions in the old loader were fixed, with real bytecode checked against explicitly modeled hardware replies. After a verified backup, Route4 confirmed A startup; Route5 confirmed VM PMPR/PMPW reporting; Route7 confirmed B startup; Route6 confirmed orange video, immutable B ID, matching D and M=0xB2 after sequential A-to-B CORE operations. This accepts fixed switching inside one loader, not runtime re-entry. Corrected bounded input entries Route8-10 reuse the accepted A/B hardware and add explicit synthetic-slot loading after each CORE; 23 model checks pass. They were installed after a fresh backup: 30 additions, 3 identical shared files and 4,169 protected originals verified. Route8 then completed its no-input path on the device: blue after a few seconds, A identity, M=0xE2 and D=0; exact timing was not measured. Route10 is next. Input, video while waiting, A-to-B-to-A return and real game/save handoff remain unverified. Historical reports and existing game entries are preserved.
+The local trial removes unused audio clocks and explicitly excepts APF protocol I/O. Internal timing passes; this is not external board-I/O signoff. Physical reports accept A/B startup, VM PMP reporting and fixed A-to-B switching in Route6. Route8 completed its bounded no-input path. Route9 and Route10 still reported M=0xE2/D=0 after A taps, so input-driven switching was not entered; timing and host input delivery remain unresolved. New local Route11 measures elapsed time and observed keys. Route12 is an explicit OS-reload control using a read-only 16-byte slot and parameters 0x89, preserving FPGA state before VM re-entry. Thirty-one model checks pass, including preserved-register branch models; no actual OS event is simulated. Physical re-entry, direct automatic triggering, A-to-B-to-A return and game/save handoff remain unverified. Historical reports and existing game entries are preserved.

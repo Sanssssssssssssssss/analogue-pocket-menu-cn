@@ -1,0 +1,25 @@
+{
+  "date": "2026-11-01",
+  "source": "User explicitly reported M=E2 and D=0 and confirmed other expected final values; pre-input screen timing was not separately answered",
+  "package_source_commit": "3cbe8882389189354cb6973bcc3b4f8b0aa90dad",
+  "entry": "pocketlab.Route9",
+  "test": "Release Run, then repeat short A presses for about three seconds",
+  "observed": {
+    "final_screen": "Blue, confirmed as matching prompt",
+    "ID": "0x504C4100",
+    "M": "0x000000E2",
+    "D": "0x00000000",
+    "pre_input_video_timing": "Not separately answered"
+  },
+  "accepted_scope": [
+    "Entry finishes and leaves a readable no-input result"
+  ],
+  "result": "Input-triggered switch did not occur; the requested A-to-B-to-A path was not entered",
+  "not_established": [
+    "Whether the presses overlapped the armed polling window",
+    "Whether host input was delivered during the VM wait",
+    "Video visibility while waiting",
+    "Runtime VM re-entry"
+  ],
+  "next_trial": "Offline timing/key-visibility instrumentation and a documented OS-driven reload control; no further repeated tap tests of this package"
+}

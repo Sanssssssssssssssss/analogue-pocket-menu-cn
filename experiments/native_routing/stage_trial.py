@@ -38,13 +38,14 @@ def audit(build,name):
         'rbf_sha256':sha(folder/'ap_core.rbf'),'source_sha256':{p.relative_to(fpga).as_posix():sha(p) for p in [source,fpga/'core/route_probe.sv',fpga/'core/core_constraints.sdc']},
         'reports_sha256':{p.name:sha(p) for p in [folder/'ap_core.flow.rpt',folder/'ap_core.fit.summary',folder/'ap_core.sta.summary']}}
 
-def stage(build,validation,out,isolation=False,interaction=False):
-    if isolation and interaction:raise ValueError('Select one diagnostic profile')
+def stage(build,validation,out,isolation=False,interaction=False,handoff=False):
+    if sum([isolation,interaction,handoff])>1:raise ValueError('Select one diagnostic profile')
     build=Path(build).resolve();out=Path(out).resolve()
     if out.exists() or not all(p.is_relative_to(ROOT/'.work') for p in [out,build]):raise ValueError('Use fresh checkout .work output and local build')
     proof=json.loads(Path(validation).read_text());here=Path(__file__).resolve().parent
     inputs=['loader.asm','route_probe.sv','tb_probe.sv']
-    if isolation or interaction:inputs+=['isolation_loader.asm','prepare_isolation.py','vm_contract.rs','probe_isolation.py','prepare_probe.py','prepare_trial.py']
+    if isolation or interaction or handoff:inputs+=['isolation_loader.asm','prepare_isolation.py','vm_contract.rs','probe_isolation.py','prepare_probe.py','prepare_trial.py']
+    if handoff:inputs+=['timing_body.asm','reentry_body.asm','prepare_handoff.py','probe_handoff.py']
     for name in inputs:
         if proof['inputs'][name]!=sha(here/name):raise ValueError('Offline validation is stale: '+name)
     reviewed=[audit(build,n) for n in ['A','B']]
@@ -58,6 +59,8 @@ def stage(build,validation,out,isolation=False,interaction=False):
     elif interaction:
         entries=[(8,'pre-init','Corrected input before init'),(9,'reset-exit','Corrected input after reset exit'),
                  (10,'full-init','Corrected input after full init')]
+    elif handoff:
+        entries=[(11,'Route11','Measure input and elapsed time'),(12,'Route12','OS reload re-entry control')]
     else:
         entries=list(zip(range(4),[None,'pre-init','reset-exit','full-init'],
             ['Control: no loader','Input before init','Input after reset exit','Input after full init']))
@@ -66,7 +69,7 @@ def stage(build,validation,out,isolation=False,interaction=False):
         for name in ['audio','input','variants','video']:shutil.copy2(build/'A'/f'{name}.json',folder/f'{name}.json')
         core=json.loads((build/'A/core.json').read_text())['core']
         core['metadata'].update(platform_ids=['routetest'],shortname=f'Route{i}',author='pocketlab',description=description,
-            url='https://github.com/Sanssssssssssssssss/analogue-pocket-menu-cn',version='0.0.3-input' if interaction else '0.0.2-isolate' if isolation else '0.0.1-trial',date_release='2026-11-01')
+            url='https://github.com/Sanssssssssssssssss/analogue-pocket-menu-cn',version='0.0.4-handoff' if handoff else '0.0.3-input' if interaction else '0.0.2-isolate' if isolation else '0.0.1-trial',date_release='2026-11-01')
         core['framework']['hardware']={'link_port':False,'cartridge_adapter':'0x80000000'}
         core['cores']=[{'name':n,'id':j,'filename':f'probe_{n.lower()}.rbf_r'} for j,n in enumerate(['A','B'])]
         for name in ['A','B']:
@@ -74,14 +77,18 @@ def stage(build,validation,out,isolation=False,interaction=False):
             translated=raw.translate(reverse);assert translated.translate(reverse)==raw
             (folder/f'probe_{name.lower()}.rbf_r').write_bytes(translated)
         if mode:
-            loader=build/('isolation' if isolation else 'loaders')/mode/'loader.bin'
+            loader=build/('handoff' if handoff else 'isolation' if isolation else 'loaders')/mode/'loader.bin'
             expected=next(x['bytecode_sha256'] for x in proof['loaders'] if x['mode']==mode)
             if sha(loader)!=expected or loader.stat().st_size>8192:raise ValueError('Loader differs from assembled validation')
             shutil.copy2(loader,folder/'loader.bin');core['framework']['chip32_vm']='loader.bin'
         write_json(folder/'core.json',{'core':core});check_core(folder)
         write_json(folder/'input.json',{'input':{'magic':'APF_VER_1','controllers':[{'type':'default','mappings':[{'id':0,'name':'A','key':'pad_btn_a'},{'id':1,'name':'B','key':'pad_btn_b'}]}]}})
-        write_json(folder/'data.json',{'data':{'magic':'APF_VER_1','data_slots':[{'id':0,'name':'Probe seed','required':True,'filename':'probe.dat','size_exact':16,'address':'0x60000080','nonvolatile':False}]}})
+        slot={'id':0,'name':'Probe seed','required':True,'filename':'probe.dat','size_exact':16,'address':'0x60000080','nonvolatile':False}
+        if handoff:slot['parameters']=8
+        if i==12:slot.update(name='Reload test',parameters=0x89,extensions=['dat'])
+        write_json(folder/'data.json',{'data':{'magic':'APF_VER_1','data_slots':[slot]}})
         fields=[('ID',0),('R',4),('U',8),('K',0x1C),('P',0x90),('M',0xA0),('D',0xA4)]
+        if i==12:fields.append(('C',0x14))
         write_json(folder/'interact.json',{'interact':{'magic':'APF_VER_1','variables':[{'name':n,'id':60000+j,'type':'number_u32','enabled':False,'address':hex(0x60000000+offset)} for j,(n,offset) in enumerate(fields)],'messages':[]}})
     seed=files/'Assets/routetest/common/probe.dat';seed.parent.mkdir(parents=True);seed.write_bytes(b'PLAB-PROBE-V1'.ljust(16,b'\0'))
     write_json(files/'Platforms/routetest.json',{'platform':{'category':'Handheld','name':'Pocket Lab Test','manufacturer':'Pocket Lab','year':2026}})
@@ -97,4 +104,5 @@ if __name__=='__main__':
     profiles=p.add_mutually_exclusive_group()
     profiles.add_argument('--isolation',action='store_true',help='Stage only new Route4-7 minimal loaders')
     profiles.add_argument('--interaction',action='store_true',help='Stage only new Route8-10 corrected input loaders')
-    a=p.parse_args();print(json.dumps(stage(a.build,a.validation,a.out,a.isolation,a.interaction)))
+    profiles.add_argument('--handoff',action='store_true',help='Stage only new Route11-12 timing and OS reload controls')
+    a=p.parse_args();print(json.dumps(stage(a.build,a.validation,a.out,a.isolation,a.interaction,a.handoff)))

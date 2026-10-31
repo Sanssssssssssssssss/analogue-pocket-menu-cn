@@ -27,6 +27,8 @@ Route0 对照已获用户确认：固定身份正确、运行复位释放、B �
 
 [Route8 无输入分支已通过](../native_routing/evidence/route8-device-report.json)：几秒后蓝屏、ID 为 A、M=`0xE2`、D=`0`。接下来 Route10 比较完整初始化后等待期间的画面和输入，使用松开 Run 后再次短按 A 的方式；仍未把无输入正常退出记成按键或换核成功。
 
+[Route10](../native_routing/evidence/route10-device-report.json) 与 [Route9](../native_routing/evidence/route9-device-report.json) 短按后仍为 E2/D=0，没有进入换核分支。下一步以 Route11 记录真实等待时长和按键数据，以 Route12 验证官方可重载槽的 OS 重入路径。Route12 是运行后从系统 UI 触发的对照，不能代替自绘菜单主动触发的证明。两项候选只在本地准备，见[操作与边界](../native_routing/README.md#计时与运行后重入对照)。
+
 先使用无 ROM、无 BIOS、无存档的独立 A/B 程序，避免把未知重载机制直接接入游戏：
 
 1. 验证加载阶段先配置一个简单选择器时，Chip32 尚未结束，画面、按键和 `PMPR` 桥接读数能否正常工作。
