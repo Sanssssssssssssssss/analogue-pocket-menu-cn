@@ -23,6 +23,9 @@ module tb_probe;
         put(8'h10,2);address=8'h14;#1;if(a!=0)$fatal(1,"phase did not clear");
         keys=0;tick;keys=16'h20;tick;if(a!=2)$fatal(1,"fresh B missing");
         run_reset_n=1;address=4;#1;if(a!=1)$fatal(1,"APF reset status missing");
+        keys=0;tick;address=8'h1C;#1;if(a!=32'h20)$fatal(1,"last key lost");
+        put(8'h20,32'hE2);if(a!=32'hE2)$fatal(1,"result report missing");
+        put(8'h24,32'h504C4201);if(a!=32'h504C4201)$fatal(1,"detail report missing");
         address=0;#1;if(a!==32'h504C4100 || b!==32'h504C4201)$fatal(1,"identity changed");
         $display("PASS: immutable A/B IDs, live clock during APF reset, phase/release/choice and reset status");$finish;
     end

@@ -1,0 +1,47 @@
+{
+  "date": "2026-11-01",
+  "scope": "No-game diagnostic candidates; internal timing reviewed with explicit APF protocol I/O exceptions",
+  "hardware_acceptance": "pending",
+  "programs": [
+    {
+      "program": "A",
+      "compile": "successful",
+      "timing_records": 44,
+      "minimum_reported_slack_ns": 0.125,
+      "all_tns_zero": true,
+      "board_io_scope": "APF protocol I/O explicitly excepted, following existing GBA constraints; no external setup/hold signoff",
+      "rbf_sha256": "0ccd0f5295025c5672597e8723dd1a4bc97006f65f0369cf290ecc964d24920b",
+      "source_sha256": {
+        "core/core_top.v": "82322295d38e272a52dda8048f8878245517b39591ae6ee4771223debfb686c1",
+        "core/route_probe.sv": "962a67a7ab0d4a6bb8f0bcd89c7737a1a58ccc075f15e6bbe77ce74a23f64321",
+        "core/core_constraints.sdc": "41f82740164b7aef9e684d6cfb488911cee7d9c471f2f253c71bf41d2bbd61bc"
+      },
+      "reports_sha256": {
+        "ap_core.flow.rpt": "06953b03561628d010aa95d1a9fa7f1c1a68b6f3f9df0d746c2c4c098f4c99ea",
+        "ap_core.fit.summary": "67613ae89399693a5db7daab62cb02db7da7f7f3c5df54a0a107031b094ee2d0",
+        "ap_core.sta.summary": "5c25dcc58855b8c0d144a10aa97ac3e25a97c301b64f0921c106eb884b84bf1a"
+      }
+    },
+    {
+      "program": "B",
+      "compile": "successful",
+      "timing_records": 44,
+      "minimum_reported_slack_ns": 0.155,
+      "all_tns_zero": true,
+      "board_io_scope": "APF protocol I/O explicitly excepted, following existing GBA constraints; no external setup/hold signoff",
+      "rbf_sha256": "23ca325e52f82aa0685ee9fd1ef53ad16169ce1dd319a299b92a03f43483154c",
+      "source_sha256": {
+        "core/core_top.v": "739eef6ff723b70503e38ede7c66a90cecc9200b19d9b8f67f25aa3e7d1946d1",
+        "core/route_probe.sv": "962a67a7ab0d4a6bb8f0bcd89c7737a1a58ccc075f15e6bbe77ce74a23f64321",
+        "core/core_constraints.sdc": "41f82740164b7aef9e684d6cfb488911cee7d9c471f2f253c71bf41d2bbd61bc"
+      },
+      "reports_sha256": {
+        "ap_core.flow.rpt": "d97fc4ba24ef0d9f54e23a77853760895c59d458a6d4a88f409eab5a80a3b2f6",
+        "ap_core.fit.summary": "abf903e37be1eb7546760ae8f9b89edfc228a61d4c67a122893719ccf62c3101",
+        "ap_core.sta.summary": "b4926ea523b42d5ceaf0eb69aff733e03dec7a8f3edb528b42d445fc64a7c3c7"
+      }
+    }
+  ],
+  "package_files": 42,
+  "package_bytes": 6537761
+}

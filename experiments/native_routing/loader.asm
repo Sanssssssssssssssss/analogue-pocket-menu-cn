@@ -1,7 +1,6 @@
 architecture chip32.vm
 output "loader.bin", create
 // SPDX-License-Identifier: MIT
-// Experimental host operations: assemble/check offline before any device trial.
 constant early_host = 0
 constant base = 0x60000000
 constant id_a = 0x504C4100
@@ -10,6 +9,7 @@ constant id_b = 0x504C4201
 jp error
 jp start
 start:
+    ld r13,#0
     ld r0,#0
     core r0
     ld r0,#base
@@ -17,54 +17,94 @@ start:
     pmpr r0,r1
     cmp r1,#id_a
     jp nz,missing
+    ld r8,#0x10
+    ld r9,r1
+    call report
     ld r0,#base+0x10
     ld r1,#1
     pmpw r0,r1
+    ld r8,#0x20
+    ld r9,#early_host
+    call report
     ld r0,#early_host
     cmp r0,#0
     jp z,poll_start
     host r0,r0
+    ld r0,#early_host
+    cmp r0,#0x4002
+    jp nz,poll_start
+    ld r13,#1
 poll_start:
-    ld r3,#4096
-    ld r0,#base+0x14
+    ld r8,#0x21
+    call report
+    ld r0,#base+8
+    pmpr r0,r4
+    ld r3,#0x20000
 poll:
+    ld r0,#base+0x14
     ld r1,#0
     pmpr r0,r1
     cmp r1,#1
     jp z,selected
     cmp r1,#2
     jp z,selected
+    ld r0,#base+8
+    pmpr r0,r5
+    sub r5,r4
+    cmp r5,#5000
+    jp nc,no_input
     sub r3,#1
     jp nz,poll
-    ld r0,#timeout_msg
-    printf r0
-    exit 1
+no_input:
+    ld r8,#0xE2
+    ld r0,#base+0x0C
+    pmpr r0,r9
+    jp finish
 selected:
+    ld r8,#0x30
+    ld r9,r1
+    call report
+    ld r13,#0
     ld r0,#1
     core r0
     ld r0,#base
     ld r1,#0
     pmpr r0,r1
+    ld r9,r1
     cmp r1,#id_b
-    jp nz,mismatch
+    jp nz,b_failed
     ld r0,#0
     core r0
     ld r0,#base
     ld r1,#0
     pmpr r0,r1
+    ld r9,r1
     cmp r1,#id_a
-    jp nz,mismatch
+    jp nz,a_failed
+    ld r8,#0xA0
+    jp finish
+b_failed:
+    ld r8,#0xE3
+    jp finish
+a_failed:
+    ld r8,#0xE4
+finish:
+    call report
+    // EXIT 0 means the diagnostic screen can boot; inspect M for routing success.
+    cmp r13,#1
+    jp z,done
     ld r0,#0x4002
     host r0,r0
-    ld r0,#success_msg
-    printf r0
+done:
     exit 0
+report:
+    ld r0,#base+0x20
+    pmpw r0,r8
+    ld r0,#base+0x24
+    pmpw r0,r9
+    ret
 missing:
     ld r0,#missing_msg
-    printf r0
-    exit 1
-mismatch:
-    ld r0,#mismatch_msg
     printf r0
     exit 1
 error:
@@ -76,11 +116,5 @@ error:
     exit 1
 missing_msg:
 db "NO_FPGA: selector identity unavailable",10,0
-timeout_msg:
-db "NO_INPUT: bounded poll exhausted",10,0
-mismatch_msg:
-db "NO_SWITCH: FPGA identity mismatch",10,0
-success_msg:
-db "IDENTITY_A_B_A: check physical display and input separately",10,0
 error_msg:
 db "VM_ERROR: ",0

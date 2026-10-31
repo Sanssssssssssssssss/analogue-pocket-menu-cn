@@ -13,6 +13,8 @@ module route_probe #(
 );
     reg [15:0] keys_meta=0, keys=0;
     reg [31:0] uptime_ms=0, divider=0, phase=0, choice=0;
+    reg [31:0] result=0, detail=0;
+    reg [15:0] last_keys=0;
     reg released=0;
     always @(posedge clk) begin
         keys_meta <= buttons;
@@ -20,7 +22,11 @@ module route_probe #(
         if (power_reset) begin
             keys_meta<=0; keys<=0; uptime_ms<=0; divider<=0;
             phase<=0; choice<=0; released<=0;
+            result<=0; detail<=0; last_keys<=0;
         end else begin
+            if (keys!=0) last_keys<=keys;
+            if (write && address==8'h20) result<=write_data;
+            if (write && address==8'h24) detail<=write_data;
             if (divider==CYCLES_PER_MS-1) begin divider<=0; uptime_ms<=uptime_ms+1'b1; end
             else divider<=divider+1'b1;
             if (write && address==8'h10) begin
@@ -41,6 +47,9 @@ module route_probe #(
             8'h0C: read_data={16'd0,keys};
             8'h10: read_data=phase;
             8'h14: read_data=choice;
+            8'h1C: read_data={16'd0,last_keys};
+            8'h20: read_data=result;
+            8'h24: read_data=detail;
             default: read_data=0;
         endcase
     end
