@@ -2,6 +2,8 @@
 
 2026-10-31。用户已实机确认 GBA 中文名称、Pocket Lab 分组和 Change Core 正确；随后要求研究单核心入口和 GB/GBC 风格过渡。本次离线研究没有访问设备卡。可用核心与源码标签 `v0.2.0-gba.3-ui-preview.1` 保留。
 
+用户随后明确要求按游戏使用各自原生核心，拒绝 GBA 内的软件模拟。当前主线见[原生程序路由](NATIVE-CORE-ROUTING.md)：SNES 已有加载时按 ROM 选择 bitstream 的实例；以下同时容纳两套电路的面积研究仅是另一条备选路线，不是实现该目标的前提。
+
 ## 一个入口包含多个硬件程序
 
 [core.json](https://www.analogue.co/developer/docs/openfpga/core-definition-files/core-json)允许一个包列出最多 8 个 bitstream、关联 4 个平台。[Chip32](https://www.analogue.co/developer/docs/openfpga/chip32-vm/initialization-of-the-chip32-vm)可在加载时选程序，OS 中重选可重载文件也会再次调用它。这支持研究一个入口在启动时按机种选择硬件程序，但不等于中文图标页已经能直接切换。
@@ -49,6 +51,42 @@ GB/GBC 的 [`cover_picker.sv`](../../core/src/core/cover_picker.sv)有独立封�
 python experiments/unified_frontend/probe_fade.py --out .work/unified-frontend/fade-probe
 ```
 
-Icarus 仿真已通过：只在帧信号更新亮度、9 档增益各 256 组通道输入、上传期间全黑、游戏绕过以及淡入中的复位。[收据](fade-probe.json)记录输入哈希。模块要求输入帧脉冲位于垂直空白；实际跨时钟同步、菜单／游戏所有权、完整 GBA 视频链、资源和时序尚未验证，未接入或安装到设备。接入时必须让像素写入等待淡出真正结束，不能只延后“显示”信号。
+首轮 Icarus 仿真通过了帧信号更新亮度、9 档增益各 256 组通道输入、上传期间全黑、游戏绕过以及淡入中的复位。[首轮收据](fade-probe.json)只记录独立模块，当时未接入 GBA。本轮接入结果见下文；完整硬件时序及实机验收仍须另行验证。接入时必须让像素写入等待淡出真正结束，不能只延后“显示”信号。
 
-下一步先把淡入淡出接入独立 GBA 构建副本，复用首屏／缺像素／反复进入退出回归，并检查游戏画面绕过；随后完整编译与时序。单核心路线继续以运行时重载触发和共享资源为验收门槛，尚不能交付所需的统一图标启动器。
+## 续查：共享外部存储
+
+进一步阅读 [Pocket 32X 的实际实现](https://github.com/armyofgnomes/analogue-pocket-32x/blob/bf1ca098209696c79fecf7339e2c239e45f1619f/docs/architecture.md)，它把画面缓存移到外部 SRAM，并通过逐项面积实验压缩逻辑。这提供了可研究的工程方向，不能把该项目的资源结果直接套到 GBA。两者的内存访问节奏不同。
+
+本地源代码还确认了两个目标：
+
+| 目标 | 已测占用 | 需要验证的改造 |
+|---|---|---|
+| GBA `video_adapter` | 模块总计 92 M10K | 把其中的大帧缓冲放外部 SRAM，保留行缓存；净回收数量须重新综合 |
+| GB `cart_top` 的 `cram_l` / `cram_h` | 各 64 M10K，共 128 | 保留完整 128 KiB 卡带 RAM 容量，研究复用 GBA 已有 PSRAM 通路与保存接口 |
+
+Pocket SRAM 的接口是 17 位地址 ×16 位数据，可寻址 256 KiB。GBA 单帧 38,400 个 18 位像素，按每像素两个 16 位字存储需 150 KiB，容量放得下；双帧这样存储则放不下。容量计算不证明实时带宽足够：需要验证 GPU 突发写入、行预取、显示读取和 APF 菜单上传仲裁，不能只按平均帧率估算。128 KiB GB 卡带 RAM 也不能随意缩减，否则会改变存档兼容性。
+
+共享存储还必须保留暂停时的游戏 RAM，并让“保存完成／flush 成功 → 停止旧机种 → 切换映射 → 载入新进度 → 启动”顺序成立。两个游戏电路即使只运行其中之一，也仍占 FPGA 逻辑；外置 RAM 解决不了全部 ALM 问题。没有找到新的已验证图标切核接口；单 bitstream 方案仍需实际合并综合。
+
+另完成一次独立 GBA 面积优先编译：仅调整 `AGGRESSIVE AREA` / `AREA` 设置，结果为 15,777 ALM、280 M10K、27 DSP，104 条时序摘要均无负 slack，最小 0.109 ns。相对旧报告少 163 ALM、多 3 M10K；单次独立构建没有控制布局和构建标识变化，不能当作严格成对基准，更不能据此声称合并核心能放下。未生成或安装该实验的 bitstream，详见[收据](area-probe.json)。
+
+## 续查：过渡已接入电脑副本
+
+[`prepare_gba_fade.py`](prepare_gba_fade.py)从冻结的上游源码创建新 GBA 副本，接入菜单增益及所有权同步。`menu_visible` 要等亮度降到零才清除，原加载器据此等待全黑再覆盖帧；游戏像素绕过增益。原可用核心、稳定硬件目录与设备卡没有改动。
+
+```sh
+python experiments/unified_frontend/prepare_gba_fade.py --sources .work/multi-system/sources/gba --out .work/gba-menu/fade-build
+python experiments/unified_frontend/probe_fade.py --build .work/gba-menu/fade-build --out .work/unified-frontend/fade-video
+python experiments/gba_menu/probe_boot.py --fade --build .work/gba-menu/fade-build --intel-model /path/to/altera_mf.v --out .work/gba-menu/fade-boot
+python experiments/gba_menu/probe_pixels.py --fade --build .work/gba-menu/fade-build --page .work/gba-menu/fade-boot/library/Assets/gbalab/common/menu.bin --intel-model /path/to/altera_mf.v --out .work/gba-menu/fade-pixels
+```
+
+本机已通过正常首屏、残留游戏所有权启动、缺少末尾像素三项联合仿真。实际 FIFO／加载器／视频模块逐像素比对了 8 档淡入，共 307,200 个像素，并继续检查不完整上传、错误顺序和重试；另以真实视频适配器比对了 38,400 个合成游戏帧像素，检查游戏输出绕过动画及返回菜单时全黑。它们不执行游戏 CPU，也不验证真实存档与 SD 耐久性。
+
+![实际 RTL 采集的八档淡入循环预览](gba-fade.gif)
+
+图中为自绘机型和合成测试库；GIF 只循环播放采集到的八档淡入，没有把反向播放当作淡出验证。
+
+实际 Quartus 综合、布局布线、Assembler 和 STA 已完成：15,784 ALM、277 M10K、30 DSP；104 条时序摘要无负 slack、TNS 均为零，最小 Setup / Hold slack 分别为 0.418 / 0.114 ns。继承的 7 个板级输出仍未约束，部分存档通配约束未匹配。整体流程包装器在综合成功后发生管道错误，随后在不改 RTL 的情况下直接完成 Fit → ASM → STA；未把失败的流程报告改为成功，也未走现有安装包验收。详见[验证收据](gba-fade-validation.json)、[布局摘要](gba-fade.fit.summary)与[时序摘要](gba-fade.sta.summary)。
+
+单入口自动换核尚未实现；过渡候选仅保存在电脑，未安装、未获实机验收。

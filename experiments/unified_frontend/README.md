@@ -2,6 +2,8 @@
 
 2026-10-31。GBA `0.2.0-gba.3` 已获用户确认：正常中文菜单和游戏启动可用；普通存档、RTC 和保存返回仍待实机验收。
 
+当前目标是[按游戏自动调用对应的原生 FPGA 程序](NATIVE-CORE-ROUTING.md)。一次配置一个机种；独立程序的资源相加不限制这条路线。启动时按 ROM 选程序已有 SNES 实例，中文图标页触发运行时重配置仍未打通。
+
 ## 已实现的入口映射
 
 向两个原有核心的 `platform_ids` 末尾追加共同关联 `pocketlab`，增加 `Platforms/pocketlab.json`，名称为 **Pocket Lab**。原顺序分别保持：
@@ -22,7 +24,7 @@ pocketlab.GBA:       [gbalab, gba, pocketlab]
 - 旧离线分派实验已跑 7 个字节码用例，CORE/HOST 为日志模型、重新加载由测试宿主显式触发；它没有验证 FPGA 菜单按钮能唤起 Chip32。
 - 现有两套硬件也不能直接拼接。GB/GBC 使用 13,753 ALM、299 M10K、56 DSP；GBA 使用 15,940 ALM、277 M10K、27 DSP；芯片总预算 18,480 ALM、308 M10K、66 DSP。粗略相加超预算；可复用的模块尚未合并综合，不能把相加当作重新设计不可行的证明。
 
-下一项需要验证的是：是否存在受支持的宿主重载入口，能由运行中的菜单请求唤起并选择下一机种；或者重新设计共享资源的整体硬件。当前没有安装未经验证的运行时切换程序，也没有修改系统固件。
+下一项优先验证菜单与加载器的交接；先以独立 A/B 程序检验加载阶段持有选择器、读取按键选择并执行 `CORE` 的假设，以及游戏结束后的返回入口。按游戏逐个加载原生程序无需同时容纳两套游戏电路。具体门槛和源码证据见[原生程序路由](NATIVE-CORE-ROUTING.md)。
 
 ## 界面与素材
 
@@ -36,4 +38,4 @@ python experiments/gba_menu/display_update.py --card X:/ --covers /path/to/cover
 
 封面可来自 [libretro-thumbnails GBA](https://github.com/libretro-thumbnails/Nintendo_-_Game_Boy_Advance)，用 [libretro-database](https://github.com/libretro/libretro-database) 的游戏代码对应原作封面，中文别名可参考 [rom-name-cn](https://github.com/yingw/rom-name-cn)。代码匹配后仍须查看图片：本次发现上游 `Chou Makaimura R (Japan).png` 实际是另一款游戏的图，已在本地改用同作美版封面。汉化／改版版本身份仍须另行核对；按文件名整理的改版副标题只是显示别名。仓库不分发商业游戏、BIOS、个人存档、私人清单或封面包。
 
-用户已确认更新后的中文名称正确。详细的[单核心与动画可行性研究](FEASIBILITY.md)包含逐模块编译资源和离线淡入淡出原型。实机切换动画尚未改动；原型只通过独立模块仿真，尚未接入 GBA、完整编译或上机。
+用户已确认更新后的中文名称正确。详细的[单核心与动画可行性研究](FEASIBILITY.md)包含逐模块资源、共享外部存储方向和离线淡入淡出原型。过渡已接入独立 GBA 电脑副本，联合启动、八档整帧像素比对及游戏视频绕过仿真已通过；Quartus 综合、布局、ASM、STA 各阶段已完成，流程包装器失败与约束限制保留在[收据](gba-fade-validation.json)中。实机仍使用原可用版本。

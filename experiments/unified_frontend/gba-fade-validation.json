@@ -1,0 +1,95 @@
+{
+  "date": "2026-10-31",
+  "candidate": "GBA fade integration",
+  "device_card_access": false,
+  "device_writes": 0,
+  "game_cpu_in_simulation": false,
+  "hardware_acceptance": "not_performed",
+  "boot_cases": [
+    {
+      "case": "complete",
+      "result": "passed"
+    },
+    {
+      "case": "retained-game-ownership",
+      "result": "passed"
+    },
+    {
+      "case": "missing-tail",
+      "result": "passed"
+    }
+  ],
+  "raster": {
+    "gains": 8,
+    "pixels_each": 38400,
+    "total_pixels_compared": 307200,
+    "fifo_validation": [
+      "Incomplete upload",
+      "Out-of-order upload",
+      "Wrapped request retry",
+      "Game-frame completion"
+    ]
+  },
+  "game_raster_bypass": {
+    "pixels_compared": 38400,
+    "black_menu_reentry": "passed"
+  },
+  "source_sha256": {
+    "src/fpga/core/core_top.sv": "5027671187c8522ee5ef976f032fc6091bde8551bc4939e73701fde2cc2a5402",
+    "src/fpga/core/video_adapter.sv": "1043c87759697a0c9ebd65b9c029b003dc3faf57ff7917b64f5f45cc2c76a7ef",
+    "src/fpga/core/gba_menu.sv": "26662a928ebc7dafbf6c103acfd2e9dfa6f4c4c477d19f6d2ee48c7699c389f4",
+    "src/fpga/core/gba_menu_pixels.sv": "78613cdf7f18d008ba58183d2e2c1281200ae3eb28ab3516fc8f756e7e48d19b",
+    "src/fpga/core/menu_fade.sv": "83119d1e3963a820cdb5ef16e0f191d3ebff7197c990ed99ec2fde2dc09875a1"
+  },
+  "compile_status": "map_fit_asm_sta_passed_with_wrapper_failure_recorded",
+  "not_validated": [
+    "Real game/save execution",
+    "Hardware appearance",
+    "Broader pause/navigation matrix",
+    "Single-core GB/GBC/GBA implementation"
+  ],
+  "compiler": {
+    "name": "Quartus Prime Lite 22.1std.2 Build 922",
+    "device": "5CEBA4F23C8",
+    "stages": {
+      "map": "passed",
+      "fit": "passed",
+      "asm": "passed",
+      "sta": "passed"
+    },
+    "flow_wrapper": "failed: pipe to quartus_map broke after successful synthesis; direct fit/asm/sta then completed without RTL changes",
+    "alms": 15784,
+    "m10k": 277,
+    "dsp": 30,
+    "virtual_pins": 0,
+    "timing_records": 104,
+    "minimum_slack_ns": 0.114,
+    "minimum_setup_slack_ns": 0.418,
+    "minimum_hold_slack_ns": 0.114,
+    "all_tns_zero": true,
+    "unconstrained_output_ports": [
+      "cart_tran_bank0[4]",
+      "cart_tran_bank0[6]",
+      "cart_tran_bank3[0]",
+      "cart_tran_bank3[1]",
+      "cart_tran_bank3[3]",
+      "cart_tran_bank3[5]",
+      "cart_tran_bank3[6]"
+    ],
+    "constraints_scope": "Seven existing board output ports remain unconstrained; no unconstrained clocks or inputs. Existing savestate wildcard constraints did not match. This is not a claim that every path is constrained.",
+    "warnings": {
+      "fit": 25,
+      "asm": 0,
+      "sta": 13
+    },
+    "rbf_bytes": 2062628,
+    "rbf_sha256": "877fb707daad7d37b4119ad23a4aff1dde0ff13341241f9da862539d284754ab",
+    "packaging": "not performed; accepted package unchanged; wrapper flow receipt remains failed"
+  },
+  "report_sha256": {
+    "ap_core.map.summary": "cfa03b9a2d1ff2406c5886f2779332b0ccb2c189e9b2885aac10c232fecdf584",
+    "ap_core.fit.summary": "dcb7924c0ee9d10280c70bf00275007bae4381bb405c868d04e610d30907279c",
+    "ap_core.asm.rpt": "b4cc061bb2eacd6122781d095c587e7c944bbd8a8ceb668490386eb094c3dfd8",
+    "ap_core.sta.summary": "2eec6a8ee259857ba0bb4059c6008324ca50995584bd15ecda119c27e9342c8e"
+  }
+}
