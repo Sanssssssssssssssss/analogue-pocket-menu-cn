@@ -1,0 +1,21 @@
+{
+  "date": "2026-11-01",
+  "package_source_commit": "bf478c7fbb41ff24f71cb80cd085883016c01919",
+  "scope": "New no-game diagnostic entries only; physical launch results pending",
+  "entries": [
+    "pocketlab.Route4",
+    "pocketlab.Route5",
+    "pocketlab.Route6",
+    "pocketlab.Route7"
+  ],
+  "added_files": 40,
+  "added_bytes": 6368966,
+  "shared_files_verified": 3,
+  "protected_files_sha256_verified": 4115,
+  "overwritten_files": 0,
+  "save_writes": 0,
+  "firmware_writes": 0,
+  "backup": "Fresh local copy of current protected data verified before installation; private receipts and exact added-file rollback list retained locally",
+  "hardware_acceptance": "Pending Route4, then Route5/Route7/Route6; installation hashes do not establish FPGA handoff",
+  "rollback": "Remove only the 40 listed additions after checking their hashes; retain existing shared assets, cores and saves"
+}

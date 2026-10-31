@@ -20,7 +20,7 @@ SNES 的 `set_core` 路径先执行默认 `CORE 0`，特殊芯片或 PAL 分支�
 
 随后已完成独立诊断包：保留只读身份，增加最近按键及 M/D 结果，移除不用的音频时钟，按已有 GBA 的范围显式处理 APF 协议 I/O 例外。两套新版工程完成全流程编译和内部时序检查，备份后新增 `Pocket Lab Test` 四个入口；当前只请求验证 Route0 对照，实际换核仍待验收。详见[试验包与回退边界](../native_routing/README.md#独立实机诊断包)。
 
-Route0 对照已获用户确认：固定身份正确、运行复位释放、B 键读数正确、计时持续增加。[实机记录](../native_routing/evidence/route0-device-report.json)仅认证该普通启动路径。随后 Route3 黑屏并短暂报错，Route1 可启动但 M/D 全零；实际旧字节码存在地址表达式截断，已用完整地址修正。新一轮 23 项指令模型检查和 A/B 板级编译通过，最小 Route4/5/7/6 包已在本地准备；[新记录](../native_routing/evidence/route1-route3-device-report.json)不把这些离线结果当作原生换核验收。
+Route0 对照已获用户确认：固定身份正确、运行复位释放、B 键读数正确、计时持续增加。[实机记录](../native_routing/evidence/route0-device-report.json)仅认证该普通启动路径。随后 Route3 黑屏并短暂报错，Route1 可启动但 M/D 全零；实际旧字节码存在地址表达式截断，已用完整地址修正。新一轮 23 项指令模型检查和 A/B 板级编译通过，最小 Route4/5/7/6 包已备份安装，见[安装记录](../native_routing/evidence/isolation-install-report.json)；[现场记录](../native_routing/evidence/route1-route3-device-report.json)不把离线检查或安装校验当作原生换核验收。
 
 先使用无 ROM、无 BIOS、无存档的独立 A/B 程序，避免把未知重载机制直接接入游戏：
 
