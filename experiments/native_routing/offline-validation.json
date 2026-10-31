@@ -1,0 +1,38 @@
+{
+  "date": "2026-11-01",
+  "scope": "Standalone probe RTL plus real loader assembly and negative stub-VM checks; no host reconfiguration or video/input acceptance",
+  "rtl": "passed",
+  "loaders": [
+    {
+      "mode": "pre-init",
+      "assembly": "passed",
+      "logging_vm": "refused missing FPGA identity as required",
+      "bytecode_sha256": "238683274bb75217577e146dd22900ad4163a6c9b2424ca0524463930c9ad118"
+    },
+    {
+      "mode": "reset-exit",
+      "assembly": "passed",
+      "logging_vm": "refused missing FPGA identity as required",
+      "bytecode_sha256": "aaf73166b8adabacbe8ae7767bbe941068d52caf4c9610f5fc0adb2a34086d39"
+    },
+    {
+      "mode": "full-init",
+      "assembly": "passed",
+      "logging_vm": "refused missing FPGA identity as required",
+      "bytecode_sha256": "4fada7fb321b81bf9f71fd01835c3db9746da1290b82bae56315ddbf2cb75aa3"
+    }
+  ],
+  "card_access": false,
+  "hardware_reconfiguration": "not_tested",
+  "inputs": {
+    "route_probe.sv": "f454eab3beb4371d4142b7f261e21bc966ea1e0ed27228fcefd114034d513337",
+    "tb_probe.sv": "40ab68cbc3198fc57e0741132255da53565e222845d4a426f7ec8fcb4ce8e57c",
+    "loader.asm": "fde5727689e60566faad8690da8b0c32e793059a69192d3dec1d848bf339d149",
+    "prepare_probe.py": "1b5a25d8e79c3b0e2e18ee8f3e19dfbd3bf8cbfdeecf0a694cffe89ec82f8c1a",
+    "probe_offline.py": "52b9fe97940724f12b51c4d2370a5c879b870f0713819f3c295bf4ea82cba75b"
+  },
+  "tools": {
+    "bass": "d5c0d4c9171c23d6317e34e594ad2272f7b3c09d686d8b44a76a9c860151b28b",
+    "chip32-sim-cli": "d64e738a1d5311d9b19a7bd24b69e6d21d3585b3a418feadfd2845f28475b1be"
+  }
+}

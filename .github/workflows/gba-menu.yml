@@ -3,7 +3,7 @@ on:
   push:
     branches: [feature/gba-native-menu]
   pull_request:
-    paths: [experiments/gba_menu/**, experiments/unified_frontend/**, tools/**, assets/fonts/**, .github/workflows/gba-menu.yml]
+    paths: [experiments/gba_menu/**, experiments/unified_frontend/**, experiments/native_routing/**, tools/**, assets/fonts/**, .github/workflows/gba-menu.yml]
   workflow_dispatch:
 permissions:
   contents: read
@@ -17,6 +17,7 @@ jobs:
           python-version: '3.11'
       - run: python -m pip install -r requirements.txt
       - run: sudo apt-get update -qq && sudo apt-get install -y iverilog
+      - run: mkdir -p .work/native-routing && iverilog -g2012 -s tb_probe -o .work/native-routing/probe.sim experiments/native_routing/route_probe.sv experiments/native_routing/tb_probe.sv && vvp .work/native-routing/probe.sim
       - run: python -m unittest discover -s experiments/gba_menu -p 'test_*.py' -v
       - run: python experiments/multi_system/fetch_sources.py --out .work/multi-system/sources
       - run: python experiments/gba_menu/prepare_build.py --sources .work/multi-system/sources/gba --out .work/gba-menu/ci-build --integrate
