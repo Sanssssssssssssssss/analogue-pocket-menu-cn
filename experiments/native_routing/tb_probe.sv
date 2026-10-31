@@ -26,6 +26,9 @@ module tb_probe;
         keys=0;tick;address=8'h1C;#1;if(a!=32'h20)$fatal(1,"last key lost");
         put(8'h20,32'hE2);if(a!=32'hE2)$fatal(1,"result report missing");
         put(8'h24,32'h504C4201);if(a!=32'h504C4201)$fatal(1,"detail report missing");
+        put(8'hA0,0);if(a!=32'hE2)$fatal(1,"UI writeback erased result");
+        put(8'hA4,0);if(a!=32'h504C4201)$fatal(1,"UI writeback erased detail");
+        put(8'h90,0);if(a!=2)$fatal(1,"UI writeback erased phase");
         address=0;#1;if(a!==32'h504C4100 || b!==32'h504C4201)$fatal(1,"identity changed");
         $display("PASS: immutable A/B IDs, live clock during APF reset, phase/release/choice and reset status");$finish;
     end

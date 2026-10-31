@@ -1,6 +1,6 @@
 # 原生换核 A/B 探针
 
-2026-11-01。这是独立诊断源码，**不是统一游戏前端**。首轮离线研究之后，已生成并校验独立的 `Pocket Lab Test` 试验包；实机结果待用户反馈。现有游戏入口与存档没有迁移。
+2026-11-01。这是独立诊断源码，**不是统一游戏前端**。`Pocket Lab Test` 的普通启动对照已通过；旧轮询加载器已发现地址被截断的问题。修正与新隔离测试已完成离线检查，原生换核尚未实机通过。
 
 目标是把三个问题分别验证：加载器还在运行时能否收到按键；宿主能否显示该阶段的视频；第二次 `CORE` 是否确实配置了另一个 FPGA 程序。启动时选中编号、真正重配置、游戏运行后重新唤起加载器，是三个不同结论。
 
@@ -33,6 +33,7 @@
 | `1C` | 最近一次非零按键，释放后保留，便于打开系统菜单读取 |
 | `20` | 加载器阶段／结果，对应 Core Settings 的 M |
 | `24` | 最后一次身份读数或诊断附加值，对应 D |
+| `90` / `A0` / `A4` | 新版 P / M / D 的只读别名；写入不改变结果 |
 
 三个独立加载器分别在等待按键前：不提前发 HOST、发 `0x4001`、发 `0x4002`。当前版本等待 FPGA 自有计时达到约 5 秒，另设最多 131,072 轮的退出上限；宿主自身超时仍可能更早结束执行。选到 A 或 B 后均执行固定的 A→B→A 身份检查；此处按键只确认输入通路，尚不分派真实游戏。
 
@@ -80,10 +81,38 @@ python experiments/native_routing/stage_trial.py --build .work/native-routing/tr
 
 Route0 已获用户实机确认：ID=`0x504C4100`、R=`0x00000001`、K=`0x00000020`，U 持续增加。该结果验证普通启动、身份读回、运行复位释放、B 键到达和探针计时，详见[实机记录](evidence/route0-device-report.json)。画面颜色没有单独描述；Route0 不执行 Chip32，不能据此确认加载阶段交互或自动换核。
 
-下一步测试 Route3：完全关机重开，选择该入口并 Run；松开 A，在前 5 秒内短按 B 两三次，即使黑屏也先按，约 10 秒后读取 M、D、ID 及画面状态。A→B→A 重配置和运行中重入仍未验收。本目录不提供游戏、BIOS、存档或二进制核心下载。
+随后 Route3 黑屏，按 B 后短暂出现 Chip32 相关错误并返回；没有记录到完整错误，B 也可能取消了宿主加载流程。Route1 可启动，ID 正确、计时正常，但 M/D 全零。[现场记录与旧字节码复核](evidence/route1-route3-device-report.json)保留这些限制。
+
+## 地址截断修正与最小测试
+
+实际汇编后的旧 `ld r0,#base+0x20` 只加载 `0x20`，没有保留 `0x60000000`；阶段、按键、时钟和 D 的地址同样被截断。对已安装 Route1 的原字节码复测，也得到 M/D 全零、没有发起第二次 CORE。源码已改用完整 32 位地址常量。该错误足以解释无效读写，但不能单独解释 Route3 的全部宿主错误。
+
+`probe_isolation.py` 在真实 Chip32 指令解释器外提供明确标记的 FPGA/宿主模型：覆盖三种旧加载阶段各六条路径、四个新最小加载器，以及复现截断错误的负向检查，共 23 项。它执行真实汇编字节码，**CORE、HOST、PMP 的回应仍是模型**，不证明 Pocket 会允许重配置。见[离线收据](evidence/isolation-validation.json)。独立 RTL 检查也验证向诊断只读别名写零不会擦除结果；没有证据表明系统菜单曾实际擦除旧结果。
+
+新硬件 A/B 分别使用 691 / 684 ALM、均为 2 M10K、0 DSP；各 44 条时序摘要无负 slack、TNS 均为零，最小 slack 为 0.134 / 0.124 ns。APF 协议 I/O 仍使用明确例外，不能称为完整外部板级时序签核。[编译收据](evidence/isolation-builds.json)与历史编译分开保存。
+
+四个新增入口均没有按键轮询、CALL/RET 或提前 HOST；文件操作只加载 16 字节合成种子，没有游戏或非易失写入。
+
+| 测试顺序 | 入口 | 预期诊断 |
+|---|---|---|
+| 1 | Route4 | 直接启动 A；ID=`0x504C4100`，M/D=0 是正常值 |
+| 2 | Route5 | 读回 A；ID 和 D=`0x504C4100`，M=`0xB1` |
+| 3 | Route7 | 直接启动 B；ID=`0x504C4201`，M/D=0 是正常值 |
+| 4 | Route6 | A→B；只有 ID 和 D=`0x504C4201` 才支持真切换，M=`0xB2` 单独不算通过 |
+
+```sh
+python experiments/native_routing/prepare_isolation.py --archive /path/to/core-template.zip --out .work/native-routing/isolation
+# 编译 isolation/A/src/fpga 与 isolation/B/src/fpga。
+# 先构建上述 Chip32 simulator 的 library，使用同一 Rust 工具链链接模型驱动：
+rustc --edition=2021 experiments/native_routing/vm_contract.rs --extern chip32_sim=/path/to/libchip32_sim-HASH.rlib -L dependency=/path/to/deps -o .work/native-routing/vm-contract
+python experiments/native_routing/probe_isolation.py --prepared .work/native-routing/isolation --bass /path/to/bass --model .work/native-routing/vm-contract --library /path/to/libchip32_sim-HASH.rlib --out .work/native-routing/isolation-check
+python experiments/native_routing/stage_trial.py --isolation --build .work/native-routing/isolation --validation .work/native-routing/isolation-check/receipt.json --out .work/native-routing/isolation-package
+```
+
+输出 43 个文件约 6.54 MB。安装时仅新增 Route4～7 的 40 个文件，共用平台和种子须与现有文件哈希一致；保留 Route0～3 与旧备份用于对照。新包目前只在电脑上准备，实机安装与验收须另行记录。A→B→A 重配置和运行中重入仍未验收。本目录不提供游戏、BIOS、存档或二进制核心下载。
 
 ## English
 
 This is a **native FPGA routing diagnostic**, not a unified frontend. Two official-template board projects carry immutable A/B identities; three assembled Chip32 loaders compare input visibility before initialization, after reset release, and after full initialization. The old logging VM must reject the absent FPGA identity instead of claiming a switch. Diagnostic EXIT 0 is not routing success: M=0xA0 is required for the A/B/A identity check.
 
-The new local trial removes unused audio clocks and explicitly excepts APF protocol I/O, following the existing GBA project's scope. Internal timing passes; this is not external board-I/O signoff. Four separate trial entries were installed after a verified backup, without overwriting existing files. The user confirmed Route0 identity, run-reset release, retained B input and advancing uptime. This no-loader control does not verify Chip32 interaction, A→B→A reconfiguration or runtime loader re-entry; Route3 is next. The original board reports remain as historical evidence for commit aac1469.
+The local trial removes unused audio clocks and explicitly excepts APF protocol I/O. Internal timing passes; this is not external board-I/O signoff. The user confirmed Route0 identity, run-reset release, retained B input and advancing uptime. Route3 then stalled with an incompletely captured Chip32 error; Route1 started but showed zero M/D. Actual bytecode inspection found truncated address expressions, now replaced with complete 32-bit literals. Twenty-three checks execute actual bytecode with explicitly modeled hardware replies, including the truncation regression. New minimal Route4/5/7/6 candidates and read-only diagnostic aliases are ready locally; physical installation and results remain pending. A→B→A reconfiguration and runtime loader re-entry remain unverified. Historical reports and existing game entries are preserved.

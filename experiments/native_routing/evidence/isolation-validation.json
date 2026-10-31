@@ -1,0 +1,598 @@
+{
+  "date": "2026-11-01",
+  "scope": "Real instruction execution with synthetic FPGA/host replies; not Pocket behavior",
+  "rtl": "passed including read-only diagnostic aliases",
+  "cases": [
+    {
+      "loader": "pre-init",
+      "scenario": "success",
+      "exit": 0,
+      "m": 160,
+      "d": 1347174656,
+      "steps": 114,
+      "cores": [
+        0,
+        1,
+        0
+      ],
+      "hosts": [
+        16386
+      ],
+      "loads": [],
+      "pmp_addresses": [
+        1610612736,
+        1610612744,
+        1610612752,
+        1610612756,
+        1610612768,
+        1610612772
+      ],
+      "model": true
+    },
+    {
+      "loader": "pre-init",
+      "scenario": "skip-switch",
+      "exit": 0,
+      "m": 227,
+      "d": 1347174656,
+      "steps": 106,
+      "cores": [
+        0,
+        1
+      ],
+      "hosts": [
+        16386
+      ],
+      "loads": [],
+      "pmp_addresses": [
+        1610612736,
+        1610612744,
+        1610612752,
+        1610612756,
+        1610612768,
+        1610612772
+      ],
+      "model": true
+    },
+    {
+      "loader": "pre-init",
+      "scenario": "skip-return",
+      "exit": 0,
+      "m": 228,
+      "d": 1347174913,
+      "steps": 113,
+      "cores": [
+        0,
+        1,
+        0
+      ],
+      "hosts": [
+        16386
+      ],
+      "loads": [],
+      "pmp_addresses": [
+        1610612736,
+        1610612744,
+        1610612752,
+        1610612756,
+        1610612768,
+        1610612772
+      ],
+      "model": true
+    },
+    {
+      "loader": "pre-init",
+      "scenario": "no-input",
+      "exit": 0,
+      "m": 226,
+      "d": 0,
+      "steps": 124,
+      "cores": [
+        0
+      ],
+      "hosts": [
+        16386
+      ],
+      "loads": [],
+      "pmp_addresses": [
+        1610612736,
+        1610612744,
+        1610612748,
+        1610612752,
+        1610612756,
+        1610612768,
+        1610612772
+      ],
+      "model": true
+    },
+    {
+      "loader": "pre-init",
+      "scenario": "clock-stuck",
+      "exit": 0,
+      "m": 226,
+      "d": 0,
+      "steps": 1835064,
+      "cores": [
+        0
+      ],
+      "hosts": [
+        16386
+      ],
+      "loads": [],
+      "pmp_addresses": [
+        1610612736,
+        1610612744,
+        1610612748,
+        1610612752,
+        1610612756,
+        1610612768,
+        1610612772
+      ],
+      "model": true
+    },
+    {
+      "loader": "pre-init",
+      "scenario": "wrong-id",
+      "exit": 1,
+      "m": 0,
+      "d": 0,
+      "steps": 12,
+      "cores": [
+        0
+      ],
+      "hosts": [],
+      "loads": [],
+      "pmp_addresses": [
+        1610612736
+      ],
+      "model": true
+    },
+    {
+      "loader": "reset-exit",
+      "scenario": "success",
+      "exit": 0,
+      "m": 160,
+      "d": 1347174656,
+      "steps": 118,
+      "cores": [
+        0,
+        1,
+        0
+      ],
+      "hosts": [
+        16385,
+        16386
+      ],
+      "loads": [],
+      "pmp_addresses": [
+        1610612736,
+        1610612744,
+        1610612752,
+        1610612756,
+        1610612768,
+        1610612772
+      ],
+      "model": true
+    },
+    {
+      "loader": "reset-exit",
+      "scenario": "skip-switch",
+      "exit": 0,
+      "m": 227,
+      "d": 1347174656,
+      "steps": 110,
+      "cores": [
+        0,
+        1
+      ],
+      "hosts": [
+        16385,
+        16386
+      ],
+      "loads": [],
+      "pmp_addresses": [
+        1610612736,
+        1610612744,
+        1610612752,
+        1610612756,
+        1610612768,
+        1610612772
+      ],
+      "model": true
+    },
+    {
+      "loader": "reset-exit",
+      "scenario": "skip-return",
+      "exit": 0,
+      "m": 228,
+      "d": 1347174913,
+      "steps": 117,
+      "cores": [
+        0,
+        1,
+        0
+      ],
+      "hosts": [
+        16385,
+        16386
+      ],
+      "loads": [],
+      "pmp_addresses": [
+        1610612736,
+        1610612744,
+        1610612752,
+        1610612756,
+        1610612768,
+        1610612772
+      ],
+      "model": true
+    },
+    {
+      "loader": "reset-exit",
+      "scenario": "no-input",
+      "exit": 0,
+      "m": 226,
+      "d": 0,
+      "steps": 128,
+      "cores": [
+        0
+      ],
+      "hosts": [
+        16385,
+        16386
+      ],
+      "loads": [],
+      "pmp_addresses": [
+        1610612736,
+        1610612744,
+        1610612748,
+        1610612752,
+        1610612756,
+        1610612768,
+        1610612772
+      ],
+      "model": true
+    },
+    {
+      "loader": "reset-exit",
+      "scenario": "clock-stuck",
+      "exit": 0,
+      "m": 226,
+      "d": 0,
+      "steps": 1835068,
+      "cores": [
+        0
+      ],
+      "hosts": [
+        16385,
+        16386
+      ],
+      "loads": [],
+      "pmp_addresses": [
+        1610612736,
+        1610612744,
+        1610612748,
+        1610612752,
+        1610612756,
+        1610612768,
+        1610612772
+      ],
+      "model": true
+    },
+    {
+      "loader": "reset-exit",
+      "scenario": "wrong-id",
+      "exit": 1,
+      "m": 0,
+      "d": 0,
+      "steps": 12,
+      "cores": [
+        0
+      ],
+      "hosts": [],
+      "loads": [],
+      "pmp_addresses": [
+        1610612736
+      ],
+      "model": true
+    },
+    {
+      "loader": "full-init",
+      "scenario": "success",
+      "exit": 0,
+      "m": 160,
+      "d": 1347174656,
+      "steps": 119,
+      "cores": [
+        0,
+        1,
+        0
+      ],
+      "hosts": [
+        16386,
+        16386
+      ],
+      "loads": [],
+      "pmp_addresses": [
+        1610612736,
+        1610612744,
+        1610612752,
+        1610612756,
+        1610612768,
+        1610612772
+      ],
+      "model": true
+    },
+    {
+      "loader": "full-init",
+      "scenario": "skip-switch",
+      "exit": 0,
+      "m": 227,
+      "d": 1347174656,
+      "steps": 111,
+      "cores": [
+        0,
+        1
+      ],
+      "hosts": [
+        16386,
+        16386
+      ],
+      "loads": [],
+      "pmp_addresses": [
+        1610612736,
+        1610612744,
+        1610612752,
+        1610612756,
+        1610612768,
+        1610612772
+      ],
+      "model": true
+    },
+    {
+      "loader": "full-init",
+      "scenario": "skip-return",
+      "exit": 0,
+      "m": 228,
+      "d": 1347174913,
+      "steps": 118,
+      "cores": [
+        0,
+        1,
+        0
+      ],
+      "hosts": [
+        16386,
+        16386
+      ],
+      "loads": [],
+      "pmp_addresses": [
+        1610612736,
+        1610612744,
+        1610612752,
+        1610612756,
+        1610612768,
+        1610612772
+      ],
+      "model": true
+    },
+    {
+      "loader": "full-init",
+      "scenario": "no-input",
+      "exit": 0,
+      "m": 226,
+      "d": 0,
+      "steps": 127,
+      "cores": [
+        0
+      ],
+      "hosts": [
+        16386
+      ],
+      "loads": [],
+      "pmp_addresses": [
+        1610612736,
+        1610612744,
+        1610612748,
+        1610612752,
+        1610612756,
+        1610612768,
+        1610612772
+      ],
+      "model": true
+    },
+    {
+      "loader": "full-init",
+      "scenario": "clock-stuck",
+      "exit": 0,
+      "m": 226,
+      "d": 0,
+      "steps": 1835067,
+      "cores": [
+        0
+      ],
+      "hosts": [
+        16386
+      ],
+      "loads": [],
+      "pmp_addresses": [
+        1610612736,
+        1610612744,
+        1610612748,
+        1610612752,
+        1610612756,
+        1610612768,
+        1610612772
+      ],
+      "model": true
+    },
+    {
+      "loader": "full-init",
+      "scenario": "wrong-id",
+      "exit": 1,
+      "m": 0,
+      "d": 0,
+      "steps": 12,
+      "cores": [
+        0
+      ],
+      "hosts": [],
+      "loads": [],
+      "pmp_addresses": [
+        1610612736
+      ],
+      "model": true
+    },
+    {
+      "loader": "negative-compiler-regression",
+      "scenario": "truncated-expression",
+      "exit": 0,
+      "m": 0,
+      "d": 0,
+      "steps": 1835064,
+      "cores": [
+        0
+      ],
+      "hosts": [
+        16386
+      ],
+      "loads": [],
+      "pmp_addresses": [
+        8,
+        12,
+        16,
+        20,
+        32,
+        36,
+        1610612736
+      ],
+      "model": true
+    },
+    {
+      "loader": "Route4",
+      "scenario": "modeled-normal-host",
+      "exit": 0,
+      "m": 0,
+      "d": 0,
+      "steps": 8,
+      "cores": [
+        0
+      ],
+      "hosts": [
+        16386
+      ],
+      "loads": [
+        0
+      ],
+      "pmp_addresses": [],
+      "model": true
+    },
+    {
+      "loader": "Route5",
+      "scenario": "modeled-normal-host",
+      "exit": 0,
+      "m": 177,
+      "d": 1347174656,
+      "steps": 15,
+      "cores": [
+        0
+      ],
+      "hosts": [
+        16386
+      ],
+      "loads": [
+        0
+      ],
+      "pmp_addresses": [
+        1610612736,
+        1610612768,
+        1610612772
+      ],
+      "model": true
+    },
+    {
+      "loader": "Route6",
+      "scenario": "modeled-normal-host",
+      "exit": 0,
+      "m": 178,
+      "d": 1347174913,
+      "steps": 19,
+      "cores": [
+        0,
+        1
+      ],
+      "hosts": [
+        16386
+      ],
+      "loads": [
+        0,
+        0
+      ],
+      "pmp_addresses": [
+        1610612736,
+        1610612768,
+        1610612772
+      ],
+      "model": true
+    },
+    {
+      "loader": "Route7",
+      "scenario": "modeled-normal-host",
+      "exit": 0,
+      "m": 0,
+      "d": 0,
+      "steps": 8,
+      "cores": [
+        1
+      ],
+      "hosts": [
+        16386
+      ],
+      "loads": [
+        0
+      ],
+      "pmp_addresses": [],
+      "model": true
+    }
+  ],
+  "loaders": [
+    {
+      "mode": "Route4",
+      "assembly": "passed",
+      "bytecode_sha256": "9a137241b9475f3b1a100c4fb84d67e8ec5ee52aa1207dea718c406949f7f9cd"
+    },
+    {
+      "mode": "Route5",
+      "assembly": "passed",
+      "bytecode_sha256": "b4422b10bf9c76eee3c7677685a293c3d3523ba1e6772d8e63ed08e5a7104c3a"
+    },
+    {
+      "mode": "Route6",
+      "assembly": "passed",
+      "bytecode_sha256": "411727ae9674ac5528b9b292d9edc8298448ee22070fee40a2dcbab542194241"
+    },
+    {
+      "mode": "Route7",
+      "assembly": "passed",
+      "bytecode_sha256": "24f28ca623e10cc9e5bd633e378e23c1b348022ce7c84624643f6afc4ec95577"
+    }
+  ],
+  "inputs": {
+    "route_probe.sv": "c539c3bc767118a7e034dd29f88fd9fd7eb0b5f0eae16c6946feef14b081ba0a",
+    "tb_probe.sv": "4a4d6d176003d96e226937f86f96e6e94a2de548da36cec4e813ccb4c20dd268",
+    "loader.asm": "96f142128a64faa9be6906f59a46abedfb22d7e1af6acb5d7b7776dc6432b52c",
+    "isolation_loader.asm": "7801c84d44af815e869eec0528cb688072387e34821b9e5b5d00e81669cbc95a",
+    "prepare_probe.py": "1b5a25d8e79c3b0e2e18ee8f3e19dfbd3bf8cbfdeecf0a694cffe89ec82f8c1a",
+    "prepare_trial.py": "9fa5b5371527bc4f9768eae6f6ee0d2e70ab81337af625226bf19af31cc921a8",
+    "prepare_isolation.py": "c47e2b43a2ffc5d9a6ea0853bbe0d0f26ebd8a0baccd57e188d2dc91d58ac60b",
+    "vm_contract.rs": "60b7880b87016ec696e5beb36e9052acaa736c062b517e98e75a147ea29ddaa9",
+    "probe_isolation.py": "af98e19db4fede70824f9caf4b0de31c2a4312bb46ce38f5fcaabcac9c220391"
+  },
+  "tools": {
+    "bass": "d5c0d4c9171c23d6317e34e594ad2272f7b3c09d686d8b44a76a9c860151b28b",
+    "vm-contract": "789df9054be91395e464258d7767b7157cc09c05d97921eb6073e7df0e23f3ad",
+    "libchip32_sim-e962cfde56514d3a.rlib": "72228b852d4011b13fdf77fbeca9c032754be4db723cebdc46ba6348418ed1e6"
+  },
+  "hardware_reconfiguration": "not_tested",
+  "card_access": false
+}

@@ -20,7 +20,8 @@ start:
     ld r8,#0x10
     ld r9,r1
     call report
-    ld r0,#base+0x10
+    // Explicit literals avoid BASS choosing a truncated 16-bit expression encoding.
+    ld r0,#0x60000010
     ld r1,#1
     pmpw r0,r1
     ld r8,#0x20
@@ -37,18 +38,18 @@ start:
 poll_start:
     ld r8,#0x21
     call report
-    ld r0,#base+8
+    ld r0,#0x60000008
     pmpr r0,r4
     ld r3,#0x20000
 poll:
-    ld r0,#base+0x14
+    ld r0,#0x60000014
     ld r1,#0
     pmpr r0,r1
     cmp r1,#1
     jp z,selected
     cmp r1,#2
     jp z,selected
-    ld r0,#base+8
+    ld r0,#0x60000008
     pmpr r0,r5
     sub r5,r4
     cmp r5,#5000
@@ -57,7 +58,7 @@ poll:
     jp nz,poll
 no_input:
     ld r8,#0xE2
-    ld r0,#base+0x0C
+    ld r0,#0x6000000C
     pmpr r0,r9
     jp finish
 selected:
@@ -98,9 +99,9 @@ finish:
 done:
     exit 0
 report:
-    ld r0,#base+0x20
+    ld r0,#0x60000020
     pmpw r0,r8
-    ld r0,#base+0x24
+    ld r0,#0x60000024
     pmpw r0,r9
     ret
 missing:
@@ -113,8 +114,12 @@ error:
     err r0,r1
     hex.b r0
     hex.w r1
+    ld r0,#newline
+    printf r0
     exit 1
 missing_msg:
 db "NO_FPGA: selector identity unavailable",10,0
 error_msg:
 db "VM_ERROR: ",0
+newline:
+db 10,0

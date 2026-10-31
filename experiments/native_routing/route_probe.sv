@@ -50,6 +50,10 @@ module route_probe #(
             8'h1C: read_data={16'd0,last_keys};
             8'h20: read_data=result;
             8'h24: read_data=detail;
+            // Core Settings may write back its readout address; aliases ignore writes.
+            8'h90: read_data=phase;
+            8'hA0: read_data=result;
+            8'hA4: read_data=detail;
             default: read_data=0;
         endcase
     end

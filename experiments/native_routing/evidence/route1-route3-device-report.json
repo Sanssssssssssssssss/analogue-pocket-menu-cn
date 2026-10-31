@@ -1,0 +1,55 @@
+{
+  "date": "2026-11-01",
+  "source": "User reports, followed by local execution of the exact installed Route1 bytecode with modeled host responses",
+  "installed_source_commit": "03eaa48771a53e5a027d934dadf013f2ca995e27",
+  "Route3": {
+    "observed": "Black until B; a brief Chip32-related error and return after B",
+    "error_text": "Approximate user paraphrase; exact firmware error unknown",
+    "interpretation": "B may cancel a stuck host load; loader input and reconfiguration not established"
+  },
+  "Route1": {
+    "observed": {
+      "ID": "0x504C4100",
+      "M": "0x00000000",
+      "D": "0x00000000",
+      "clock": "Normal per user"
+    },
+    "accepted_scope": "Entry starts and identity/clock are accessible; M/D zero is not a valid pass result"
+  },
+  "confirmed_local_defect": {
+    "source": "loader.asm expressions such as ld r0,#base+0x20",
+    "actual_address": "0x00000020 instead of 0x60000020; similarly phase, input, clock and detail offsets lose their base",
+    "historical_loader_sha256": "770fee1794a03f0bb262e211ced63d18d9d97242b187df47b42a5b417b8f4e1a",
+    "exact_historical_bytecode_model": {
+      "exit": 0,
+      "m": 0,
+      "d": 0,
+      "steps": 1835064,
+      "cores": [
+        0
+      ],
+      "hosts": [
+        16386
+      ],
+      "loads": [],
+      "pmp_addresses": [
+        8,
+        12,
+        16,
+        20,
+        32,
+        36,
+        1610612736
+      ],
+      "model": true
+    },
+    "fix": "Use full 32-bit address literals; add all-path bytecode model checks and a negative compiler regression"
+  },
+  "not_established": [
+    "Physical A-to-B reconfiguration",
+    "Video/input while the VM is running",
+    "Runtime VM re-entry from a game",
+    "Whether host UI writes contributed to diagnostic loss"
+  ],
+  "next_trials": "Minimal Route4/5/7/6, without polling or early initialization; preserve existing Route0-3"
+}
