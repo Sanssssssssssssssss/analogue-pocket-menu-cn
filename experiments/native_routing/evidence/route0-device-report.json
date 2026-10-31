@@ -1,0 +1,28 @@
+{
+  "date": "2026-11-01",
+  "source": "User-reported readings from the physical Pocket",
+  "installed_source_commit": "03eaa48771a53e5a027d934dadf013f2ca995e27",
+  "entry": "pocketlab.Route0",
+  "observed": {
+    "ID": "0x504C4100",
+    "R": "0x00000001",
+    "K": "0x00000020",
+    "U": "Continues increasing; exact value not supplied",
+    "screen_color": "Not separately described in this report"
+  },
+  "accepted_scope": [
+    "No-loader control entry starts on the physical device",
+    "Immutable A identity is readable through Core Settings",
+    "APF run reset is released",
+    "B input reached the probe and was retained",
+    "Probe clock and uptime continue running"
+  ],
+  "not_established": [
+    "Chip32 operation; Route0 does not use Chip32",
+    "Input or display while the loader is running",
+    "A-to-B-to-A FPGA reconfiguration",
+    "Re-entering the loader from a running game",
+    "Game or save compatibility"
+  ],
+  "next_trial": "Route3: early full initialization, release Run button, tap B during first five seconds, read M/D/ID"
+}

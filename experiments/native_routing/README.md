@@ -78,10 +78,12 @@ python experiments/native_routing/stage_trial.py --build .work/native-routing/tr
 
 先完全关机插卡，进入 **openFPGA → Pocket Lab Test → Change Core → Route0 → Run**。蓝屏后按一次 B，打开 Analogue 菜单的 Core Settings，读取 **ID、R、K**；期望 ID=`0x504C4100`、R=`1`、K=`0x20`。Route0 通过后，才解释另外三项结果；失败时不能直接推断换核接口不可用。
 
-掌机屏幕、实际按键到达、A→B→A 重配置及运行中重入均未实测。本目录不提供游戏、BIOS、存档或二进制核心下载。
+Route0 已获用户实机确认：ID=`0x504C4100`、R=`0x00000001`、K=`0x00000020`，U 持续增加。该结果验证普通启动、身份读回、运行复位释放、B 键到达和探针计时，详见[实机记录](evidence/route0-device-report.json)。画面颜色没有单独描述；Route0 不执行 Chip32，不能据此确认加载阶段交互或自动换核。
+
+下一步测试 Route3：完全关机重开，选择该入口并 Run；松开 A，在前 5 秒内短按 B 两三次，即使黑屏也先按，约 10 秒后读取 M、D、ID 及画面状态。A→B→A 重配置和运行中重入仍未验收。本目录不提供游戏、BIOS、存档或二进制核心下载。
 
 ## English
 
 This is a **native FPGA routing diagnostic**, not a unified frontend. Two official-template board projects carry immutable A/B identities; three assembled Chip32 loaders compare input visibility before initialization, after reset release, and after full initialization. The old logging VM must reject the absent FPGA identity instead of claiming a switch. Diagnostic EXIT 0 is not routing success: M=0xA0 is required for the A/B/A identity check.
 
-The new local trial removes unused audio clocks and explicitly excepts APF protocol I/O, following the existing GBA project's scope. Internal timing passes; this is not external board-I/O signoff. Four separate trial entries were installed after a verified backup, without overwriting existing files. Physical video, controller delivery, actual A→B→A reconfiguration and runtime loader re-entry await device feedback. The original board reports remain as historical evidence for commit aac1469.
+The new local trial removes unused audio clocks and explicitly excepts APF protocol I/O, following the existing GBA project's scope. Internal timing passes; this is not external board-I/O signoff. Four separate trial entries were installed after a verified backup, without overwriting existing files. The user confirmed Route0 identity, run-reset release, retained B input and advancing uptime. This no-loader control does not verify Chip32 interaction, A→B→A reconfiguration or runtime loader re-entry; Route3 is next. The original board reports remain as historical evidence for commit aac1469.
