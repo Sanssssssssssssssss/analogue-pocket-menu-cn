@@ -38,6 +38,8 @@
 
 `0.2.0-gba.1` 的[完整编译收据](evidence/build.json)、[资源摘要](evidence/gba.fit.summary)、[时序摘要](evidence/gba.sta.summary)：实际 `5CEBA4F23C8` 全引脚工程通过，15,605 ALM（84%）、277 M10K（90%）、27 DSP，虚拟引脚 0。四个模型的 104 条时序摘要均无负 slack、TNS 均为 0；最差 setup 0.494 ns、hold 0.097 ns。编译错误与 critical warning 均为 0，继承工程仍报告 22,560 条普通 warning。上游已有的 7 个卡槽输出未约束，完整板级／外设签核不在该结论内。
 
+候选 `0.2.0-gba.2` 的[完整编译收据](evidence/frame-fix-build.json)、[资源摘要](evidence/frame-fix.fit.summary)、[时序摘要](evidence/frame-fix.sta.summary)：15,816 ALM（86%）、277 M10K（90%）、27 DSP，虚拟引脚 0。104 条摘要均无负 slack、TNS 为 0，最差 setup 0.493 ns、hold 0.023 ns；0 错误、0 critical warning，22,566 条普通 warning。首次候选出现负时序余量，未用于安装；最终版将分段进度改为固定的 3 位段号，未放宽时序约束。上述 7 个板级例外继续保留。完整编译和电脑仿真通过仍不代表实机启动已通过。
+
 ## 本地构建
 
 需要 Python 3.11+、本仓库 `requirements.txt`；控制流仿真需 Icarus Verilog，完整构建需 Quartus Prime Lite 22.1。所有输出使用新的电脑目录。
