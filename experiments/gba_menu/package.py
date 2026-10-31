@@ -8,6 +8,8 @@ from pathlib import Path
 import re
 import shutil
 import subprocess
+import uuid
+from prepare_build import prepare
 
 ROOT=Path(__file__).resolve().parents[2]
 CORE='pocketlab.GBA'
@@ -16,7 +18,7 @@ CORE='pocketlab.GBA'
 def sha(p):return hashlib.sha256(p.read_bytes()).hexdigest()
 
 
-def stage(build,out):
+def stage(build,out,sources):
     build,out=Path(build).resolve(),Path(out).resolve()
     if out.exists() or out.is_relative_to(build):raise ValueError('Use fresh staging outside build tree')
     files=build/'src/fpga/build/output_files'
@@ -35,10 +37,21 @@ def stage(build,out):
     # Cyclone V RBF size varies with fitted memory/configuration contents.
     if not 1024**2<=len(raw)<=3*1024**2 or len(raw)%4:
         raise ValueError('Unexpected GBA Pocket bitstream size')
-    # Verify the staged build actually uses the currently reviewed menu modules.
-    for name in ('gba_menu.sv','gba_menu_pixels.sv'):
-        if (build/'src/fpga/core'/name).read_bytes()!=Path(__file__).with_name(name).read_bytes():
-            raise ValueError('Build uses different menu RTL: '+name)
+    # Recreate all inputs from the pinned source plus current integration script.
+    # Checking only the two new menu modules would miss stale lifecycle wiring.
+    reference=prepare(sources,ROOT/'.work/gba-menu'/('package-reference-'+uuid.uuid4().hex),True)
+    for p in (reference/'src').rglob('*'):
+        if p.is_file():
+            rel=p.relative_to(reference)
+            actual,expected=(build/rel).read_bytes(),p.read_bytes()
+            if rel.as_posix()=='src/fpga/build/ap_core.qsf':
+                # Quartus rewrites this informational version field and line endings.
+                def settings(raw):
+                    lines=raw.decode('utf-8').splitlines()
+                    return [s for s in lines if not s.startswith('set_global_assignment -name LAST_QUARTUS_VERSION ')]
+                actual,expected=settings(actual),settings(expected)
+            if actual!=expected:
+                raise ValueError('Compiled source differs from current integration: '+rel.as_posix())
     pkg=out/'core';dst=pkg/'Cores'/CORE;dst.mkdir(parents=True)
     upstream=build/'pkg/Cores/mincer_ray.GBA'
     for name in ('audio.json','input.json','interact.json','variants.json','video.json'):
@@ -85,8 +98,9 @@ def stage(build,out):
 
 
 if __name__=='__main__':
-    p=argparse.ArgumentParser(description=__doc__);p.add_argument('--build',required=True);p.add_argument('--out',required=True)
+    p=argparse.ArgumentParser(description=__doc__)
+    for arg in ('build','out','sources'):p.add_argument('--'+arg,required=True)
     a=p.parse_args()
     try:
-        r=stage(a.build,a.out);print(json.dumps({k:r[k] for k in ('core','bitstream_sha256','minimum_reported_slack_ns','hardware_playtest')}))
+        r=stage(a.build,a.out,a.sources);print(json.dumps({k:r[k] for k in ('core','bitstream_sha256','minimum_reported_slack_ns','hardware_playtest')}))
     except (OSError,ValueError) as e:p.exit(2,str(e)+'\n')

@@ -32,13 +32,15 @@ def prepare(card,library,out,preferred=()):
             original=safe_path(card,'Saves/gba/common/'+rel.with_suffix(ext).as_posix())
             if not original.is_file():continue
             before=original.stat();raw=original.read_bytes()
-            if original.stat().st_mtime_ns!=before.st_mtime_ns:raise ValueError('Source progress changed')
+            after=original.stat()
+            if after.st_mtime_ns!=before.st_mtime_ns or after.st_size!=before.st_size:raise ValueError('Source progress changed')
+            source_hash=digest(raw)
             rtc=None
             if len(raw) in (65552,131088):raw,rtc=raw[:-16],raw[-16:]
             if len(raw) not in (512,8192,32768,65536,131072) or len(raw)>expected:
                 skipped.append({'path':original.relative_to(card).as_posix(),'reason':'unrecognized size or would truncate'});continue
             body=raw.ljust(expected,b'\xff')
-            candidates.setdefault(row['save'],[]).append((original,body,rtc,row['rtc']))
+            candidates.setdefault(row['save'],[]).append((original,body,rtc,row['rtc'],source_hash))
     out.mkdir(parents=True)
     files=[];imports=[]
     for target,options in sorted(candidates.items()):
@@ -48,13 +50,13 @@ def prepare(card,library,out,preferred=()):
         # Equal ROMs share a hash identity; disagreeing originals require review.
         if len({digest(v[1]) for v in options})!=1 or len({digest(v[2]) for v in options if v[2]})>1:
             skipped.append({'path':target,'reason':'different existing saves for the same ROM identity'});continue
-        original,body,rtc,rtc_target=options[0]
+        original,body,rtc,rtc_target,source_hash=options[0]
         for rel,data in ((target,body),(rtc_target,rtc)):
             if data is None:continue
             if not rel.startswith('Saves/gbalab/common/'):raise ValueError('Save target outside lab')
             p=safe_path(out,rel);p.parent.mkdir(parents=True,exist_ok=True);p.write_bytes(data)
             files.append({'path':rel,'sha256':digest(data),'bytes':len(data)})
-        imports.append({'source':original.relative_to(card).as_posix(),'source_sha256':digest(original.read_bytes()),
+        imports.append({'source':original.relative_to(card).as_posix(),'source_sha256':source_hash,
                         'target':target,'bytes':len(body),'rtc_footer_copied':rtc is not None,
                         'explicit_preference':bool(chosen),'alternatives_preserved':alternatives})
     result={'source_writes':0,'original_save_writes':0,'files':files,'imports':imports,'skipped':skipped,

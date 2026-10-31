@@ -29,6 +29,8 @@
 - [像素仿真](evidence/pixels.json)：38,400 个像素与实际扫描输出逐像素比对；不完整／错序帧拒绝、重试及游戏画面交接。
 - 仿真不验证实体 SDRAM／PSRAM、SD 写入耐久性、声音、游戏兼容或掉电。完整编译结果与继承时序约束的范围记录在本目录证据中；原始板级例外不能据此升级为外部存储时序签核。
 
+[完整编译收据](evidence/build.json)、[资源摘要](evidence/gba.fit.summary)、[时序摘要](evidence/gba.sta.summary)：实际 `5CEBA4F23C8` 全引脚工程通过，15,605 ALM（84%）、277 M10K（90%）、27 DSP，虚拟引脚 0。四个模型的 104 条时序摘要均无负 slack、TNS 均为 0；最差 setup 0.494 ns、hold 0.097 ns。编译错误与 critical warning 均为 0，继承工程仍报告 22,560 条普通 warning。上游已有的 7 个卡槽输出未约束，完整板级／外设签核不在该结论内；保留这一边界，不通过添加 false path 隐藏它们。
+
 ## 本地构建
 
 需要 Python 3.11+、本仓库 `requirements.txt`；控制流仿真需 Icarus Verilog，完整构建需 Quartus Prime Lite 22.1。所有输出使用新的电脑目录。
@@ -42,7 +44,7 @@ python experiments/gba_menu/probe_control.py --build .work/gba-menu/build --out 
 进入 `.work/gba-menu/build/src/fpga/build` 执行 `quartus_sh --flow compile ap_core.qpf`。完整编译、布局布线、多温度模型时序均通过后，返回仓库根目录：
 
 ```sh
-python experiments/gba_menu/package.py --build .work/gba-menu/build --out .work/gba-menu/package
+python experiments/gba_menu/package.py --build .work/gba-menu/build --sources .work/upstream/gba --out .work/gba-menu/package
 python experiments/gba_menu/library.py --card X:/ --out .work/gba-menu/library
 python experiments/gba_menu/import_saves.py --card X:/ --library .work/gba-menu/library/library-manifest.json --out .work/gba-menu/saves
 python experiments/gba_menu/install.py --card X:/ --package .work/gba-menu/package --library .work/gba-menu/library --saves .work/gba-menu/saves
@@ -68,4 +70,4 @@ python experiments/gba_menu/install.py --card X:/ --backup <该次备份目录> 
 
 数据槽顺序固定为 `[100 菜单, 4 BIOS, 1 ROM, 10 Save, 11 RTC]`；存档大小写入对应 datatable 索引 7、9。目标命令使用官方[读／写／打开／刷新接口](https://www.analogue.co/developer/docs/openfpga/host-target-commands)，槽参数见 [data.json 文档](https://www.analogue.co/developer/docs/openfpga/core-definition-files/data-json)。这些命令没有通用换核心操作；当前通过 Analogue OS 选择不同平台。
 
-English: isolated experimental GBA integration, native Chinese/icon/cover menus, ordinary saves and RTC. APF Memories/sleep and cross-core switching are disabled/unimplemented. Local RTL checks are distinct from full Quartus compilation and physical gameplay acceptance. The scripts stage and verify a new `pocketlab.GBA` entry, preserve original ROMs/saves, and retain newly played progress during rollback. See the commands and evidence above; no GBA binary release or hardware compatibility claim is made.
+English: isolated experimental GBA integration, native Chinese/icon/cover menus, ordinary saves and RTC. APF Memories/sleep and cross-core switching are disabled/unimplemented. Full Quartus fit passed at 84% ALMs with positive reported timing; seven inherited cartridge output exceptions remain. Physical gameplay acceptance is pending. The scripts stage and verify a new `pocketlab.GBA` entry, preserve original ROMs/saves, and retain newly played progress during rollback. See the commands and evidence above; no public GBA binary release or hardware compatibility claim is made.
