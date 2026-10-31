@@ -1,0 +1,25 @@
+{
+  "date": "2026-11-01",
+  "source": "User confirmed expected ID/M supplied in the prompt and explicitly reported D=0 and delayed blue screen",
+  "package_source_commit": "3cbe8882389189354cb6973bcc3b4f8b0aa90dad",
+  "entry": "pocketlab.Route8",
+  "test": "No new A/B input after releasing Run",
+  "observed": {
+    "screen": "Blue after a few seconds; elapsed time not measured",
+    "ID": "0x504C4100",
+    "M": "0x000000E2",
+    "D": "0x00000000"
+  },
+  "accepted_scope": [
+    "Corrected pre-init input loader completes its bounded no-input path",
+    "No-input result and zero current-key detail are readable after startup",
+    "A diagnostic video appears after the wait"
+  ],
+  "not_established": [
+    "Exact five-second timing versus polling-limit exit",
+    "Input or video while the VM is still running",
+    "A-to-B-to-A return",
+    "Runtime VM re-entry or real game/save handoff"
+  ],
+  "next_trial": "Route10: release Run then tap A during first two seconds; note whether blue video is visible before input and read ID/M/D"
+}

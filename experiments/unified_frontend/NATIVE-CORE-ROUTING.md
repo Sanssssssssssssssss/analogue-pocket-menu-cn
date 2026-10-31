@@ -25,6 +25,8 @@ Route0 对照已获用户确认：固定身份正确、运行复位释放、B �
 
 随后 [Route4 实机通过](../native_routing/evidence/route4-device-report.json)：立即蓝屏、ID 为 A、运行复位释放。[Route5 也通过](../native_routing/evidence/route5-device-report.json)：蓝屏、ID/D 为 A、M=`0xB1`，确认 VM 的身份读取与结果写入。[Route7](../native_routing/evidence/route7-device-report.json)确认 B 单独启动，[Route6](../native_routing/evidence/route6-device-report.json)确认同一加载器 A→B，最终橙屏、ID/D 为 B、M=`0xB2`。下一项为修正后的 Route8～10 按键测试；等待期间的画面、按键与 A→B→A 返回仍须实测，运行阶段重入尚未验证。
 
+[Route8 无输入分支已通过](../native_routing/evidence/route8-device-report.json)：几秒后蓝屏、ID 为 A、M=`0xE2`、D=`0`。接下来 Route10 比较完整初始化后等待期间的画面和输入，使用松开 Run 后再次短按 A 的方式；仍未把无输入正常退出记成按键或换核成功。
+
 先使用无 ROM、无 BIOS、无存档的独立 A/B 程序，避免把未知重载机制直接接入游戏：
 
 1. 验证加载阶段先配置一个简单选择器时，Chip32 尚未结束，画面、按键和 `PMPR` 桥接读数能否正常工作。
