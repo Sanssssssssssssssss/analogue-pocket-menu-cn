@@ -14,7 +14,9 @@ module gba_menu_pixels (
     output reg frame_started=0,
     output reg frame_valid=0,
     output reg frame_fault=0,
-    output reg game_frame_ready=0
+    output reg game_frame_ready=0,
+    output wire [15:0] received_pixels,
+    output reg [15:0] bridge_words=0
 );
     wire write_en;
     wire [27:0] write_addr;
@@ -28,6 +30,15 @@ module gba_menu_pixels (
     reg [2:0] request_sync=0;
     reg request_seen=0, collecting=0, game_started=0;
     reg [15:0] next_pixel=0;
+    reg request_seen_bridge=0,previous_bridge_wr=0;
+    always @(posedge clk_bridge) begin
+        previous_bridge_wr<=bridge_wr;
+        if(frame_request!=request_seen_bridge)begin
+            request_seen_bridge<=frame_request;bridge_words<=0;
+        end else if(bridge_wr && !previous_bridge_wr && bridge_addr[31:28]==5)
+            bridge_words<=bridge_words+1'b1;
+    end
+    assign received_pixels=frame_valid ? 16'd38400 : next_pixel;
     always @(posedge clk_memory) begin
         request_sync<={request_sync[1:0],frame_request};
         if (request_sync[2]!=request_seen) begin

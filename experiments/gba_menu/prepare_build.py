@@ -40,6 +40,7 @@ wire [7:0] ui_fault_code,ui_state;
 wire [10:0] ui_selected;
 wire ui_frame_request,ui_frame_ack,ui_frame_started,ui_frame_valid,ui_frame_fault,game_frame_ready;
 wire ui_visible,ui_visible_bridge;
+wire [15:0] ui_received_pixels,ui_received_pixels_b,ui_frame_words;
 wire ui_owned_s,ui_reset_s,ui_pause_s,ui_new_load_s;
 wire ui_prepare_ready,ui_load_ready,ui_io_idle;
 wire ui_prepare_ready_b,ui_load_ready_b,ui_io_idle_b;
@@ -59,6 +60,8 @@ synch_3 ui_reset_sync(ui_reset,ui_reset_s,clk_sys);
 synch_3 ui_pause_sync(ui_pause,ui_pause_s,clk_sys);
 synch_3 osnotify_sync(osnotify_inmenu,osnotify_s,clk_sys);
 synch_3 ui_visible_sync(ui_visible,ui_visible_bridge,clk_74a);
+// Diagnostic counters are inspected after a transfer has settled.
+synch_3 #(.WIDTH(16)) ui_count_sync(ui_received_pixels,ui_received_pixels_b,clk_74a);
 synch_3 ui_ack_sync(ui_frame_ack,ui_frame_ack_b,clk_74a);
 synch_3 ui_started_sync(ui_frame_started,ui_frame_started_b,clk_74a);
 synch_3 ui_valid_sync(ui_frame_valid,ui_frame_valid_b,clk_74a);
@@ -128,7 +131,16 @@ assign savestate_load_ok=0;assign savestate_load_err=1;
                  "wire    [31:0]  target_buffer_resp_struct=0;\nassign target_dataslot_getfile=0;")
     text=replace(text,'.target_dataslot_read       ( target_dataslot_read ),',
                  '.target_dataslot_flush      ( ui_flush ),\n    .target_dataslot_read       ( target_dataslot_read ),')
-    text=replace(text,"    32'hF8xxxxxx: begin", "    32'hF3xxxxxx: bridge_rd_data <= ui_param_data;\n    32'hF4xxxxxx: bridge_rd_data <= {3'd0,ui_bound,ui_owned,ui_reset,ui_pause,ui_fault,ui_selected,5'd0,ui_state};\n    32'hF8xxxxxx: begin")
+    text=replace(text,"    32'hF8xxxxxx: begin", """    32'hF3xxxxxx: bridge_rd_data <= ui_param_data;
+    32'hF4xxxxxx: begin
+        case(bridge_addr[7:0])
+            8'h04: bridge_rd_data <= {ui_frame_words,ui_received_pixels_b};
+            8'h08: bridge_rd_data <= {24'd0,ui_show,ui_visible_bridge,ui_frame_fault_b,ui_frame_valid_b,ui_frame_started_b,ui_frame_ack_b,ui_frame_request,ui_owned};
+            8'h0C: bridge_rd_data <= {24'd0,ui_fault_code};
+            default: bridge_rd_data <= {3'd0,ui_bound,ui_owned,ui_reset,ui_pause,ui_fault,ui_selected,5'd0,ui_state};
+        endcase
+    end
+    32'hF8xxxxxx: begin""")
     text=replace(text,"wire [31:0] rtc_size_bytes = rtc_active ? 32'd16 : 32'd0;", "wire [31:0] rtc_size_bytes = ui_bound ? 32'd16 : 32'd0;\nassign ui_capacity=save_size_bytes;")
     text=replace(text,"datatable_addr_r <= datatable_rtc_phase ? 10'd7 : 10'd5;", "datatable_addr_r <= datatable_rtc_phase ? 10'd9 : 10'd7;")
     text=replace(text,'datatable_data_r <= datatable_rtc_phase ? rtc_size_bytes : save_size_bytes;',
@@ -140,7 +152,8 @@ gba_menu_pixels ui_pixels (
     .clk_bridge(clk_74a),.clk_memory(clk_sys),.bridge_wr(bridge_wr),.bridge_endian_little(bridge_endian_little),
     .bridge_addr(bridge_addr),.bridge_wr_data(bridge_wr_data),.menu_owned(ui_owned_s),.frame_request(ui_frame_request),
     .game_pixel_addr(pixel_out_addr),.game_pixel_we(pixel_out_we),.pixel_addr(ui_pixel_addr),.pixel_data(ui_pixel_data),
-    .pixel_we(ui_pixel_we),.frame_ack(ui_frame_ack),.frame_started(ui_frame_started),.frame_valid(ui_frame_valid),.frame_fault(ui_frame_fault),.game_frame_ready(game_frame_ready));
+    .pixel_we(ui_pixel_we),.frame_ack(ui_frame_ack),.frame_started(ui_frame_started),.frame_valid(ui_frame_valid),.frame_fault(ui_frame_fault),.game_frame_ready(game_frame_ready),
+    .received_pixels(ui_received_pixels),.bridge_words(ui_frame_words));
 '''
     text=replace(text,'video_adapter video_out (',pixel_adapter+'\nvideo_adapter video_out (')
     text=replace(text,'.pixel_addr ( pixel_out_addr ),','.pixel_addr ( ui_owned_s ? ui_pixel_addr : pixel_out_addr ),')

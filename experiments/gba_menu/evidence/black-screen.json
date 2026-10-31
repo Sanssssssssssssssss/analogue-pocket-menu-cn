@@ -1,0 +1,13 @@
+{
+  "date": "2026-10-31",
+  "source": "User hardware report after correcting core folder identity",
+  "result": "Black screen immediately after OS Run; native Chinese menu not seen",
+  "readouts": {
+    "M": "0x1000000B",
+    "T": "0x6F6B0000",
+    "H": "0x4F4B0000"
+  },
+  "inference": "M low byte 0x0B is FRAME_DRAIN; last target and host commands report success. The reported upper ownership flags are inconsistent with an initial menu load and remain unexplained. This does not identify the missing pixel count or prove a firmware transfer-size limit.",
+  "candidate": "Five bounded frame reads, frame-completion watchdog and read-only word/pixel/handshake diagnostics",
+  "candidate_hardware_result": "pending"
+}

@@ -2,7 +2,8 @@
 // GBAF1 page reader and GBA launch/save lifecycle, clocked by the APF bridge.
 module gba_menu #(
     parameter [33:0] TIMEOUT=34'd8910000000,
-    parameter [19:0] SETTLE_CYCLES=20'd7400
+    parameter [19:0] SETTLE_CYCLES=20'd7400,
+    parameter [33:0] FRAME_TIMEOUT=34'd371250000
 ) (
     input wire clk, ready,
     input wire [31:0] buttons,
@@ -34,7 +35,7 @@ module gba_menu #(
         LOAD_FINISH=30,LOAD_DRAIN=31,RUN=32,PAUSE_WAIT=33,PAUSE=34,
         QUIT_WAIT=35,QUIT_SAVE_OPENED=36,QUIT_SAVE_WRITTEN=37,QUIT_SAVE_FLUSHED=38,
         QUIT_RTC_OPENED=39,QUIT_RTC_WRITTEN=40,QUIT_RTC_FLUSHED=41,
-        ERROR=42,HOME_OPEN=43,HOME_OPENED=44,CMD_WAIT=45;
+        ERROR=42,HOME_OPEN=43,HOME_OPENED=44,CMD_WAIT=45,FRAME_TRANSFERRED=46;
     localparam [31:0] FRAME_SIZE=76800;
     localparam [31:0] PARAM=32'hF3000000;
     (* ramstyle="M10K, no_rw_check" *) reg [31:0] row[0:255];
@@ -55,6 +56,10 @@ module gba_menu #(
     reg command_armed=0,go_back=0,pause_option=0,drain_was_low=0;
     reg [33:0] timer=0;
     reg [31:0] frame_offset=0;
+    // Fixed 240x160 RGB565 pages: four 16 KiB reads and one 11 KiB tail.
+    reg [2:0] frame_chunk=0;
+    wire [31:0] frame_sent={15'd0,frame_chunk,14'd0};
+    wire [31:0] frame_length=frame_chunk==4 ? 32'd11264 : 32'd16384;
     reg [6:0] validate_index=0;
     reg validate_rtc=0;
     wire [31:0] normalized=bridge_endian_little ? bridge_wr_data :
@@ -159,15 +164,18 @@ module gba_menu #(
                     else if(go_back)fail(8'h14);
                     else paint(frame_base+({21'd0,selected}*FRAME_SIZE),MENU);
                 end else begin validate_index<=validate_index+1'b1;state<=VALIDATE_ADDR;end
-            FRAME_BLANK:if(!visible)begin frame_request<=~frame_request;state<=FRAME_ARM;timer<=0;end
-                else if(timer>=TIMEOUT)fail(8'h20);
+            FRAME_BLANK:if(!visible)begin frame_request<=~frame_request;frame_chunk<=0;state<=FRAME_ARM;timer<=0;end
+                else if(timer>=FRAME_TIMEOUT)fail(8'h20);
             FRAME_ARM:if(frame_started==frame_request && !frame_valid && !frame_fault)state<=FRAME_ISSUE;
-                else if(timer>=TIMEOUT)fail(8'h24);
-            FRAME_ISSUE:command(0,100,frame_offset,32'h50000000,FRAME_SIZE,FRAME_DRAIN);
+                else if(timer>=FRAME_TIMEOUT)fail(8'h24);
+            FRAME_ISSUE:command(0,100,frame_offset+frame_sent,32'h50000000+frame_sent,frame_length,FRAME_TRANSFERRED);
+            FRAME_TRANSFERRED:if(result!=0 || frame_fault)fail(8'h21);
+                else if(frame_chunk==4)begin state<=FRAME_DRAIN;timer<=0;end
+                else begin frame_chunk<=frame_chunk+1'b1;state<=FRAME_ISSUE;end
             FRAME_DRAIN:if(result!=0 || frame_fault)fail(8'h21);
                 else if(frame_ack==frame_request && frame_valid)begin menu_show<=1;state<=FRAME_SHOW;timer<=0;end
-                else if(timer>=TIMEOUT)fail(8'h22);
-            FRAME_SHOW:if(visible)begin state<=after_frame;timer<=0;end else if(timer>=TIMEOUT)fail(8'h23);
+                else if(timer>=FRAME_TIMEOUT)fail(8'h22);
+            FRAME_SHOW:if(visible)begin state<=after_frame;timer<=0;end else if(timer>=FRAME_TIMEOUT)fail(8'h23);
             MENU:begin
                 if(press[4])begin menu_show<=0;state<=ACTIVATE;end
                 else if(press[5])begin selected<=count[10:0]-1'b1;go_back<=1;menu_show<=0;state<=RECORD_REQ;end

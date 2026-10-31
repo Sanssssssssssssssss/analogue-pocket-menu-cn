@@ -29,6 +29,7 @@ module tb_menu;
     reg [8*256-1:0] bindings[0:127];
     integer rom_reads=0,save_reads=0,rtc_reads=0,save_writes=0,rtc_writes=0,flushes=0,transactions=0;
     integer masks=0,ticks=0;
+    integer frame_bytes=0,frame_origin=0,frame_chunks=0;
     reg fail_flush=0,hold_done=0;
     reg [7:0] pbytes[0:263];
     reg [8*256-1:0] path;
@@ -82,7 +83,15 @@ module tb_menu;
                         end
                     end else if(slot==100 && address[31:28]==5)begin
                         if(visible || !owned)$fatal(1,"frame written while visible/game owns framebuffer");
-                        repeat(80)@(negedge clk);frame_ack=req;frame_valid=1;
+                        // Bounded host adapter rejects oversized reads and requires
+                        // contiguous file offsets and destination addresses.
+                        if(length>16384 || length<4 || length%4 || address!=32'h50000000+frame_bytes)$fatal(1,"invalid frame chunk");
+                        if(frame_bytes==0)frame_origin=off;
+                        if(off!=frame_origin+frame_bytes)$fatal(1,"frame file offset gap");
+                        frame_bytes=frame_bytes+length;frame_chunks=frame_chunks+1;
+                        if(frame_bytes>76800)$fatal(1,"frame overflow");
+                        repeat(80)@(negedge clk);
+                        if(frame_bytes==76800)begin frame_ack=req;frame_valid=1;frame_bytes=0;end
                     end else if(slot==1)begin
                         if(address!=32'h10000000||length!=32768||!rst)$fatal(1,"unsafe ROM load");
                         rom_reads=rom_reads+1;
@@ -163,7 +172,8 @@ module tb_menu;
         press(5);menu(0);if(page!=0)$fatal(1,"error did not recover Home");
         hold_done=1;press(4);wait(fault);
         if(code!=8'hFE||bound||!rst)$fatal(1,"stale done accepted or timeout unsafe");
-        $display("PASS: GBA menu A/B, create/load saves, 64K/128K, pause/resume, save+RTC+flush before return, three launches, path rejection, stale-done timeout");
+        if(frame_chunks<5 || frame_chunks%5)$fatal(1,"incomplete chunked frames");
+        $display("PASS: bounded contiguous frame chunks; GBA menu A/B, create/load saves, 64K/128K, pause/resume, save+RTC+flush before return, three launches, path rejection, stale-done timeout");
         $finish;
     end
     initial begin #10000000;$fatal(1,"watchdog state=%0d code=%h page=%0d selected=%0d",state,code,page,selected);end

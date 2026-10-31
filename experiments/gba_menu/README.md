@@ -2,7 +2,9 @@
 
 2026-10-31。**独立 GBA 核心的开发实验，实机游戏、存档及返回菜单尚待验收。** 稳定发行版 `v0.1.2-public.1` 继续只支持 GB/GBC。本目录不提供游戏、BIOS、个人进度或整卡清单；NES/SNES 与跨核心自动切换尚未接通。
 
-实机首次测试在菜单出现前报告 `Error in core setup`。已发现并修正打包错误：目录 `pocketlab.GBA` 必须与 `author: pocketlab`、`shortname: GBA` 对应，见官方[打包要求](https://www.analogue.co/developer/docs/openfpga/packaging-a-core#for-development)。打包器和安装器现在检查此约束；FPGA 二进制未改变。该修正通过离线检查，是否消除实机报错仍待复测。上游 mincer_ray 的署名与通知保留在源码及本文来源段落中。
+实机首次测试在菜单出现前报告 `Error in core setup`。已发现并修正打包错误：目录 `pocketlab.GBA` 必须与 `author: pocketlab`、`shortname: GBA` 对应，见官方[打包要求](https://www.analogue.co/developer/docs/openfpga/packaging-a-core#for-development)。打包器和安装器现在检查此约束；该次身份修正未改变 FPGA 二进制。上游 mincer_ray 的署名与通知保留在源码及本文来源段落中。
+
+后续实机反馈：身份修正后点击 OS Run 黑屏，尚未看到中文菜单。[诊断读数](evidence/black-screen.json)的状态低字节对应 `FRAME_DRAIN`，最近的 Host/Target 命令均成功；高位所有权标记与首次启动预期不一致，原因仍待核对。当前候选版 `0.2.0-gba.2` 将 76,800 字节帧拆为 5 次、每次最多 16 KiB 的连续读取，并增加画面完成超时及计数诊断。**分块是本项目的传输策略，尚未证明固件存在 16 KiB 大小限制，也尚未确认实机黑屏消失。**
 
 ![实际 RTL 输出的 GBA 中文机种页](evidence/menu.png)
 
@@ -31,9 +33,10 @@
 - Python 检查覆盖菜单图与原文件保护、拒绝越界路径、无损复制普通进度、同 ROM 多份存档冲突，以及回退保留新进度。
 - [控制流仿真](evidence/control.json)：A/B、连续三次启动、64K/128K、暂停继续、普通存档＋RTC＋刷新后返回、保存失败保留游戏、超时和路径拒绝。另运行真实 `core_bridge_cmd`；带本地 Intel 模型时运行真实加载 FIFO、类型检测、RTC 加载模块。
 - [像素仿真](evidence/pixels.json)：38,400 个像素与实际扫描输出逐像素比对；不完整／错序帧拒绝、重试及游戏画面交接。
+- 当前候选的[控制流收据](evidence/frame-fix-control.json)、[像素收据](evidence/frame-fix-pixels.json)与[首屏收据](evidence/frame-fix-boot.json)包含输入哈希。`probe_boot.py` 联接真实菜单、APF 命令引擎、Intel FIFO 与扫描输出，检查首次 Run、页面元数据、五段帧读取、19,200 个桥接字和 38,400 个像素。另模拟宿主返回成功但缺少最后两个像素，检查超时转入可见错误。数据表 RAM、宿主和 ready/idle 输入由测试模型提供；没有 GBA CPU、实体 RAM 或真实 SD 服务。
 - 仿真不验证实体 SDRAM／PSRAM、SD 写入耐久性、声音、游戏兼容或掉电。完整编译结果与继承时序约束的范围记录在本目录证据中；原始板级例外不能据此升级为外部存储时序签核。
 
-[完整编译收据](evidence/build.json)、[资源摘要](evidence/gba.fit.summary)、[时序摘要](evidence/gba.sta.summary)：实际 `5CEBA4F23C8` 全引脚工程通过，15,605 ALM（84%）、277 M10K（90%）、27 DSP，虚拟引脚 0。四个模型的 104 条时序摘要均无负 slack、TNS 均为 0；最差 setup 0.494 ns、hold 0.097 ns。编译错误与 critical warning 均为 0，继承工程仍报告 22,560 条普通 warning。上游已有的 7 个卡槽输出未约束，完整板级／外设签核不在该结论内。
+`0.2.0-gba.1` 的[完整编译收据](evidence/build.json)、[资源摘要](evidence/gba.fit.summary)、[时序摘要](evidence/gba.sta.summary)：实际 `5CEBA4F23C8` 全引脚工程通过，15,605 ALM（84%）、277 M10K（90%）、27 DSP，虚拟引脚 0。四个模型的 104 条时序摘要均无负 slack、TNS 均为 0；最差 setup 0.494 ns、hold 0.097 ns。编译错误与 critical warning 均为 0，继承工程仍报告 22,560 条普通 warning。上游已有的 7 个卡槽输出未约束，完整板级／外设签核不在该结论内。
 
 ## 本地构建
 
@@ -44,6 +47,14 @@ python experiments/multi_system/fetch_sources.py --out .work/upstream
 python experiments/gba_menu/prepare_build.py --sources .work/upstream/gba --out .work/gba-menu/build --integrate
 python experiments/gba_menu/probe_control.py --build .work/gba-menu/build --out .work/gba-menu/control
 ```
+
+本机安装了 Quartus 的 Intel 仿真模型时，可运行首屏联接验证；模型路径按自己的安装位置填写，模型不随仓库分发：
+
+```sh
+python experiments/gba_menu/probe_boot.py --build .work/gba-menu/build --intel-model /path/to/altera_mf.v --out .work/gba-menu/boot
+```
+
+该命令验证完整帧和宿主误报成功但缺少末尾数据的两种情况。`probe_control.py` 同样接受 `--intel-model`，用于运行加载 FIFO 与连续换游戏检查。
 
 进入 `.work/gba-menu/build/src/fpga/build` 执行 `quartus_sh --flow compile ap_core.qpf`。完整编译、布局布线、多温度模型时序均通过后，返回仓库根目录：
 
@@ -74,4 +85,6 @@ python experiments/gba_menu/install.py --card X:/ --backup <该次备份目录> 
 
 数据槽顺序固定为 `[100 菜单, 4 BIOS, 1 ROM, 10 Save, 11 RTC]`；存档大小写入对应 datatable 索引 7、9。目标命令使用官方[读／写／打开／刷新接口](https://www.analogue.co/developer/docs/openfpga/host-target-commands)，槽参数见 [data.json 文档](https://www.analogue.co/developer/docs/openfpga/core-definition-files/data-json)。这些命令没有通用换核心操作；当前通过 Analogue OS 选择不同平台。
 
-English: isolated experimental GBA integration, native Chinese/icon/cover menus, ordinary saves and RTC. APF Memories/sleep and cross-core switching are disabled/unimplemented. Full Quartus fit passed at 84% ALMs with positive reported timing; seven inherited cartridge output exceptions remain. The first hardware attempt failed with `Error in core setup` before the menu. Packaging now enforces folder/author/shortname consistency and fixes the observed mismatch; the bitstream is unchanged and a hardware retest is pending. The scripts stage and verify a new `pocketlab.GBA` entry, preserve original ROMs/saves, and retain newly played progress during rollback. See the commands and evidence above; no public GBA binary release or hardware compatibility claim is made.
+实验版 Core Settings 中的只读诊断：`M` 为菜单状态／标记，低 8 位 `0x0D` 表示菜单可操作，`0x0B` 表示等待帧完成；`P` 的高 16 位为桥接字数、低 16 位为像素数，完整帧为 `0x4B009600`；`V` 为帧握手标记；`E` 为错误码，`0x22` 表示画面未完整到达；`T` / `H` 为最后的 Target / Host 命令状态。字段名保持单字母以避免 OS 截断数值。它们不会写入游戏、存档或画面设置。
+
+English: isolated experimental GBA integration, native Chinese/icon/cover menus, ordinary saves and RTC. APF Memories/sleep and cross-core switching are disabled/unimplemented. The first hardware attempt failed with `Error in core setup`; correcting the folder identity led to a black screen before the menu. Reported registers identify FRAME_DRAIN with the previous host/target commands successful. Candidate 0.2.0-gba.2 bounds frame reads to 16 KiB, adds a completion watchdog and word/pixel counters. A firmware size limit has not been established and hardware recovery remains unconfirmed. The joined first-screen simulation models the host, RAM table and ready/idle inputs; it does not execute a GBA CPU or validate physical memory/SD. Existing full-compile evidence and inherited board exceptions are documented above. No public GBA binary release or hardware compatibility claim is made.
