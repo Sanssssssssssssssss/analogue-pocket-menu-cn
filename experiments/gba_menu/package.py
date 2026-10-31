@@ -58,7 +58,7 @@ def stage(build,out,sources):
         shutil.copy2(upstream/name,dst/name)
     meta=json.loads((upstream/'core.json').read_text())['core']
     meta['metadata'].update(platform_ids=['gbalab','gba'],shortname='GBA Menu CN',
-        description='Experimental native Chinese menu. L+R+Select: pause, save and return.',
+        description='Chinese GBA menu. L+R+Select: pause, save and return.',
         author='PocketLab + mincer_ray',url='https://github.com/Sanssssssssssssssss/analogue-pocket-menu-cn',
         version='0.2.0-gba.1',date_release='2026-10-31')
     meta['framework']['sleep_supported']=False
