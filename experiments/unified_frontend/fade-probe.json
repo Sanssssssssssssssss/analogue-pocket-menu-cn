@@ -1,0 +1,25 @@
+{
+  "result": "passed",
+  "scope": "Standalone RTL gain/handshake assumptions only; not connected to video_adapter or any game core",
+  "framebuffer_storage_bits": 0,
+  "fade_in_frames": 8,
+  "fade_out_frames": 4,
+  "pixel_patterns_per_gain": 256,
+  "checks": [
+    "frame-tick-only gain updates",
+    "all nine gains",
+    "blank upload wait",
+    "bit-identical game bypass",
+    "reset during fade"
+  ],
+  "not_validated": [
+    "actual clock crossing and framebuffer integration",
+    "complete GBA timing",
+    "fitter resources",
+    "hardware appearance"
+  ],
+  "inputs": {
+    "menu_fade.sv": "83119d1e3963a820cdb5ef16e0f191d3ebff7197c990ed99ec2fde2dc09875a1",
+    "tb_fade.sv": "e9deb50a5a4f9f0285e163849cc872c922be2db167ee467ee5fd32678f14ecc3"
+  }
+}

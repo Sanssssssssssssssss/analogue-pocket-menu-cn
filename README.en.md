@@ -8,7 +8,7 @@ This branch also develops an [isolated full-core GBA integration](experiments/gb
 
 The GBA hardware trial reported `Error in core setup` before its menu appeared. The core folder/author/shortname mismatch has been corrected. Existing GB/GBC libraries can use the [display update tool](docs/DISPLAY-UPDATES.md) to add titles/covers while preserving game/save identities.
 
-The [current GBA experiment](experiments/gba_menu/README.md) fixed the previous startup failure by initializing the lifecycle and acquiring frame ownership before painting. The user confirmed menu and game launch. The [frontend aggregation experiment](experiments/unified_frontend/README.md) also stages Chinese captions, artwork and footer updates without changing launch/save records. A shared Pocket Lab platform association has been installed locally but its OS grouping awaits a device report. Native icon-based automatic cross-core switching remains unimplemented.
+The [current GBA experiment](experiments/gba_menu/README.md) fixed the previous startup failure by initializing the lifecycle and acquiring frame ownership before painting. The user confirmed menu and game launch. The [frontend aggregation experiment](experiments/unified_frontend/README.md) also stages Chinese captions, artwork and footer updates without changing launch/save records. A shared Pocket Lab platform association has been installed locally, and the user confirmed its grouping and core selection. Native icon-based automatic cross-core switching remains unimplemented.
 
 A native **openFPGA GB/GBC cover-flow frontend for Analogue Pocket**, with Simplified Chinese controls, Unicode game titles, folders and a black background.
 

@@ -11,7 +11,7 @@ pocketlab.CoverFlow: [gbclab, gb, gbc, pocketlab]
 pocketlab.GBA:       [gbalab, gba, pocketlab]
 ```
 
-这是同一系统分组的实验，切换仍由 Analogue OS 的 **Change Core** 执行。文件已安装并校验；该分组是否在设备上按预期显示，尚待用户反馈。原核心身份、二进制、数据槽、素材与存档位置保持原值。平台索引不能随意重排：[数据槽参数](https://www.analogue.co/developer/docs/openfpga/core-definition-files/data-json)通过数组索引选择素材平台。[核心定义](https://www.analogue.co/developer/docs/openfpga/core-definition-files/core-json)最多支持 4 个平台关联。
+这是同一系统分组的实验，切换仍由 Analogue OS 的 **Change Core** 执行。文件已安装并校验，用户已确认分组和核心选择正确。原核心身份、二进制、数据槽、素材与存档位置保持原值。平台索引不能随意重排：[数据槽参数](https://www.analogue.co/developer/docs/openfpga/core-definition-files/data-json)通过数组索引选择素材平台。[核心定义](https://www.analogue.co/developer/docs/openfpga/core-definition-files/core-json)最多支持 4 个平台关联。
 
 ## 中文图标页直接换核心
 
@@ -36,4 +36,4 @@ python experiments/gba_menu/display_update.py --card X:/ --covers /path/to/cover
 
 封面可来自 [libretro-thumbnails GBA](https://github.com/libretro-thumbnails/Nintendo_-_Game_Boy_Advance)，用 [libretro-database](https://github.com/libretro/libretro-database) 的游戏代码对应原作封面，中文别名可参考 [rom-name-cn](https://github.com/yingw/rom-name-cn)。代码匹配后仍须查看图片：本次发现上游 `Chou Makaimura R (Japan).png` 实际是另一款游戏的图，已在本地改用同作美版封面。汉化／改版版本身份仍须另行核对；按文件名整理的改版副标题只是显示别名。仓库不分发商业游戏、BIOS、个人存档、私人清单或封面包。
 
-切换动画尚未改动。本轮保持实机可用的显示链路；平滑过渡需要单独修改菜单视频通路并重新做 RTL、完整时序和实机验收。
+用户已确认更新后的中文名称正确。详细的[单核心与动画可行性研究](FEASIBILITY.md)包含逐模块编译资源和离线淡入淡出原型。实机切换动画尚未改动；原型只通过独立模块仿真，尚未接入 GBA、完整编译或上机。

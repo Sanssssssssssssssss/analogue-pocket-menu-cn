@@ -5,6 +5,12 @@
   "bitstream_sha256": "73226a39e7fd25429ef939d0fd2668902b28674823c9ec65e1a0f0da13771af8",
   "native_chinese_menu": "confirmed",
   "game_launch": "confirmed",
+  "subsequent_display_update": {
+    "chinese_game_and_folder_captions": "confirmed",
+    "shared_pocket_lab_group_and_change_core": "confirmed",
+    "source": "User reports both are correct after the asset/metadata update",
+    "native_cross_core_switch": "not_implemented"
+  },
   "save_rtc_return": "not_yet_confirmed",
   "compatibility_matrix": "not_performed",
   "reported_limitations": ["Abrupt page transitions", "Separate GB/GBC and GBA core entries", "Incomplete GBA artwork", "Unwanted bottom A/B hints"],

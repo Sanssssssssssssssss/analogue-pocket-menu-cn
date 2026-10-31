@@ -4,7 +4,7 @@
 
 - One Pocket user confirmed Chinese menus and game launch in `0.2.0-gba.3`; ordinary saves, RTC and save-return remain unconfirmed.
 - Added a local GBA display updater for explicit Chinese aliases, PNG covers and removal of bottom A/B hints. Every launch/save record is preserved; no RTL or game display setting changes.
-- Documented the shared Pocket Lab platform association experiment and its platform-index constraints. OS grouping awaits a device report; native automatic cross-core switching remains unimplemented.
+- Documented the shared Pocket Lab platform association experiment and its platform-index constraints. OS grouping and Chinese captions are now user-confirmed; native automatic cross-core switching remains unimplemented.
 - Stable GB/GBC release and public binary remain unchanged. See [experiment scope](experiments/unified_frontend/README.md).
 
 ## Experiment branch — machine icons, 2026-10-31

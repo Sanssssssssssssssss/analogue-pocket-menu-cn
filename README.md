@@ -26,7 +26,7 @@
 
 本分支还提供[机种图标菜单](docs/MACHINE-MENU.md)：GB / GBC 掌机图标 → 分类 → 原有游戏封面，经典系列集中在收藏入口。复用稳定核心，用户已确认新布局可用。
 
-已有 GB/GBC 菜单可用[显示素材更新工具](docs/DISPLAY-UPDATES.md)补中文名和封面，保留原游戏／存档关联。GBA 的[素材与聚合实验](experiments/unified_frontend/README.md)另提供中文标题、封面和底部提示更新。两个核心已在本地试加共同的 Pocket Lab 系统关联，分组显示待实机确认；中文图标页内自动切换核心尚未实现。
+已有 GB/GBC 菜单可用[显示素材更新工具](docs/DISPLAY-UPDATES.md)补中文名和封面，保留原游戏／存档关联。GBA 的[素材与聚合实验](experiments/unified_frontend/README.md)另提供中文标题、封面和底部提示更新。两个核心已在本地试加共同的 Pocket Lab 系统关联，用户已确认分组与核心选择正确；中文图标页内自动切换核心尚未实现。
 
 ## 快速开始
 

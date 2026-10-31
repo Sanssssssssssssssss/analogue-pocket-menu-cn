@@ -9,6 +9,6 @@ Current release: **GB/GBC native Chinese menu**, with a device-confirmed impleme
 
 Chip32 can select a bitstream during loading. The current [public host/target interface](https://www.analogue.co/developer/docs/openfpga/host-target-commands) does not expose a general command for a running menu to launch another installed core. An offline dispatcher experiment passed seven VM cases, but the simulator only logs CORE/HOST operations and the host explicitly triggers reload. That is not proof of automatic switching on a Pocket.
 
-The [aggregation experiment](../experiments/unified_frontend/README.md) appends a shared Pocket Lab platform association while preserving existing platform indices. This still relies on OS Change Core and awaits confirmation of its grouping on hardware. A Chinese icon page that directly switches cores needs a proven runtime reload mechanism or a resource-sharing hardware redesign.
+The [aggregation experiment](../experiments/unified_frontend/README.md) appends a shared Pocket Lab platform association while preserving existing platform indices. One user confirmed its grouping and core selection on hardware; it still relies on OS Change Core. A Chinese icon page that directly switches cores needs a proven runtime reload mechanism or a resource-sharing hardware redesign.
 
 GBA, NES, SNES, an Analogue OS replacement and a universal launcher are **not current release features**. No firmware modification is planned for this project.
