@@ -8,6 +8,7 @@
 |---|---|
 | 一个包声明多个原生程序 | [官方 core.json](https://www.analogue.co/developer/docs/openfpga/core-definition-files/core-json)支持最多 8 个 bitstream |
 | 启动时识别 ROM 并选程序 | [SNES loader](https://github.com/agg23/openfpga-SNES/blob/1a08c84ddef760bedd30a376114fc2e97527df19/support/loader.asm)解析 ROM 信息，在主程序、SPC7110/SDD1/BSX 程序、PAL 程序之间选择；[core.json](https://github.com/agg23/openfpga-SNES/blob/1a08c84ddef760bedd30a376114fc2e97527df19/pkg/pocket/Cores/agg23.SNES/core.json)列出三个 ID |
+| 同一加载器依次配置 A→B | [Route6 实机通过](../native_routing/evidence/route6-device-report.json)：最终橙屏、不可改写的 B 身份和 PMPR 读回匹配 |
 | OS 中重选可重载文件后调用 Chip32 | [官方 VM 初始化说明](https://www.analogue.co/developer/docs/openfpga/chip32-vm/initialization-of-the-chip32-vm)明确支持；这是宿主触发 |
 | 自绘菜单按 A 后主动重启加载器 | [官方 Target 命令](https://www.analogue.co/developer/docs/openfpga/host-target-commands)与 [core-template](https://github.com/open-fpga/core-template/blob/da3a021b1eaf742604d86d8dc9b33a6666263e6a/src/fpga/core/core_bridge_cmd.v)中没有找到已验证的通用接口；不能把文件打开／读取当成已完成重配置 |
 | 游戏结束后跨核心返回中文首页 | 未实现、未上机验证 |
@@ -22,7 +23,7 @@ SNES 的 `set_core` 路径先执行默认 `CORE 0`，特殊芯片或 PAL 分支�
 
 Route0 对照已获用户确认：固定身份正确、运行复位释放、B 键读数正确、计时持续增加。[实机记录](../native_routing/evidence/route0-device-report.json)仅认证该普通启动路径。随后 Route3 黑屏并短暂报错，Route1 可启动但 M/D 全零；实际旧字节码存在地址表达式截断，已用完整地址修正。新一轮 23 项指令模型检查和 A/B 板级编译通过，最小 Route4/5/7/6 包已备份安装，见[安装记录](../native_routing/evidence/isolation-install-report.json)；[现场记录](../native_routing/evidence/route1-route3-device-report.json)不把离线检查或安装校验当作原生换核验收。
 
-随后 [Route4 实机通过](../native_routing/evidence/route4-device-report.json)：立即蓝屏、ID 为 A、运行复位释放。[Route5 也通过](../native_routing/evidence/route5-device-report.json)：蓝屏、ID/D 为 A、M=`0xB1`，确认 VM 的身份读取与结果写入。下一项 Route7 直接启动 B，之后才测试第二次 CORE；运行阶段重入仍未验证。
+随后 [Route4 实机通过](../native_routing/evidence/route4-device-report.json)：立即蓝屏、ID 为 A、运行复位释放。[Route5 也通过](../native_routing/evidence/route5-device-report.json)：蓝屏、ID/D 为 A、M=`0xB1`，确认 VM 的身份读取与结果写入。[Route7](../native_routing/evidence/route7-device-report.json)确认 B 单独启动，[Route6](../native_routing/evidence/route6-device-report.json)确认同一加载器 A→B，最终橙屏、ID/D 为 B、M=`0xB2`。下一项为修正后的 Route8～10 按键测试；等待期间的画面、按键与 A→B→A 返回仍须实测，运行阶段重入尚未验证。
 
 先使用无 ROM、无 BIOS、无存档的独立 A/B 程序，避免把未知重载机制直接接入游戏：
 

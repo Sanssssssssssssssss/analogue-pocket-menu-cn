@@ -38,12 +38,13 @@ def audit(build,name):
         'rbf_sha256':sha(folder/'ap_core.rbf'),'source_sha256':{p.relative_to(fpga).as_posix():sha(p) for p in [source,fpga/'core/route_probe.sv',fpga/'core/core_constraints.sdc']},
         'reports_sha256':{p.name:sha(p) for p in [folder/'ap_core.flow.rpt',folder/'ap_core.fit.summary',folder/'ap_core.sta.summary']}}
 
-def stage(build,validation,out,isolation=False):
+def stage(build,validation,out,isolation=False,interaction=False):
+    if isolation and interaction:raise ValueError('Select one diagnostic profile')
     build=Path(build).resolve();out=Path(out).resolve()
     if out.exists() or not all(p.is_relative_to(ROOT/'.work') for p in [out,build]):raise ValueError('Use fresh checkout .work output and local build')
     proof=json.loads(Path(validation).read_text());here=Path(__file__).resolve().parent
     inputs=['loader.asm','route_probe.sv','tb_probe.sv']
-    if isolation:inputs+=['isolation_loader.asm','prepare_isolation.py','vm_contract.rs','probe_isolation.py','prepare_probe.py','prepare_trial.py']
+    if isolation or interaction:inputs+=['isolation_loader.asm','prepare_isolation.py','vm_contract.rs','probe_isolation.py','prepare_probe.py','prepare_trial.py']
     for name in inputs:
         if proof['inputs'][name]!=sha(here/name):raise ValueError('Offline validation is stale: '+name)
     reviewed=[audit(build,n) for n in ['A','B']]
@@ -54,6 +55,9 @@ def stage(build,validation,out,isolation=False):
     if isolation:
         entries=[(4,'Route4','Boot A without polling'),(5,'Route5','Read and report identity A'),
                  (6,'Route6','Load A then B without input'),(7,'Route7','Cold boot B')]
+    elif interaction:
+        entries=[(8,'pre-init','Corrected input before init'),(9,'reset-exit','Corrected input after reset exit'),
+                 (10,'full-init','Corrected input after full init')]
     else:
         entries=list(zip(range(4),[None,'pre-init','reset-exit','full-init'],
             ['Control: no loader','Input before init','Input after reset exit','Input after full init']))
@@ -62,7 +66,7 @@ def stage(build,validation,out,isolation=False):
         for name in ['audio','input','variants','video']:shutil.copy2(build/'A'/f'{name}.json',folder/f'{name}.json')
         core=json.loads((build/'A/core.json').read_text())['core']
         core['metadata'].update(platform_ids=['routetest'],shortname=f'Route{i}',author='pocketlab',description=description,
-            url='https://github.com/Sanssssssssssssssss/analogue-pocket-menu-cn',version='0.0.2-isolate' if isolation else '0.0.1-trial',date_release='2026-11-01')
+            url='https://github.com/Sanssssssssssssssss/analogue-pocket-menu-cn',version='0.0.3-input' if interaction else '0.0.2-isolate' if isolation else '0.0.1-trial',date_release='2026-11-01')
         core['framework']['hardware']={'link_port':False,'cartridge_adapter':'0x80000000'}
         core['cores']=[{'name':n,'id':j,'filename':f'probe_{n.lower()}.rbf_r'} for j,n in enumerate(['A','B'])]
         for name in ['A','B']:
@@ -90,5 +94,7 @@ def stage(build,validation,out,isolation=False):
 if __name__=='__main__':
     p=argparse.ArgumentParser(description=__doc__)
     for n in ['build','validation','out']:p.add_argument('--'+n,required=True)
-    p.add_argument('--isolation',action='store_true',help='Stage only new Route4-7 minimal loaders')
-    a=p.parse_args();print(json.dumps(stage(a.build,a.validation,a.out,a.isolation)))
+    profiles=p.add_mutually_exclusive_group()
+    profiles.add_argument('--isolation',action='store_true',help='Stage only new Route4-7 minimal loaders')
+    profiles.add_argument('--interaction',action='store_true',help='Stage only new Route8-10 corrected input loaders')
+    a=p.parse_args();print(json.dumps(stage(a.build,a.validation,a.out,a.isolation,a.interaction)))

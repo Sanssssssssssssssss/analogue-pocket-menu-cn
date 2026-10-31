@@ -1,13 +1,13 @@
 # 原生换核 A/B 探针
 
-2026-11-01。这是独立诊断源码，**不是统一游戏前端**。`Pocket Lab Test` 的普通启动对照、最小加载器 Route4 与读写诊断 Route5 已通过；旧轮询加载器的地址截断已修正并完成离线检查。B 程序启动与原生换核尚待后续实机测试。
+2026-11-01。这是独立诊断源码，**不是统一游戏前端**。A/B 单独启动、加载器读写诊断和同一加载器内的固定 A→B 换核已获实机确认。按键交互、返回 A 及游戏运行后的重入仍待后续验证。
 
 目标是把三个问题分别验证：加载器还在运行时能否收到按键；宿主能否显示该阶段的视频；第二次 `CORE` 是否确实配置了另一个 FPGA 程序。启动时选中编号、真正重配置、游戏运行后重新唤起加载器，是三个不同结论。
 
 ## 新核对的边界
 
 - [官方启动流程](https://www.analogue.co/developer/docs/openfpga/core-boot-process)在 Setup 阶段描述无音视频，加载完成后才发 Reset Exit。因此仅让 FPGA 自己产生光栅，不能证明 Pocket 屏幕已显示菜单。
-- [CORE / HOST 指令](https://www.analogue.co/developer/docs/openfpga/chip32-vm/special)明确描述已加载程序可能跳过 `CORE`；不同 ID 的具体运行阶段行为仍须宿主实测。`HOST 0x4001` 释放复位，`0x4002` 继续启动；两者都不是文档已承诺的“启动另一个已安装核心”入口。
+- [CORE / HOST 指令](https://www.analogue.co/developer/docs/openfpga/chip32-vm/special)明确描述已加载程序可能跳过 `CORE`；本试验已确认同一加载流程内从 ID 0 切到 ID 1。`HOST 0x4001` 释放复位，`0x4002` 继续启动；运行中主动唤起加载器仍须单独验证。
 - 现有 [Chip32 模拟器](https://github.com/agg23/openfpga-chip32-sim/blob/c358d70263383a133fcd303b19c3e559caf33c8b/src/cpu.rs)的 CORE 只写 `active_bitstream`，HOST 只记日志，PMPR 不提供 FPGA 读数。不能把其成功日志当成重配置证明。本机版本另有 reload-slot 测试扩展，仍不是 Pocket 宿主。
 - 本轮也检查了官方 [2.6.0](https://www.analogue.co/support/pocket/firmware/2.6.0)及 [2.7](https://www.analogue.co/support/pocket/firmware/2.7)发布说明：包含 Recent、退出返回 openFPGA、列表缓存及数量改进，未找到新增运行时自绘菜单换核 API 的声明。没有下载或升级固件。
 
@@ -113,10 +113,25 @@ python experiments/native_routing/stage_trial.py --isolation --build .work/nativ
 
 Route4 已获实机确认：蓝屏立即出现、ID=`0x504C4100`、R=`1`，见[现场记录](evidence/route4-device-report.json)。这验证最小加载器入口能够正常启动 A 并释放运行复位。
 
-随后 [Route5 通过](evidence/route5-device-report.json)：用户确认蓝屏，ID/D 均符合预期 `0x504C4100`，M 符合 `0xB1`。这验证 VM 的 PMPR 身份读取、PMPW 结果写入和 Core Settings 只读别名回读；画面是启动完成后的画面，不代表 VM 等待期间可显示菜单。下一项测试 Route7，再测试 Route6。第二次 CORE、A→B→A 和运行中重入仍未验收。本目录不提供游戏、BIOS、存档或二进制核心下载。
+随后 [Route5 通过](evidence/route5-device-report.json)：用户确认蓝屏，ID/D 均符合预期 `0x504C4100`，M 符合 `0xB1`。这验证 VM 的 PMPR 身份读取、PMPW 结果写入和 Core Settings 只读别名回读。
+
+[Route7 通过](evidence/route7-device-report.json)：橙屏、ID=`0x504C4201`、R=`1`，确认 B 能单独启动。[Route6 通过](evidence/route6-device-report.json)：用户确认橙屏、ID/D=`0x504C4201`、M=`0xB2`，确认同一加载器固定 A→B 的第二次 CORE 真正配置了 B。以上均为启动完成后的画面，尚未证明等待按键期间能显示菜单，也未认证游戏运行后重新进入加载器。
+
+## 修正后的按键测试
+
+新版 `loader.asm` 使用完整地址，并在每次 CORE 后加载已验证的 16 字节合成槽。输入仍设约 5 秒计时与 131,072 轮上限，错误消息增加换行以便完整显示。A/B 均触发同一条 A→B→A 身份检查；当前按键用于确认输入通路，尚未分派游戏。
+
+`stage_trial.py --interaction` 只生成新的 Route8～10：初始化前、释放复位后、完整初始化后等待按键。沿用已实机通过的同一 A/B 硬件，核对编译源码与文件哈希，**没有重新编译或更换硬件逻辑**。见[复用编译收据](evidence/interaction-builds.json)和[本轮 23 项模型检查](evidence/interaction-validation.json)。
+
+```sh
+# 用当前源码按前文重新准备和检查；硬件完全一致时也可核验后复用已有 A/B 编译输出。
+python experiments/native_routing/stage_trial.py --interaction --build .work/native-routing/interaction --validation .work/native-routing/interaction-check/receipt.json --out .work/native-routing/interaction-package
+```
+
+输出 33 个文件约 4.95 MB；其中 3 个为已有共用文件，安装只需新增 30 个核心文件。本轮安装与设备结果单独记录。先测 Route8 不按键时能否正常退出，再测试等待期间的按键、画面与 A→B→A 结果。M=`0xE2` 表示没有选到新按键，M=`0xA0` 表示身份检查通过；不能把正常退出直接当作成功。本目录不提供游戏、BIOS、存档或二进制核心下载。
 
 ## English
 
 This is a **native FPGA routing diagnostic**, not a unified frontend. Two official-template board projects carry immutable A/B identities; three assembled Chip32 loaders compare input visibility before initialization, after reset release, and after full initialization. The old logging VM must reject the absent FPGA identity instead of claiming a switch. Diagnostic EXIT 0 is not routing success: M=0xA0 is required for the A/B/A identity check.
 
-The local trial removes unused audio clocks and explicitly excepts APF protocol I/O. Internal timing passes; this is not external board-I/O signoff. The user confirmed Route0 identity, run-reset release, retained B input and advancing uptime. Route3 then stalled with an incompletely captured Chip32 error; Route1 started but showed zero M/D. Actual bytecode inspection found truncated address expressions, now replaced with complete 32-bit literals. Twenty-three checks execute actual bytecode with explicitly modeled hardware replies, including the truncation regression. Minimal Route4/5/7/6 candidates and read-only diagnostic aliases were installed after a fresh backup: 40 added files, 3 unchanged shared files and 4,115 protected original files verified. The user confirmed Route4's immediate blue screen, expected A identity and released run reset, then Route5's blue screen, matching A ID/D and M=0xB1. VM PMPR/PMPW reporting is accepted; Route7 cold boot is next. Sequential CORE, A→B→A reconfiguration and runtime loader re-entry remain unverified. Historical reports and existing game entries are preserved.
+The local trial removes unused audio clocks and explicitly excepts APF protocol I/O. Internal timing passes; this is not external board-I/O signoff. Route0 confirmed basic startup and input. Truncated address expressions in the old loader were fixed, with real bytecode checked against explicitly modeled hardware replies. After a verified backup, Route4 confirmed A startup; Route5 confirmed VM PMPR/PMPW reporting; Route7 confirmed B startup; Route6 confirmed orange video, immutable B ID, matching D and M=0xB2 after sequential A-to-B CORE operations. This accepts fixed switching inside one loader, not runtime re-entry. Corrected bounded input candidates Route8-10 reuse the accepted A/B hardware and add explicit synthetic-slot loading after each CORE; 23 model checks pass. Input, video while waiting, A-to-B-to-A return and real game/save handoff remain unverified. Historical reports and existing game entries are preserved.

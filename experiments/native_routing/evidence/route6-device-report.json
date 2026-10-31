@@ -1,0 +1,24 @@
+{
+  "date": "2026-11-01",
+  "source": "User confirmed all expected colors and register values in the test prompt; values were not separately retyped",
+  "package_source_commit": "bf478c7fbb41ff24f71cb80cd085883016c01919",
+  "entry": "pocketlab.Route6",
+  "observed": {
+    "screen": "Orange",
+    "ID": "0x504C4201",
+    "M": "0x000000B2",
+    "D": "0x504C4201"
+  },
+  "accepted_scope": [
+    "One loader configures A and then B, with no user input",
+    "Final immutable identity and PMPR result both identify B",
+    "Final B raster is orange and VM result write is visible"
+  ],
+  "not_established": [
+    "A-to-B-to-A return",
+    "A user-visible selector with input while the VM runs",
+    "Runtime loader re-entry from a game",
+    "Real game core, BIOS or save handoff"
+  ],
+  "next_trial": "Corrected bounded input loaders: compare pre-init, reset-exit and full-init phases, then verify A-to-B-to-A identity checks"
+}

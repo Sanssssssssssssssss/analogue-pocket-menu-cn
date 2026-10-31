@@ -12,6 +12,8 @@ start:
     ld r13,#0
     ld r0,#0
     core r0
+    ld r0,#0
+    loadf r0
     ld r0,#base
     ld r1,#0
     pmpr r0,r1
@@ -68,6 +70,8 @@ selected:
     ld r13,#0
     ld r0,#1
     core r0
+    ld r0,#0
+    loadf r0
     ld r0,#base
     ld r1,#0
     pmpr r0,r1
@@ -76,6 +80,8 @@ selected:
     jp nz,b_failed
     ld r0,#0
     core r0
+    ld r0,#0
+    loadf r0
     ld r0,#base
     ld r1,#0
     pmpr r0,r1

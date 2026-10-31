@@ -37,6 +37,7 @@ def check(prepared,bass,model,library,out):
         return data
     for mode in ['pre-init','reset-exit','full-init']:
         binary=assemble(prepared/'loaders'/mode,mode)
+        loaders.append({'mode':mode,'assembly':'passed','bytecode_sha256':sha(binary)})
         for scenario,exit_code,result,detail,cores in [
             ('success',0,0xA0,0x504C4100,[0,1,0]),
             ('skip-switch',0,0xE3,0x504C4100,[0,1]),
@@ -47,6 +48,7 @@ def check(prepared,bass,model,library,out):
             data=execute(binary,scenario)
             assert (data['exit'],data['m'],data['d'],data['cores'])==(exit_code,result,detail,cores),(mode,scenario,data)
             assert all(0x60000000<=x<=0x600000FF for x in data['pmp_addresses']),data
+            assert data['loads']==[0]*len(cores),data
             cases.append({'loader':mode,'scenario':scenario,**data})
     # Reproduce the actual BASS address-truncation failure to guard this regression.
     broken=out/'truncated-expression';broken.mkdir()
