@@ -10,7 +10,9 @@ from pathlib import Path, PurePosixPath
 import shutil
 import struct
 import zlib
+from functools import lru_cache
 from PIL import Image, ImageDraw
+from menu_icons import LABELS, cover_bytes, kind
 
 ROOT = Path(__file__).resolve().parents[1]
 FONT_SHA = 'e66385c79a0b8b24a466f3129930e08a966a935b4bf3b28c6bb17a9df9bf791d'
@@ -31,6 +33,7 @@ def sha(path):
 def contained(path, root):
     return path.resolve().is_relative_to(root.resolve())
 
+@lru_cache(maxsize=1)
 def font():
     path = ROOT/'assets/fonts/unifont-18.0.01.hex.gz'
     if sha(path) != FONT_SHA:
@@ -65,20 +68,18 @@ def path_bytes(value):
         raise ValueError(f'Undeclared APF platform path: {value}')
     return value.encode().ljust(256, b'\0')
 
-def picture(path, folder=False):
+def picture(path, folder=False, icon='folder'):
+    if folder and not path:
+        return cover_bytes(icon)
     if path:
         with Image.open(path) as image:
             image = image.convert('RGB')
     else:
         image = Image.new('RGB', (256, 256), '#171d27')
         draw = ImageDraw.Draw(image)
-        if folder:
-            draw.rounded_rectangle((38,65,218,197),radius=10,fill='#b5a46a')
-            draw.rounded_rectangle((38,49,117,90),radius=7,fill='#b5a46a')
-        else:
-            draw.rounded_rectangle((60,33,196,219),radius=10,outline='#8fa8be',width=4)
-            draw.rectangle((80,55,176,135),fill='#354351')
-            draw.line((91,182,165,182),fill='#b5a46a',width=5)
+        draw.rounded_rectangle((60,33,196,219),radius=10,outline='#8fa8be',width=4)
+        draw.rectangle((80,55,176,135),fill='#354351')
+        draw.line((91,182,165,182),fill='#b5a46a',width=5)
     raw = bytearray()
     for size in (128,80):
         thumb = base.fit(image,size)
@@ -100,7 +101,7 @@ def pack(entries, glyphs, log_id, warnings):
         table[:40] = title.encode('ascii','replace')[:39].ljust(40,b'\0')
         struct.pack_into('<B3xIIH',table,40,flags,entry.get('size',0),entry['crc'],width)
         tables.append(table)
-        art.append(picture(entry.get('cover'),entry.get('folder',False))+text+bytes(65536-45568-1024))
+        art.append(picture(entry.get('cover'),entry.get('folder',False),entry.get('icon','folder'))+text+bytes(65536-45568-1024))
         for path in (entry['rom'],f'{SAVES}/{entry["save_id"]}.sav',f'{SAVES}/{entry["save_id"]}.sus'):
             paths.append(path_bytes(path))
     return (struct.pack('<4sHHHH4x',b'GBCV',9,len(entries),128,80)+base.index_block([e.get('sort_title',e['title']) for e in entries])+
@@ -148,7 +149,8 @@ def build(card, out, titles=None, covers=None, bios=None):
             key = key.removesuffix('/.')
             for n in range(1,len(PurePosixPath(key).parts)+1):
                 sub = '/'.join(PurePosixPath(key).parts[:n])
-                add_node(sub,sub.upper()+' 游戏库' if sub in ('gb','gbc') else PurePosixPath(sub).name)
+                leaf=PurePosixPath(sub).name
+                add_node(sub,LABELS.get(leaf,leaf))
             cover = covers/Path(relative).with_suffix('.png') if covers else None
             if cover and (not cover.is_file()): cover=None
             if cover and not contained(cover,covers): raise ValueError('Cover resolves outside cover root')
@@ -164,7 +166,8 @@ def build(card, out, titles=None, covers=None, bios=None):
     def node_id(key): return 'root' if not key else hashlib.sha256(key.encode()).hexdigest()[:16]
     def node_path(key): return f'/{ASSETS}/'+('covers.bin' if not key else f'libs/{node_id(key)}.bin')
     def folder(key, title=None):
-        return {'title':title or nodes[key]['title'],'rom':node_path(key),'crc':zlib.crc32(key.encode()),'folder':True,'save_id':'folders/'+node_id(key)}
+        display=title or nodes[key]['title']
+        return {'title':display,'rom':node_path(key),'crc':zlib.crc32(key.encode()),'folder':True,'save_id':'folders/'+node_id(key),'icon':kind(display)}
     outputs = {}
     # Validate and render before creating any output or copying a BIOS.
     for key,node in sorted(nodes.items()):

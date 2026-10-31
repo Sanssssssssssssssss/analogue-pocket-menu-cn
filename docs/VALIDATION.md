@@ -10,6 +10,7 @@
 | FPGA compile | Full Quartus build and constrained timing pass; resources/hashes in [BUILD](BUILD.md) | Upstream unconstrained I/O remains |
 | Public library/installer | Automated synthetic-fixture tests cover native text columns, parent links, source preservation, isolated saves, checksums, interrupted install and rollback | New generic package tool output has not been independently accepted across multiple devices |
 | CI | Python tests and repository/source checks on Linux and Windows | No Quartus build or hardware test in CI |
+| Machine icon menu | Native GB/GBC home frames and actual staged Home → machine → Back / classics → series → Back → Back navigation pass with APF/SDRAM models; original game records and save paths preserved | New layout awaits hardware acceptance; no new game CPU or cross-core support |
 
 The public RTL is equivalent to the accepted lab source after line-ending normalization; the distributed `.rbf_r` is byte-identical. A fresh clone is checked independently before public release.
 

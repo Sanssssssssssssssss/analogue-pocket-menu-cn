@@ -65,6 +65,15 @@ def plan(card, package, library):
             raise ValueError('Package and library must be separate local folders outside the card')
     p=read_manifest(package,'release-manifest.json')
     lib=read_manifest(library,'library-manifest.json')
+    if 'source_packs' in lib:
+        if lib['identity']!=ident:
+            raise ValueError('Styled library belongs to a different card/copy')
+        for item in lib['source_packs']:
+            rel=item['path']
+            if not rel.startswith('Assets/gbclab/common/') or not rel.endswith('.bin'):
+                raise ValueError('Unexpected source pack path')
+            if sha(confined(card,rel))!=item['sha256']:
+                raise ValueError('Menu changed after styling; rebuild the staged library')
     for suffix in ('','meta','folders'):safe_path(card,'Saves/gbclab/common/'+suffix)
     required={'Cores/pocketlab.CoverFlow/core.json','Cores/pocketlab.CoverFlow/gbc.rbf_r',
               'Cores/pocketlab.CoverFlow/data.json','Cores/pocketlab.CoverFlow/video.json',
@@ -95,7 +104,8 @@ def plan(card, package, library):
             if target.exists() and not target.is_file(): raise ValueError('Destination is not a file')
             if previous!=item['sha256']:
                 changes.append({**item,'source':str(source),'previous_sha256':previous})
-    changes.sort(key=lambda x:(x['path'].endswith('/core.json'),x['path']))
+    # Publish new child pages before changing parent links, then Home and core metadata.
+    changes.sort(key=lambda x:(x['path'].endswith('/core.json'),x['path'].endswith('/covers.bin'),x['previous_sha256'] is not None,x['path']))
     return {'identity':ident,'version':p['version'],'changes':changes,'save_writes':0,'firmware_writes':0}
 
 def publish(source, target, expected):
