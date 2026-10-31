@@ -37,11 +37,12 @@
   "gba_nes_snes_menu_installable": false,
   "source_hashes": {
     "tests/test_menu_style.py": "f5e8befab31bffe036bcee6b502e7ea3bc67a6f70b5feaf4c470559e620f759c",
-    "tools/build_library.py": "166b9bc92e706cbc4a1a44f23faf7ec2e32b3d483cdcc65a89cd9249e07e004c",
+    "tools/build_library.py": "8b9eb14f8ed03db7607abef1ce972a8b81b47393fa3892a19b74cb1ee531eedc",
     "tools/install.py": "39334f149d94514b15fbb2ec0ff5ef295b05962ae835fc6505a155a82386027e",
     "tools/menu_icons.py": "10c6192394d2f493abffcd60444c52d1ddcdbc4238a60c10c3ad6cfd9a795d7d",
     "tools/preview_menu.py": "cef876e4f612ab97eb671beeb456624a2758fd7c6e0deb2e443c63e7ec7efa4a",
     "tools/style_library.py": "34b640caa6c1afb4efb74b9f4cca3583dd0a86db5e3807430f69bf34ff4fa993"
   },
-  "screenshot_sha256": "a948bc7a9f2d7d64fab5708d7c45d18af37b07f7cbef192a72112e287b7d2209"
+  "screenshot_sha256": "a948bc7a9f2d7d64fab5708d7c45d18af37b07f7cbef192a72112e287b7d2209",
+  "source_hash_basis": "Git blob bytes with repository line ending normalization"
 }
