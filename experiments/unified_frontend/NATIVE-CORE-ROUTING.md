@@ -22,6 +22,8 @@ SNES 的 `set_core` 路径先执行默认 `CORE 0`，特殊芯片或 PAL 分支�
 
 Route0 对照已获用户确认：固定身份正确、运行复位释放、B 键读数正确、计时持续增加。[实机记录](../native_routing/evidence/route0-device-report.json)仅认证该普通启动路径。随后 Route3 黑屏并短暂报错，Route1 可启动但 M/D 全零；实际旧字节码存在地址表达式截断，已用完整地址修正。新一轮 23 项指令模型检查和 A/B 板级编译通过，最小 Route4/5/7/6 包已备份安装，见[安装记录](../native_routing/evidence/isolation-install-report.json)；[现场记录](../native_routing/evidence/route1-route3-device-report.json)不把离线检查或安装校验当作原生换核验收。
 
+随后 [Route4 实机通过](../native_routing/evidence/route4-device-report.json)：立即蓝屏、ID 为 A、运行复位释放。[Route5 也通过](../native_routing/evidence/route5-device-report.json)：蓝屏、ID/D 为 A、M=`0xB1`，确认 VM 的身份读取与结果写入。下一项 Route7 直接启动 B，之后才测试第二次 CORE；运行阶段重入仍未验证。
+
 先使用无 ROM、无 BIOS、无存档的独立 A/B 程序，避免把未知重载机制直接接入游戏：
 
 1. 验证加载阶段先配置一个简单选择器时，Chip32 尚未结束，画面、按键和 `PMPR` 桥接读数能否正常工作。

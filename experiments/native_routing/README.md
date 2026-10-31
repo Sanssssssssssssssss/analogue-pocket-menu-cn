@@ -1,6 +1,6 @@
 # 原生换核 A/B 探针
 
-2026-11-01。这是独立诊断源码，**不是统一游戏前端**。`Pocket Lab Test` 的普通启动对照已通过；旧轮询加载器已发现地址被截断的问题。修正与新隔离测试已完成离线检查，原生换核尚未实机通过。
+2026-11-01。这是独立诊断源码，**不是统一游戏前端**。`Pocket Lab Test` 的普通启动对照、最小加载器 Route4 与读写诊断 Route5 已通过；旧轮询加载器的地址截断已修正并完成离线检查。B 程序启动与原生换核尚待后续实机测试。
 
 目标是把三个问题分别验证：加载器还在运行时能否收到按键；宿主能否显示该阶段的视频；第二次 `CORE` 是否确实配置了另一个 FPGA 程序。启动时选中编号、真正重配置、游戏运行后重新唤起加载器，是三个不同结论。
 
@@ -109,10 +109,14 @@ python experiments/native_routing/probe_isolation.py --prepared .work/native-rou
 python experiments/native_routing/stage_trial.py --isolation --build .work/native-routing/isolation --validation .work/native-routing/isolation-check/receipt.json --out .work/native-routing/isolation-package
 ```
 
-输出 43 个文件约 6.54 MB。已重新识别卡并备份当前状态，仅新增 Route4～7 的 40 个文件、6,368,966 字节；3 个共用文件哈希一致，保留 Route0～3。安装后校验新增文件及受保护的 4,115 个原文件均一致，详见[安装记录](evidence/isolation-install-report.json)。下一项实机测试为 Route4，再依次测试 Route5、Route7、Route6；文件安装校验不能代替启动与换核验收。A→B→A 重配置和运行中重入仍未验收。本目录不提供游戏、BIOS、存档或二进制核心下载。
+输出 43 个文件约 6.54 MB。已重新识别卡并备份当前状态，仅新增 Route4～7 的 40 个文件、6,368,966 字节；3 个共用文件哈希一致，保留 Route0～3。安装后校验新增文件及受保护的 4,115 个原文件均一致，详见[安装记录](evidence/isolation-install-report.json)。
+
+Route4 已获实机确认：蓝屏立即出现、ID=`0x504C4100`、R=`1`，见[现场记录](evidence/route4-device-report.json)。这验证最小加载器入口能够正常启动 A 并释放运行复位。
+
+随后 [Route5 通过](evidence/route5-device-report.json)：用户确认蓝屏，ID/D 均符合预期 `0x504C4100`，M 符合 `0xB1`。这验证 VM 的 PMPR 身份读取、PMPW 结果写入和 Core Settings 只读别名回读；画面是启动完成后的画面，不代表 VM 等待期间可显示菜单。下一项测试 Route7，再测试 Route6。第二次 CORE、A→B→A 和运行中重入仍未验收。本目录不提供游戏、BIOS、存档或二进制核心下载。
 
 ## English
 
 This is a **native FPGA routing diagnostic**, not a unified frontend. Two official-template board projects carry immutable A/B identities; three assembled Chip32 loaders compare input visibility before initialization, after reset release, and after full initialization. The old logging VM must reject the absent FPGA identity instead of claiming a switch. Diagnostic EXIT 0 is not routing success: M=0xA0 is required for the A/B/A identity check.
 
-The local trial removes unused audio clocks and explicitly excepts APF protocol I/O. Internal timing passes; this is not external board-I/O signoff. The user confirmed Route0 identity, run-reset release, retained B input and advancing uptime. Route3 then stalled with an incompletely captured Chip32 error; Route1 started but showed zero M/D. Actual bytecode inspection found truncated address expressions, now replaced with complete 32-bit literals. Twenty-three checks execute actual bytecode with explicitly modeled hardware replies, including the truncation regression. Minimal Route4/5/7/6 candidates and read-only diagnostic aliases were installed after a fresh backup: 40 added files, 3 unchanged shared files and 4,115 protected original files verified. Physical launch and handoff tests remain pending, starting with Route4. A→B→A reconfiguration and runtime loader re-entry remain unverified. Historical reports and existing game entries are preserved.
+The local trial removes unused audio clocks and explicitly excepts APF protocol I/O. Internal timing passes; this is not external board-I/O signoff. The user confirmed Route0 identity, run-reset release, retained B input and advancing uptime. Route3 then stalled with an incompletely captured Chip32 error; Route1 started but showed zero M/D. Actual bytecode inspection found truncated address expressions, now replaced with complete 32-bit literals. Twenty-three checks execute actual bytecode with explicitly modeled hardware replies, including the truncation regression. Minimal Route4/5/7/6 candidates and read-only diagnostic aliases were installed after a fresh backup: 40 added files, 3 unchanged shared files and 4,115 protected original files verified. The user confirmed Route4's immediate blue screen, expected A identity and released run reset, then Route5's blue screen, matching A ID/D and M=0xB1. VM PMPR/PMPW reporting is accepted; Route7 cold boot is next. Sequential CORE, A→B→A reconfiguration and runtime loader re-entry remain unverified. Historical reports and existing game entries are preserved.
