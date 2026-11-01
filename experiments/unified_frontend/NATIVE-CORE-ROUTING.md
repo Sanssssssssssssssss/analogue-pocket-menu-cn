@@ -9,6 +9,7 @@
 | 一个包声明多个原生程序 | [官方 core.json](https://www.analogue.co/developer/docs/openfpga/core-definition-files/core-json)支持最多 8 个 bitstream |
 | 启动时识别 ROM 并选程序 | [SNES loader](https://github.com/agg23/openfpga-SNES/blob/1a08c84ddef760bedd30a376114fc2e97527df19/support/loader.asm)解析 ROM 信息，在主程序、SPC7110/SDD1/BSX 程序、PAL 程序之间选择；[core.json](https://github.com/agg23/openfpga-SNES/blob/1a08c84ddef760bedd30a376114fc2e97527df19/pkg/pocket/Cores/agg23.SNES/core.json)列出三个 ID |
 | 同一加载器依次配置 A→B | [Route6 实机通过](../native_routing/evidence/route6-device-report.json)：最终橙屏、不可改写的 B 身份和 PMPR 读回匹配 |
+| 运行后选择、由 OS 重载触发 VM 并双向换核 | [Route12 切 B](../native_routing/evidence/route12-reload-device-report.json)与[返回 A](../native_routing/evidence/route12-return-device-report.json)均通过：同一入口完整 A→B→A，仍需系统重载操作 |
 | OS 中重选可重载文件后调用 Chip32 | [官方 VM 初始化说明](https://www.analogue.co/developer/docs/openfpga/chip32-vm/initialization-of-the-chip32-vm)明确支持；这是宿主触发 |
 | 自绘菜单按 A 后主动重启加载器 | [官方 Target 命令](https://www.analogue.co/developer/docs/openfpga/host-target-commands)与 [core-template](https://github.com/open-fpga/core-template/blob/da3a021b1eaf742604d86d8dc9b33a6666263e6a/src/fpga/core/core_bridge_cmd.v)中没有找到已验证的通用接口；不能把文件打开／读取当成已完成重配置 |
 | 游戏结束后跨核心返回中文首页 | 未实现、未上机验证 |
@@ -30,6 +31,8 @@ Route0 对照已获用户确认：固定身份正确、运行复位释放、B �
 [Route10](../native_routing/evidence/route10-device-report.json) 与 [Route9](../native_routing/evidence/route9-device-report.json) 短按后仍为 E2/D=0，没有进入换核分支。下一步以 Route11 记录真实等待时长和按键数据，以 Route12 验证官方可重载槽的 OS 重入路径。Route12 是运行后从系统 UI 触发的对照，不能代替自绘菜单主动触发的证明。两项已备份安装，实机结果待确认，见[安装记录](../native_routing/evidence/handoff-install-report.json)与[操作边界](../native_routing/README.md#计时与运行后重入对照)。
 
 [Route12 正常运行后的选择已确认](../native_routing/evidence/route12-input-device-report.json)：初始 ID 为 A、M=C1，蓝屏后按 B，C=2。下一项在同一次会话选择 Reload test，核对 VM 重入和按选择切 B；尚未把运行时输入通过记成换核通过。
+
+随后 [OS 重载切 B](../native_routing/evidence/route12-reload-device-report.json)及[再次重载返回 A](../native_routing/evidence/route12-return-device-report.json)均获实机确认：目标身份、读回和最终画面匹配，M 均为 C2。运行时选择与 OS 触发的双向 VM 重入已通过。下一项是独立探测运行期 Target 只读文件命令是否也会触发 VM；文件命令完成和 VM 重入必须分别读取证据，不能等同。
 
 先使用无 ROM、无 BIOS、无存档的独立 A/B 程序，避免把未知重载机制直接接入游戏：
 

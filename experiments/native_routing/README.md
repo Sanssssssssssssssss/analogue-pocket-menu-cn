@@ -1,6 +1,6 @@
 # 原生换核 A/B 探针
 
-2026-11-01。这是独立诊断源码，**不是统一游戏前端**。A/B 单独启动、加载器读写诊断和同一加载器内的固定 A→B 换核已获实机确认。按键交互、返回 A 及游戏运行后的重入仍待后续验证。
+2026-11-01。这是独立诊断源码，**不是统一游戏前端**。Route12 已完成实机运行时选择与系统重载触发的 A→B→A；固定换核、VM 桥接读写、双向重入均有现场记录。自绘菜单直接触发及真实游戏／存档交接仍待验证。
 
 目标是把三个问题分别验证：加载器还在运行时能否收到按键；宿主能否显示该阶段的视频；第二次 `CORE` 是否确实配置了另一个 FPGA 程序。启动时选中编号、真正重配置、游戏运行后重新唤起加载器，是三个不同结论。
 
@@ -157,8 +157,10 @@ python experiments/native_routing/stage_trial.py --handoff --build .work/native-
 
 [Route12 初始运行与选择锁存已确认](evidence/route12-input-device-report.json)：正常启动 A 后按 B，用户确认 ID=A、M=C1、C=2。正常运行阶段的输入与锁存通路通过；当前同一次会话继续测试 Reload test，系统重载后的 VM 重入与按选择换核仍待确认。此结果不解释 Route9/10 等待期间没有捕获输入的原因。
 
+[首次重载切 B 已通过](evidence/route12-reload-device-report.json)：选择 Reload test → probe.dat 后，橙屏、ID/D=`0x504C4201`、M=C2。[同会话返回 A 也通过](evidence/route12-return-device-report.json)：用户先确认 C=1，再重载得到蓝屏、ID/D=`0x504C4100`、M=C2。因此同一入口的“正常运行时选择 → OS 重载 → VM 重入 → 原生 A/B 换核”已双向通过。保留 Route12 为可用对照；目前还包含一次系统菜单操作。
+
 ## English
 
 This is a **native FPGA routing diagnostic**, not a unified frontend. Two official-template board projects carry immutable A/B identities; three assembled Chip32 loaders compare input visibility before initialization, after reset release, and after full initialization. The old logging VM must reject the absent FPGA identity instead of claiming a switch. Diagnostic EXIT 0 is not routing success: M=0xA0 is required for the A/B/A identity check.
 
-The local trial removes unused audio clocks and explicitly excepts APF protocol I/O. Internal timing passes; this is not external board-I/O signoff. Physical reports accept A/B startup, VM PMP reporting and fixed A-to-B switching in Route6. Route8 completed its bounded no-input path. Route9 and Route10 still reported M=0xE2/D=0 after A taps, so input-driven switching was not entered; timing and host input delivery remain unresolved. Route11 measures elapsed time and observed keys. Route12 is an explicit OS-reload control using a read-only 16-byte slot and parameters 0x89, preserving FPGA state before VM re-entry. Thirty-one model checks pass, including preserved-register branch models; no actual OS event is simulated. The two entries were installed after a fresh backup: 20 additions, 3 identical shared files and 4,208 protected original files verified. The user confirmed Route12's initial A identity, M=0xC1 and latched C=2 after pressing B during normal runtime. OS reload and selection-based switching are next. Direct automatic triggering, A-to-B-to-A return and game/save handoff remain unverified. Historical reports and existing game entries are preserved.
+The local trial removes unused audio clocks and explicitly excepts APF protocol I/O. Internal timing passes; this is not external board-I/O signoff. Physical reports accept A/B startup, VM PMP reporting and fixed A-to-B switching. Route9/10 did not capture input during VM polling. Route12 now passes the full OS-mediated control: runtime B selection, slot reload, VM re-entry and immutable B identity; then runtime A selection, a second reload and return to immutable A. Both final images and M=0xC2 match. This establishes native A-to-B-to-A routing within one entry using an explicit OS reload step. The read-only 16-byte slot and parameter 0x89 preserve FPGA state before re-entry. Direct automatic triggering and real game/BIOS/save handoff remain unverified. Keep the installed Route12 package as the accepted control; historical reports and game entries are preserved.
