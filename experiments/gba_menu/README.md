@@ -2,7 +2,7 @@
 
 2026-11-01：新增[菜单动画离线候选](MOTION.md)，使用小缓存保留旧画面，再进行 8 帧缓动整页过渡。它独立于当前可用核心；离线像素检查、完整编译和实机验收分别记录，尚未写卡。
 
-2026-10-31。**独立 GBA 核心的开发实验；用户已确认 `0.2.0-gba.3` 中文菜单与游戏启动可用，普通存档、RTC 和保存返回尚待实机验收。** [用户报告](evidence/hardware-acceptance.json)仅覆盖一台 Pocket，不代表完整兼容性认证。稳定发行版 `v0.1.2-public.1` 继续只支持 GB/GBC。本目录不提供游戏、BIOS、个人进度或整卡清单；NES/SNES 与跨核心自动切换尚未接通。
+2026-10-31。**独立 GBA 核心的开发实验；用户已确认 `0.2.0-gba.3` 中文菜单与游戏启动可用，普通存档、RTC 和保存返回尚待实机验收。** [用户报告](evidence/hardware-acceptance.json)仅覆盖一台 Pocket，不代表完整兼容性认证。稳定发行版 `v0.1.2-public.1` 继续只支持 GB/GBC。本目录不提供游戏、BIOS、个人进度或整卡清单；其他机种另有[独立候选](../../docs/PER-SYSTEM-MENUS.md)，跨核心自动切换未实现。
 
 实机首次测试在菜单出现前报告 `Error in core setup`。已发现并修正打包错误：目录 `pocketlab.GBA` 必须与 `author: pocketlab`、`shortname: GBA` 对应，见官方[打包要求](https://www.analogue.co/developer/docs/openfpga/packaging-a-core#for-development)。打包器和安装器现在检查此约束；该次身份修正未改变 FPGA 二进制。上游 mincer_ray 的署名与通知保留在源码及本文来源段落中。
 

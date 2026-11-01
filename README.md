@@ -26,11 +26,11 @@
 
 2026-11-01 当前方向为[各机种独立的中文可视化菜单](docs/PER-SYSTEM-MENUS.md)：保留官方 openFPGA 的机种列表及 Change Core，分别完善 GB/GBC、GBA，再逐个适配其他核心。系统首页和跨机种合并启动器的研究已收束。
 
-后续离线工作包括 [GBA 缓动过渡候选](experiments/gba_menu/MOTION.md)、[FC/NES 原生菜单候选](experiments/nes_menu/README.md)和 [SFC/SNES 原型](experiments/snes_menu/README.md)。GBA 动画已有逐像素离线验证；NES 完整编译与继承时序通过但待实机；SNES 时序未通过，不提供安装包。这些候选均未安装，也不属于稳定发行版。
+后续离线工作包括 [GBA 缓动过渡候选](experiments/gba_menu/MOTION.md)、[FC/NES 原生菜单候选](experiments/nes_menu/README.md)和 [SFC/SNES 原型](experiments/snes_menu/README.md)。GBA 动画通过像素、首屏、游戏光栅对照、完整编译与 104 条时序检查，最小 slack +0.080 ns；NES 的 128 条时序检查通过，最小 +0.126 ns。两者待实机；SNES 时序未通过，不提供安装包。这些候选均未安装，也不属于稳定发行版。
 
 本分支还提供[机种图标菜单](docs/MACHINE-MENU.md)：GB / GBC 掌机图标 → 分类 → 原有游戏封面，经典系列集中在收藏入口。复用稳定核心，用户已确认新布局可用。
 
-已有 GB/GBC 菜单可用[显示素材更新工具](docs/DISPLAY-UPDATES.md)补中文名和封面，保留原游戏／存档关联。GBA 的[素材与聚合实验](experiments/unified_frontend/README.md)另提供中文标题、封面和底部提示更新。两个核心已在本地试加共同的 Pocket Lab 系统关联，用户已确认分组与核心选择正确；中文图标页内自动切换核心尚未实现。
+已有 GB/GBC 菜单可用[显示素材更新工具](docs/DISPLAY-UPDATES.md)补中文名和封面，保留原游戏／存档关联。GBA 的[素材工具](experiments/unified_frontend/README.md)另提供中文标题、封面和底部提示更新。此前试用的共同 Pocket Lab 分组已按独立机种方向备份后移除；中文图标页内自动切换核心尚未实现。
 
 ## 快速开始
 

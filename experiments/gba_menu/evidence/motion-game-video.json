@@ -1,0 +1,18 @@
+{
+  "result": "passed",
+  "scope": "Candidate and separately supplied accepted adapter RTL; inferred RAM, synthetic GPU writes, no CPU/device",
+  "clock_samples": 280896,
+  "game_pixels": 76800,
+  "compared": [
+    "RGB",
+    "data enable",
+    "HS",
+    "VS",
+    "scaler skip"
+  ],
+  "inputs": {
+    "gba_motion_video.sv": "e9c7a67dabfd50503ff509f86969bf722f372b80e3103ec2262e6f3e9d31ad94",
+    "tb_game_video.sv": "359b0748ba3730fa904a236a40f3122d7d6b1e8d82281b7feae8ad622984c46b",
+    "video_adapter.sv": "3c6ec1d47a1c1c8414556f51d78dff7c045b3715f9f34d680185c6351f3bfb8e"
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "scope": "Actual menu/APF command/FIFO/video integration; RAM table storage, host and ready/idle inputs modeled; no GBA CPU or physical device",
+  "fade_candidate": false,
+  "motion_candidate": true,
+  "cases": [
+    {
+      "case": "complete",
+      "result": "passed"
+    }
+  ],
+  "input_hashes": {
+    "tb_boot.sv": "979981647e8af525c8e23d631656c289ae9889ea8855a2d6dab7ba4e98c537f2",
+    "gba_menu.sv": "26662a928ebc7dafbf6c103acfd2e9dfa6f4c4c477d19f6d2ee48c7699c389f4",
+    "gba_menu_pixels.sv": "78613cdf7f18d008ba58183d2e2c1281200ae3eb28ab3516fc8f756e7e48d19b",
+    "core_bridge_cmd.v": "6d9cfdfb7e2a159a9efd72ccbeeeb00e2d2e45bf6cc83ce7d14bde2b170da766",
+    "video_adapter.sv": "e9c7a67dabfd50503ff509f86969bf722f372b80e3103ec2262e6f3e9d31ad94",
+    "data_loader.sv": "835124f2993469f72c5ff1967cf386a58d6dec51b5035c70b0480a54d50dafb6",
+    "common.v": "c1615e2c6c12b111537f6ca11e826e5061eb91f405e349bdc649a17b48e24d4e",
+    "motion-altera_mf.v": "bfdfde8688adb0f2223e6aba5ff56fba569d5ed2ed87866982c2f511aef0f7a6"
+  }
+}

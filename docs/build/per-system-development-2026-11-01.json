@@ -1,0 +1,86 @@
+{
+  "date": "2026-11-01",
+  "scope": "Offline per-platform development plus previously completed metadata cleanup; no new candidate installed",
+  "card_cleanup": {
+    "metadata_updates": 2,
+    "shared_platform_files_removed": 1,
+    "protected_files_unchanged": 4416,
+    "save_writes": 0,
+    "core_binary_writes": 0,
+    "firmware_writes": 0
+  },
+  "user_reports": {
+    "gb_gbc": "CoverFlow navigation/category return/game launch stable in this round; no reported blank/white/wrong-art/stuck-input issue",
+    "gba": "CN menu opens; animation unaccepted. Ordinary save/RTC/return acceptance remains pending"
+  },
+  "tests": {
+    "public_tools": {
+      "passed": 24,
+      "skipped": 1,
+      "skip_reason": "Windows host cannot create test symlinks"
+    },
+    "gba_tools": {
+      "passed": 9
+    },
+    "nes_library": {
+      "passed": 3
+    },
+    "snes_library": {
+      "passed": 3
+    },
+    "platform_contracts": {
+      "passed": 18
+    }
+  },
+  "gba_motion": {
+    "pixel_receipt": "../../experiments/gba_menu/evidence/motion-pixels.json",
+    "current_boot_cases": [
+      "complete"
+    ],
+    "previous_same_interface_boot_cases": [
+      "complete",
+      "retained-game-ownership",
+      "missing-tail"
+    ],
+    "game_raster_clock_samples": 280896,
+    "game_raster_pixels": 76800,
+    "game_raster_parity": "RGB, DE, HS, VS and scaler skip identical to accepted adapter across two complete frames",
+    "first_fit_failure": "Single cover array rounded up to 32 M10Ks; total 310 exceeded 308. Current banked cache uses separate 4K/2K regions.",
+    "full_build": "passed_and_source_verified",
+    "hardware_acceptance": "pending",
+    "style": "8-frame eased whole-page slide, not independent GB/GBC cover scaling",
+    "minimum_slack_ns": 0.08,
+    "version": "0.2.0-gba.4"
+  },
+  "nes": {
+    "historical_build": {
+      "records": 128,
+      "minimum_slack_ns": 0.145,
+      "negative_slacks": 0
+    },
+    "current_build": "passed_and_source_verified",
+    "hardware_acceptance": "pending",
+    "library_scope": "favorites main entries only; complete card library/artwork staging pending",
+    "minimum_slack_ns": 0.126,
+    "version": "0.3.0-nes.1"
+  },
+  "snes": {
+    "last_compiled_prototype": {
+      "records": 96,
+      "minimum_slack_ns": -2.823,
+      "negative_slacks": 4
+    },
+    "latest_source": "save-binding guard generated, not fully recompiled",
+    "scope": "Standard NTSC chip types 0,1,2 only; PAL/co-processors excluded",
+    "installable_package": false,
+    "hardware_acceptance": "not_tested"
+  },
+  "local_assets": {
+    "display_aliases": {
+      "nes_main_entries": 83,
+      "snes_main_entries": 27
+    },
+    "downloaded_covers": 53,
+    "scope": "Display labels/art selected from existing filenames and series; not a ROM language/version/gameplay certification. No ROM copies or card writes"
+  }
+}
