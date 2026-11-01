@@ -35,6 +35,16 @@ GBA 当前上传整张页面；GB/GBC 缓存封面后逐帧移动、缩放。接
 
 本次仅更新电脑上的开发方向与文档，没有写卡、刷固件或修改已验收核心。先前[系统首页研究](../experiments/unified_frontend/SYSTEM-FRONTEND.md)和[自动换核探针](../experiments/unified_frontend/NATIVE-CORE-ROUTING.md)保留为历史依据。
 
+## 同日后续：清理与首轮测试包
+
+用户随后授权移除测试入口、测试各机种菜单与封面。已备份后移除 Route0～15 及其专用文件，共 201 个；4,420 个保护文件哈希未变。可用 GB/GBC、GBA 核心继续保留。相关源码、控制组和实机记录仍可在电脑备份及 Git 历史中查询。
+
+卡内 GB/GBC 的 33 个可达页面、GBA 的 81 个页面与保留版本一致，未发现断开的文件链接。本轮 GBA 新增 9 个已核对原作的封面，修正一处把 Tootuff 误称为丁丁的显示别名；写入 5 张菜单资源页后回读全部 81 页，启动／存档／RTC 记录逐字节不变。GBA 当前 499 个游戏条目中 468 个有封面，31 个保留占位；GB/GBC 仍有未匹配封面来源的条目，不能声称全库图文已齐。
+
+公开工具本轮 24 项通过、1 项因 Windows 符号链接权限跳过；GBA 工具 9 项、离线机种契约 18 项通过。另完成真实 GB/GBC 菜单 RTL 导航、GBA 控制／启动／38,400 像素输出检查；动画候选的游戏画面绕过复测通过。详细范围见[检查记录](build/per-system-qa-2026-11-01.json)。本轮未更新核心二进制或动画。
+
+上机首轮只测 GB、GBC、GBA：各切换约 10 次，A 进入分类、B 返回，各启动一款游戏，记录黑屏、错图、闪白或按键卡住。之后再用无重要进度的 GBA 游戏验证游戏内保存 → L+R+Select → 保存并返回 → 再次启动；这不等同即时存档，优先保护《缩小帽》。新一轮实机反馈待收集，FC/NES、SFC/SNES 可视化菜单仍未完成。
+
 ## English
 
-The active direction retains Analogue's native openFPGA platform list and Change Core. Each platform gets its own Chinese visual game menu inside its native core. GB/GBC and GBA remain separate implementations; no merged launcher or OS UI replacement is being pursued. GB/GBC menus and the GBA experimental menu/game launch have user reports; GBA save/RTC/return coverage is pending. NES/SNES have offline interface work only. Shared artwork/title tools do not remove platform-specific loading, rendering and save integration. No card or firmware changes were made for this direction update.
+The active direction retains Analogue's native openFPGA platform list and Change Core. Each platform gets its own Chinese visual game menu inside its native core. GB/GBC and GBA remain separate implementations; no merged launcher or OS UI replacement is being pursued. GB/GBC menus and the GBA experimental menu/game launch have user reports; GBA save/RTC/return coverage is pending. NES/SNES have offline interface work only. Shared artwork/title tools do not remove platform-specific loading, rendering and save integration. The direction update was documentation only. A subsequent authorized cleanup removed Route0–15 after backup; nine GBA covers and one display alias were updated in five menu pages. All 81 GBA pages were read back and 4,420 protected files stayed unchanged. No game, save, core binary, firmware or animation updates were installed. The linked receipt separates computer checks from pending device feedback.
