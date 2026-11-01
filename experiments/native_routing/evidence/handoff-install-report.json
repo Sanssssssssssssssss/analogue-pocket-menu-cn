@@ -1,0 +1,19 @@
+{
+  "date": "2026-11-01",
+  "package_source_commit": "5f7a229996a27410640547bb183164d4797a8f44",
+  "scope": "Two added timing and OS-reload diagnostics; physical Route11-12 acceptance pending",
+  "entries": [
+    "pocketlab.Route11",
+    "pocketlab.Route12"
+  ],
+  "added_files": 20,
+  "added_bytes": 3185007,
+  "shared_files_verified": 3,
+  "protected_files_sha256_verified": 4208,
+  "overwritten_files": 0,
+  "save_writes": 0,
+  "firmware_writes": 0,
+  "backup": "Fresh local protected-data snapshot verified before installation; exact candidate and source bundle retained locally",
+  "reload_control": "Route12 uses user-reloadable + read-only + soft reboot (0x89), with FPGA full-reload bit clear",
+  "rollback": "Remove only the 20 listed additions after checking their hashes; preserve all previous cores, shared files and saves"
+}
