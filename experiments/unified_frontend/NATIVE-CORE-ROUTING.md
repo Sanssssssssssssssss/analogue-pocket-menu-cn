@@ -2,11 +2,11 @@
 
 目标：统一中文游戏库 → 选择游戏 → 按机种加载对应的 FPGA bitstream → 游戏。GB/GBC 使用原 GB/GBC 硬件实现，GBA 使用原 GBA 实现；一次只配置当前机种。这个目标不要求两套游戏电路同时放进 FPGA，不能用两套资源相加超预算来否定它。
 
-2026-11-01 当前结果：Route12 已实机完成运行时选择及 **OS 重载触发的 A→B→A**，仍需系统菜单操作。[Route13 读取实测](../native_routing/evidence/route13-device-report.json)为蓝屏、M=C1、S=1000F、N=1：一次文件读取报告成功，但没有观察到自动重入。[Route14](../native_routing/evidence/route14-device-report.json) 打开请求返回路径格式错误 4（S=2040F）；成功打开后的重入尚未测试，先离线排查路径读回。不重复未改动的探针。这些结果尚未形成可用的自动统一前端。下文保留实验过程与来源。
+2026-11-01 当前结果：Route12 已实机完成运行时选择及 **OS 重载触发的 A→B→A**，仍需系统菜单操作。[Route13 读取实测](../native_routing/evidence/route13-device-report.json)为蓝屏、M=C1、S=1000F、N=1：一次文件读取报告成功，但没有观察到自动重入。[Route14](../native_routing/evidence/route14-device-report.json) 打开请求返回路径格式错误 4（S=2040F）；[Route15 修正版](../native_routing/evidence/route15-device-report.json) 随后成功打开（S=2000F、N=1），仍蓝屏/M=C1。读取和同路径打开两种已测请求均未观察到自动重入；本轮收束，不重复这些探针。这些结果尚未形成可用的自动统一前端。下文保留实验过程与来源。
 
 2026-10-31 源码核对结果：按 ROM 选择原生程序已有社区实例；运行中的中文图标页主动发起重配置，仍缺已验证接口。本轮没有连接设备卡。
 
-Route14 后续离线排查得到[独立 Route15 候选](../native_routing/README.md#route15缓冲路径读回)：真实 APF 串行桥在模型宿主按一字缓冲协议读取时，旧组合逻辑路径丢失首字，新缓冲路径完整。候选已完成编译和离线检查，并[备份安装](../native_routing/evidence/buffered-open-install-report.json)，实机结果待确认；未捕获实际固件读轨迹，不能把它记为路径错误已修复或自动换核已实现。
+Route14 后续离线排查得到[独立 Route15 候选](../native_routing/README.md#route15缓冲路径读回)：真实 APF 串行桥在模型宿主按一字缓冲协议读取时，旧组合逻辑路径丢失首字，新缓冲路径完整。候选已完成编译和离线检查，并[备份安装](../native_routing/evidence/buffered-open-install-report.json)，实机已确认打开返回成功，但没有自动换核。未捕获实际固件串行轨迹；保留成功文件打开作为参考，不把它记为统一前端已实现。
 
 | 环节 | 证据与状态 |
 |---|---|

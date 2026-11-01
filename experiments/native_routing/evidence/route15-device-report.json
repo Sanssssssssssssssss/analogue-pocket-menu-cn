@@ -1,0 +1,35 @@
+{
+  "date": "2026-11-01",
+  "source": "User reported blue, M=C1, S=2000F and N=1 after the Route15 fresh runtime B test",
+  "package_source_commit": "57b9acab3ed0ce745e5669865223d501f2927548",
+  "entry": "pocketlab.Route15",
+  "procedure_requested": "Cold boot, Run, release all keys, fresh B after stable blue, wait about three seconds and observe before manual Reload test",
+  "observed": {
+    "screen": "Blue",
+    "M": "0x000000C1",
+    "S": "0x0002000F",
+    "N": "0x00000001"
+  },
+  "decoded_S": {
+    "mode": 2,
+    "armed": true,
+    "request_issued": true,
+    "ack_seen": true,
+    "new_done_seen": true,
+    "result_code": 0
+  },
+  "accepted_scope": [
+    "One runtime Target 0192 open of the already-bound read-only synthetic seed completed successfully",
+    "The previous Route14 malformed-path error is absent with the buffered parameter implementation",
+    "The screen remained blue and M remained at the cold-start C1 marker: no automatic VM re-entry or native switch was observed",
+    "Together with Route13, both the tested read and existing-file open completed without an observed automatic switch"
+  ],
+  "not_established": [
+    "Exact elapsed time was not independently measured; ID, D and C were not requested or reported in this branch",
+    "The actual firmware serial trace and filename bytes were not captured",
+    "This opens the same already-bound path, not a different file or a deferred slot",
+    "This does not prove that all possible runtime re-entry interfaces are unavailable",
+    "Real game, BIOS, save and cross-core return handoff remain unimplemented or unaccepted"
+  ],
+  "decision": "Close the unchanged Route13/14/15 file-command trigger experiments. Preserve Route12 as the accepted OS-mediated A-to-B-to-A control and Route15 as the successful buffered-open reference. No further hardware repetition of these commands without a distinct evidence-backed mechanism."
+}
