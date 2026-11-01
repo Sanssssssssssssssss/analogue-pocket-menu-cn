@@ -6,6 +6,8 @@ The [machine icon menu](docs/MACHINE-MENU.md) uses the existing GB/GBC core: cho
 
 This branch also develops an [isolated full-core GBA integration](experiments/gba_menu/README.md). One Pocket user confirmed Chinese menus and game launch in `0.2.0-gba.3`; ordinary saves, RTC and save-return still await hardware acceptance. The stable release supports GB/GBC only.
 
+As of 2026-11-01, the active direction is [separate visual menus for each platform](docs/PER-SYSTEM-MENUS.md): retain the official openFPGA platform list and Change Core, improve GB/GBC and GBA independently, then adapt other native cores individually. OS home-screen replacement and a merged cross-platform launcher are no longer active work.
+
 The GBA hardware trial reported `Error in core setup` before its menu appeared. The core folder/author/shortname mismatch has been corrected. Existing GB/GBC libraries can use the [display update tool](docs/DISPLAY-UPDATES.md) to add titles/covers while preserving game/save identities.
 
 The [current GBA experiment](experiments/gba_menu/README.md) fixed the previous startup failure by initializing the lifecycle and acquiring frame ownership before painting. The user confirmed menu and game launch. The [frontend aggregation experiment](experiments/unified_frontend/README.md) also stages Chinese captions, artwork and footer updates without changing launch/save records. A shared Pocket Lab platform association has been installed locally, and the user confirmed its grouping and core selection. Native icon-based automatic cross-core switching remains unimplemented.

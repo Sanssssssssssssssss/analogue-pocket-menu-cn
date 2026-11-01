@@ -24,6 +24,8 @@
 
 当前实验分支包含 [GBA / NES / SNES 接口实验](experiments/multi_system/README.md)，并继续进行[独立 GBA 完整核心接入](experiments/gba_menu/README.md)。用户已确认 `0.2.0-gba.3` 的中文菜单与游戏启动可用；普通存档、RTC、保存返回和更多游戏仍待实机验收，没有可安装的全机种公共发行版。
 
+2026-11-01 当前方向为[各机种独立的中文可视化菜单](docs/PER-SYSTEM-MENUS.md)：保留官方 openFPGA 的机种列表及 Change Core，分别完善 GB/GBC、GBA，再逐个适配其他核心。系统首页和跨机种合并启动器的研究已收束。
+
 本分支还提供[机种图标菜单](docs/MACHINE-MENU.md)：GB / GBC 掌机图标 → 分类 → 原有游戏封面，经典系列集中在收藏入口。复用稳定核心，用户已确认新布局可用。
 
 已有 GB/GBC 菜单可用[显示素材更新工具](docs/DISPLAY-UPDATES.md)补中文名和封面，保留原游戏／存档关联。GBA 的[素材与聚合实验](experiments/unified_frontend/README.md)另提供中文标题、封面和底部提示更新。两个核心已在本地试加共同的 Pocket Lab 系统关联，用户已确认分组与核心选择正确；中文图标页内自动切换核心尚未实现。
