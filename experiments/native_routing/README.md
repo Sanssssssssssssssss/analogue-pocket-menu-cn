@@ -2,7 +2,7 @@
 
 2026-11-01。这是独立诊断源码，**不是统一游戏前端**。Route12 已完成实机运行时选择与系统重载触发的 A→B→A；固定换核、VM 桥接读写、双向重入均有现场记录。自绘菜单直接触发及真实游戏／存档交接仍待验证。
 
-后续按三关推进：① Route13/14 各测一次运行期请求，区分“文件完成”和“自动重入”；② 有一种触发成立后，再验双向切换、冷启动和退出；③ 接入 GB/GBC/GBA 的实际加载、返回与隔离存档校验。**本关限定这两项，目前待测 Route14；总轮数不能预先保证**。若两种请求都完成却不触发 VM，就停止重复这条假设；若请求本身失败，先按错误码排查，不能据此断言换核不可行。下文的源码、收据和现场报告作为可复用记录，游戏入口与已验收 Route12 独立保留。
+后续按三关推进：① Route13/14 各测一次运行期请求，区分“文件完成”和“自动重入”；② 有一种触发成立后，再验双向切换、冷启动和退出；③ 接入 GB/GBC/GBA 的实际加载、返回与隔离存档校验。**本关两项已测，Route14 路径错误需先离线排查；总轮数不能预先保证**。若两种请求都完成却不触发 VM，就停止重复这条假设；若请求本身失败，先按错误码排查，不能据此断言换核不可行。下文的源码、收据和现场报告作为可复用记录，游戏入口与已验收 Route12 独立保留。
 
 目标是把三个问题分别验证：加载器还在运行时能否收到按键；宿主能否显示该阶段的视频；第二次 `CORE` 是否确实配置了另一个 FPGA 程序。启动时选中编号、真正重配置、游戏运行后重新唤起加载器，是三个不同结论。
 
@@ -163,7 +163,7 @@ python experiments/native_routing/stage_trial.py --handoff --build .work/native-
 
 ## 运行期只读请求候选
 
-Route13/14 是独立候选，已备份安装。**Route13 读取完成但未观察到自动重入；Route14 待测**。它们在 VM 结束、正常运行后接收新 A/B，分别发起一次 Target `0180` 读取或 `0192` 打开请求。目标固定为槽 0 的 `/Assets/routetest/common/probe.dat`；读取范围只有 16 字节，打开标志和大小均为零，槽仍为只读 `0x89`。Target 写入和 getfile 信号保持零；没有创建、截断、固件或存档操作。
+Route13/14 是独立候选，已备份安装。**Route13 读取完成但未观察到自动重入；Route14 返回路径格式错误 4**。它们在 VM 结束、正常运行后接收新 A/B，分别发起一次 Target `0180` 读取或 `0192` 打开请求。目标固定为槽 0 的 `/Assets/routetest/common/probe.dat`；读取范围只有 16 字节，打开标志和大小均为零，槽仍为只读 `0x89`。Target 写入和 getfile 信号保持零；没有创建、截断、固件或存档操作。
 
 [官方 Target 命令](https://www.analogue.co/developer/docs/openfpga/host-target-commands)说明读文件和按路径打开已有文件的协议，**没有承诺这些命令会重新调用 Chip32**。本轮只检验这个假设，不能把文件请求完成记为换核成功。`runtime_request.sv` 等待运行复位释放、退出系统菜单及 A/B 松开，随后只发一个请求；结果锁存，不自动重试。新硬件重新编译，不复用 Route12 的 bitstream。
 
@@ -193,14 +193,35 @@ python experiments/native_routing/stage_trial.py --runtime --build .work/native-
 
 重新识别卡后，已备份当前受保护的 4,232 个文件、44,815,080 字节，仅新增 Route13/14 的 20 个文件、3,206,722 字节；3 个共用文件哈希一致，安装后原文件与新增文件全部校验通过。见[本轮安装记录](evidence/runtime-install-report.json)。精确新增清单、回退边界、安装脚本、候选包和源码 bundle 留在私有版本备份中，不公开个人卡清单。文件安装校验不代表自动重入已通过。
 
+[Route14 实机结果](evidence/route14-device-report.json)：仍蓝屏、M=`0xC1`、S=`0x2040F`、N=`1`。请求完成但结果码 4 表示路径格式无效；打开未成功，不能据此判定成功打开是否会触发 VM。先离线检查路径结构、字节序和 BRIDGE 缓冲读取，不重复此版。
+
+## Route15：缓冲路径读回
+
+新增独立候选 Route15，尚未安装或实机验收。Route14 的文件名通过组合逻辑返回；[官方 BRIDGE 说明](https://www.analogue.co/developer/docs/openfpga/bus-communication)规定读取有一字缓冲，SDK 寄存器和已能运行的 GBA 菜单都按读 strobe 更新返回值。Route15 仅为 F300 文件参数区增加 `runtime_param_buffer.sv`，诊断区和按键机制保持原样。
+
+`tb_runtime_bridge.sv` 使用真实 APF 串行桥及同步器，对旧组合逻辑和新缓冲逻辑并行读取。宿主按官方“先预读、再取上一字”的流程操作：旧路径首字为 `ets/`，丢失 `/Ass`；新路径完整返回 `/Assets/routetest/common/probe.dat`，全部 66 个字的末尾填充、flags 和 size 均符合预期。为 Icarus 仿真，仅对上游可选位置端口改为命名端口，并把过程赋值 inout 改为显式三态驱动；状态机没有替换为假模型。实际 Pocket 的读取轨迹未捕获，因此这是路径错误的候选原因，不能把仿真结果当作硬件修复已验收。
+
+新候选保留只读槽、零创建／截断标志和单次请求；只生成 Route15，不覆盖 Route12/13/14。另有 5 条真实字节码分支模型检查，仍不模拟自动 OS 回调。上机先确认 S 从 `0x2040F` 变为成功完成状态 `0x2000F`，再独立判定是否橙屏、M=C2、ID/D=B。成功打开但仍蓝屏/M=C1，也必须记为“文件打开成功、未自动重入”。
+
+[串行总线与字节码收据](evidence/buffered-open-validation.json)、[板级编译收据](evidence/buffered-open-builds.json)：A/B 使用 744/867 ALM、均为 2 M10K、0 DSP，各 44 条时序摘要 TNS=0，最小 slack 为 0.127/0.115 ns；各 167 条普通警告、无 Critical Warning，警告代码与数量分组与前版一致。外部 APF I/O 仍在明确例外范围内。包为 13 个文件、1,774,351 字节；打包回归 24 项通过、1 项 Windows 符号链接检查跳过。Route14 原始结果单独保留，不会改写为已修好。
+
+```sh
+python experiments/native_routing/prepare_runtime.py --buffered-open --archive /path/to/core-template.zip --out .work/native-routing/buffered-open
+# 全新编译 A/B；链接同一个 vm_contract.rs 模型驱动。
+python experiments/native_routing/probe_runtime.py --buffered-open --prepared .work/native-routing/buffered-open --bass /path/to/bass --model /path/to/vm-contract --library /path/to/libchip32_sim-HASH.rlib --out .work/native-routing/buffered-open-check
+python experiments/native_routing/stage_trial.py --buffered-open --build .work/native-routing/buffered-open --validation .work/native-routing/buffered-open-check/receipt.json --out .work/native-routing/buffered-open-package
+```
+
 ## English
 
 This is a **native FPGA routing diagnostic**, not a unified frontend. Two official-template board projects carry immutable A/B identities; three assembled Chip32 loaders compare input visibility before initialization, after reset release, and after full initialization. The old logging VM must reject the absent FPGA identity instead of claiming a switch. Diagnostic EXIT 0 is not routing success: M=0xA0 is required for the A/B/A identity check.
 
 The local trial removes unused audio clocks and explicitly excepts APF protocol I/O. Internal timing passes; this is not external board-I/O signoff. Physical reports accept A/B startup, VM PMP reporting and fixed A-to-B switching. Route9/10 did not capture input during VM polling. Route12 now passes the full OS-mediated control: runtime B selection, slot reload, VM re-entry and immutable B identity; then runtime A selection, a second reload and return to immutable A. Both final images and M=0xC2 match. This establishes native A-to-B-to-A routing within one entry using an explicit OS reload step. The read-only 16-byte slot and parameter 0x89 preserve FPGA state before re-entry. Direct automatic triggering and real game/BIOS/save handoff remain unverified. Keep the installed Route12 package as the accepted control; historical reports and game entries are preserved.
 
-Route13/14 are backed-up and installed candidates. Route13 completed one read but did not show automatic re-entry; Route14 remains pending. Installation added 20 files (3,206,722 bytes); three shared files matched and all 4,232 protected originals were SHA256 verified unchanged. A fresh runtime key sends one bounded read (0180) or existing-file open (0192, flags=0) against the same read-only synthetic seed. Real SDK command RTL checks cover protocol, input guards and immutable observations; ten bytecode cases use modeled hardware/registers and do not generate an OS callback. Record ID/M/D before any manual reload: a completed file command alone is not re-entry. The accepted Route12 control remains unchanged.
+Route13/14 are backed-up and installed candidates. Route13 completed one read but did not show automatic re-entry; Route14 returned malformed-path error 4; successful-open re-entry remains untested. Installation added 20 files (3,206,722 bytes); three shared files matched and all 4,232 protected originals were SHA256 verified unchanged. A fresh runtime key sends one bounded read (0180) or existing-file open (0192, flags=0) against the same read-only synthetic seed. Real SDK command RTL checks cover protocol, input guards and immutable observations; ten bytecode cases use modeled hardware/registers and do not generate an OS callback. Record ID/M/D before any manual reload: a completed file command alone is not re-entry. The accepted Route12 control remains unchanged.
 
-The Route13 user report gives blue, M=0xC1, S=0x1000F and N=1: mode 1, one issued request, ACK/new DONE seen and result zero. The ignored payload was not checked for integrity and the interval was not independently timed. This does not rule out other runtime interfaces. Do not repeat the unchanged read test; proceed to Route14 open.
+The Route13 user report gives blue, M=0xC1, S=0x1000F and N=1: mode 1, one issued request, ACK/new DONE seen and result zero. The ignored payload was not checked for integrity and the interval was not independently timed. This does not rule out other runtime interfaces. Route14 subsequently reported blue, M=0xC1, S=0x2040F and N=1. The open completed with error 4, so a successful open has not been tested. Do not repeat either unchanged probe; inspect path bytes and the BRIDGE read contract offline.
 
 Both new board builds pass internal timing (44 records each, all TNS zero; minimum slack 0.149/0.142 ns) with explicit APF I/O exceptions. They use 840/860 ALMs, two M10Ks and no DSPs. Each flow retains 167 reviewed ordinary warnings and no critical warning; external board I/O timing is not certified. The 23-file package is 3,378,810 bytes. Packaging regression: 24 passed, one Windows symlink check skipped. See the linked validation and build receipts above.
+
+Route15 is a separate uninstalled candidate that buffers only filename-struct reads to match APF's previous-word protocol. A serial-level regression runs actual APF bridge FSMs and synchronizers: the modeled pipelined host receives an old path starting with `ets/`, while the buffered path and all 66 words (padding/zero flags/size) match. Icarus adapters only legalize optional ports and procedural tri-state declarations. The actual firmware read trace is not captured; this remains a plausible cause of error 4, not hardware acceptance. Five bytecode model cases pass without simulating any OS callback. A successful open and automatic re-entry must still be observed separately.

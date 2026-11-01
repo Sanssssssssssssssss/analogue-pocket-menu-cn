@@ -17,7 +17,7 @@ def sha(p):return hashlib.sha256(p.read_bytes()).hexdigest()
 def write_json(p,value):
     p.parent.mkdir(parents=True,exist_ok=True);p.write_text(json.dumps(value,indent=2)+'\n',encoding='utf8')
 
-def audit(build,name,runtime=False):
+def audit(build,name,runtime=False,buffered_open=False):
     fpga=build/name/'src/fpga';folder=fpga/'output_files'
     flow=(folder/'ap_core.flow.rpt').read_text();fit=(folder/'ap_core.fit.summary').read_text()
     sta=(folder/'ap_core.sta.summary').read_text();report=(folder/'ap_core.sta.rpt').read_text()
@@ -40,14 +40,18 @@ def audit(build,name,runtime=False):
             "wire    [31:0]  target_dataslot_bridgeaddr = 32'h60000080;", "wire    [31:0]  target_dataslot_length = 32'd16;",
             "wire    [31:0]  target_buffer_param_struct = 32'hF3000000;",'wire    [31:0]  target_buffer_resp_struct = 0;']:
             if declaration not in text:raise ValueError('Unreviewed runtime command parameters')
-        sources += [fpga/p for p in ['core/runtime_request.sv','core/core_bridge_cmd.v','apf/common.v','ap_core.qsf']]
+        sources += [fpga/p for p in ['core/runtime_request.sv','core/core_bridge_cmd.v','apf/common.v','apf/io_bridge_peripheral.v','ap_core.qsf']]
+        if buffered_open:
+            if "32'hF300xxxx: begin bridge_rd_data <= runtime_param_data; end" not in text:raise ValueError('Buffered parameter mapping missing')
+            sources.append(fpga/'core/runtime_param_buffer.sv')
     return {'program':name,'compile':'successful','timing_records':len(slack),'minimum_reported_slack_ns':min(slack),'all_tns_zero':True,
         'board_io_scope':'APF protocol I/O explicitly excepted, following existing GBA constraints; no external setup/hold signoff',
         'rbf_sha256':sha(folder/'ap_core.rbf'),'source_sha256':{p.relative_to(fpga).as_posix():sha(p) for p in sources},
         'reports_sha256':{p.name:sha(p) for p in [folder/'ap_core.flow.rpt',folder/'ap_core.fit.summary',folder/'ap_core.sta.summary']}}
 
-def stage(build,validation,out,isolation=False,interaction=False,handoff=False,runtime=False):
-    if sum([isolation,interaction,handoff,runtime])>1:raise ValueError('Select one diagnostic profile')
+def stage(build,validation,out,isolation=False,interaction=False,handoff=False,runtime=False,buffered_open=False):
+    if sum([isolation,interaction,handoff,runtime,buffered_open])>1:raise ValueError('Select one diagnostic profile')
+    runtime=runtime or buffered_open
     build=Path(build).resolve();out=Path(out).resolve()
     if out.exists() or not all(p.is_relative_to(ROOT/'.work') for p in [out,build]):raise ValueError('Use fresh checkout .work output and local build')
     proof=json.loads(Path(validation).read_text());here=Path(__file__).resolve().parent
@@ -55,17 +59,19 @@ def stage(build,validation,out,isolation=False,interaction=False,handoff=False,r
     if isolation or interaction or handoff:inputs+=['isolation_loader.asm','prepare_isolation.py','vm_contract.rs','probe_isolation.py','prepare_probe.py','prepare_trial.py']
     if handoff:inputs+=['timing_body.asm','reentry_body.asm','prepare_handoff.py','probe_handoff.py']
     if runtime:
-        from probe_runtime import INPUTS
-        inputs=INPUTS
+        from probe_runtime import INPUTS,BUFFERED_INPUTS
+        inputs=INPUTS+(BUFFERED_INPUTS if buffered_open else [])
     for name in inputs:
         if proof['inputs'][name]!=sha(here/name):raise ValueError('Offline validation is stale: '+name)
-    reviewed=[audit(build,n,runtime) for n in ['A','B']]
+    reviewed=[audit(build,n,runtime,buffered_open) for n in ['A','B']]
     for item in reviewed:
         if item['source_sha256']['core/route_probe.sv']!=sha(here/'route_probe.sv'):raise ValueError('Compiled probe source differs')
         if runtime and item['source_sha256']!=proof['hardware_sources'][item['program']]:raise ValueError('Runtime RTL validation is stale')
     reverse=bytes(int(f'{n:08b}'[::-1],2) for n in range(256));assert reverse.translate(reverse)==bytes(range(256))
     out.mkdir(parents=True);files=out/'files'
-    if runtime:
+    if buffered_open:
+        entries=[(15,'Route15','Buffered runtime existing-file open')]
+    elif runtime:
         entries=[(13,'Route13','Runtime read request re-entry hypothesis'),(14,'Route14','Runtime open request re-entry hypothesis')]
     elif isolation:
         entries=[(4,'Route4','Boot A without polling'),(5,'Route5','Read and report identity A'),
@@ -83,7 +89,7 @@ def stage(build,validation,out,isolation=False,interaction=False,handoff=False,r
         for name in ['audio','input','variants','video']:shutil.copy2(build/'A'/f'{name}.json',folder/f'{name}.json')
         core=json.loads((build/'A/core.json').read_text())['core']
         core['metadata'].update(platform_ids=['routetest'],shortname=f'Route{i}',author='pocketlab',description=description,
-            url='https://github.com/Sanssssssssssssssss/analogue-pocket-menu-cn',version='0.0.5-runtime' if runtime else '0.0.4-handoff' if handoff else '0.0.3-input' if interaction else '0.0.2-isolate' if isolation else '0.0.1-trial',date_release='2026-11-01')
+            url='https://github.com/Sanssssssssssssssss/analogue-pocket-menu-cn',version='0.0.6-buffer' if buffered_open else '0.0.5-runtime' if runtime else '0.0.4-handoff' if handoff else '0.0.3-input' if interaction else '0.0.2-isolate' if isolation else '0.0.1-trial',date_release='2026-11-01')
         core['framework']['hardware']={'link_port':False,'cartridge_adapter':'0x80000000'}
         core['cores']=[{'name':n,'id':j,'filename':f'probe_{n.lower()}.rbf_r'} for j,n in enumerate(['A','B'])]
         for name in ['A','B']:
@@ -121,4 +127,5 @@ if __name__=='__main__':
     profiles.add_argument('--interaction',action='store_true',help='Stage only new Route8-10 corrected input loaders')
     profiles.add_argument('--handoff',action='store_true',help='Stage only new Route11-12 timing and OS reload controls')
     profiles.add_argument('--runtime',action='store_true',help='Stage only new Route13-14 read-only runtime request hypotheses')
-    a=p.parse_args();print(json.dumps(stage(a.build,a.validation,a.out,a.isolation,a.interaction,a.handoff,a.runtime)))
+    profiles.add_argument('--buffered-open',action='store_true',help='Stage only new Route15 buffered filename open')
+    a=p.parse_args();print(json.dumps(stage(a.build,a.validation,a.out,a.isolation,a.interaction,a.handoff,a.runtime,a.buffered_open)))

@@ -8,7 +8,7 @@ from prepare_probe import HERE, replace
 from prepare_trial import trial
 
 
-def prepare(archive, out):
+def prepare(archive, out, buffered_open=False):
     out=trial(archive,out)
     for name in ['A','B']:
         fpga=out/name/'src/fpga';p=fpga/'core/core_top.v';text=p.read_text()
@@ -36,14 +36,25 @@ runtime_request runtime_probe (
     .read_data(runtime_data));
 """
         text=replace(text,'endmodule',insert+'\nendmodule')
+        if buffered_open:
+            text=replace(text,"32'hF300xxxx: begin bridge_rd_data <= runtime_data; end", """32'hF300xxxx: begin bridge_rd_data <= runtime_param_data; end""")
+            # Keep status readouts combinational; only the filename struct is buffered.
+            text=replace(text,"32'h60000030,32'h60000034,32'h600000B0,32'h600000B4,32'h600000B8,",
+                "32'h60000030,32'h60000034,32'h600000B0,32'h600000B4,32'h600000B8: begin bridge_rd_data <= runtime_data; end")
+            text=replace(text,'endmodule',"""wire [31:0] runtime_param_data;
+runtime_param_buffer parameter_buffer(clk_74a,bridge_rd,bridge_addr,runtime_data,runtime_param_data);
+endmodule""")
         p.write_text(text,encoding='utf8',newline='\n')
         shutil.copy2(HERE/'runtime_request.sv',fpga/'core/runtime_request.sv')
         cmd=fpga/'core/core_bridge_cmd.v'
         cmd.write_text(replace(cmd.read_text(),'synch_3 s01(bridge_endian_little, endian_little_s, clk);',
             'synch_3 s01(.i(bridge_endian_little),.o(endian_little_s),.clk(clk));'),newline='\n')
         with (fpga/'ap_core.qsf').open('a') as f:f.write('set_global_assignment -name SYSTEMVERILOG_FILE core/runtime_request.sv\n')
+        if buffered_open:
+            shutil.copy2(HERE/'runtime_param_buffer.sv',fpga/'core/runtime_param_buffer.sv')
+            with (fpga/'ap_core.qsf').open('a') as f:f.write('set_global_assignment -name SYSTEMVERILOG_FILE core/runtime_param_buffer.sv\n')
     template=(HERE/'isolation_loader.asm').read_text()
-    for number,mode in [(13,1),(14,2)]:
+    for number,mode in ([(15,2)] if buffered_open else [(13,1),(14,2)]):
         folder=out/'runtime'/f'Route{number}';folder.mkdir(parents=True)
         body=(HERE/'reentry_body.asm').read_text().replace('#0x60000014','#0x60000034')
         body+=f'\n    ld r0,#0x60000030\n    ld r1,#{mode}\n    pmpw r0,r1\n'
@@ -54,4 +65,5 @@ runtime_request runtime_probe (
 if __name__=='__main__':
     p=argparse.ArgumentParser(description=__doc__)
     for name in ['archive','out']:p.add_argument('--'+name,required=True)
-    a=p.parse_args();print(prepare(a.archive,a.out))
+    p.add_argument('--buffered-open',action='store_true')
+    a=p.parse_args();print(prepare(a.archive,a.out,a.buffered_open))
