@@ -1,5 +1,7 @@
 # 按游戏调用对应的原生核心
 
+2026-11-01 用户已将当前方向调整为[复用系统机种列表](SYSTEM-FRONTEND.md)。以下保留原生路由实验依据，当前不继续同类界面内自动换核测试。
+
 目标：统一中文游戏库 → 选择游戏 → 按机种加载对应的 FPGA bitstream → 游戏。GB/GBC 使用原 GB/GBC 硬件实现，GBA 使用原 GBA 实现；一次只配置当前机种。这个目标不要求两套游戏电路同时放进 FPGA，不能用两套资源相加超预算来否定它。
 
 2026-11-01 当前结果：Route12 已实机完成运行时选择及 **OS 重载触发的 A→B→A**，仍需系统菜单操作。[Route13 读取实测](../native_routing/evidence/route13-device-report.json)为蓝屏、M=C1、S=1000F、N=1：一次文件读取报告成功，但没有观察到自动重入。[Route14](../native_routing/evidence/route14-device-report.json) 打开请求返回路径格式错误 4（S=2040F）；[Route15 修正版](../native_routing/evidence/route15-device-report.json) 随后成功打开（S=2000F、N=1），仍蓝屏/M=C1。读取和同路径打开两种已测请求均未观察到自动重入；本轮收束，不重复这些探针。这些结果尚未形成可用的自动统一前端。下文保留实验过程与来源。
