@@ -2,7 +2,7 @@
 
 2026-11-01。这是独立诊断源码，**不是统一游戏前端**。Route12 已完成实机运行时选择与系统重载触发的 A→B→A；固定换核、VM 桥接读写、双向重入均有现场记录。自绘菜单直接触发及真实游戏／存档交接仍待验证。
 
-后续按三关推进：① Route13/14 各测一次运行期请求，区分“文件完成”和“自动重入”；② 有一种触发成立后，再验双向切换、冷启动和退出；③ 接入 GB/GBC/GBA 的实际加载、返回与隔离存档校验。**当前明确待测两项，总轮数不能预先保证**。若两种请求都完成却不触发 VM，就停止重复这条假设；若请求本身失败，先按错误码排查，不能据此断言换核不可行。下文的源码、收据和现场报告作为可复用记录，游戏入口与已验收 Route12 独立保留。
+后续按三关推进：① Route13/14 各测一次运行期请求，区分“文件完成”和“自动重入”；② 有一种触发成立后，再验双向切换、冷启动和退出；③ 接入 GB/GBC/GBA 的实际加载、返回与隔离存档校验。**本关限定这两项，目前待测 Route14；总轮数不能预先保证**。若两种请求都完成却不触发 VM，就停止重复这条假设；若请求本身失败，先按错误码排查，不能据此断言换核不可行。下文的源码、收据和现场报告作为可复用记录，游戏入口与已验收 Route12 独立保留。
 
 目标是把三个问题分别验证：加载器还在运行时能否收到按键；宿主能否显示该阶段的视频；第二次 `CORE` 是否确实配置了另一个 FPGA 程序。启动时选中编号、真正重配置、游戏运行后重新唤起加载器，是三个不同结论。
 
@@ -163,7 +163,7 @@ python experiments/native_routing/stage_trial.py --handoff --build .work/native-
 
 ## 运行期只读请求候选
 
-Route13/14 是独立候选，**已备份安装，尚未获得实机结果**。它们在 VM 结束、正常运行后接收新 A/B，分别发起一次 Target `0180` 读取或 `0192` 打开请求。目标固定为槽 0 的 `/Assets/routetest/common/probe.dat`；读取范围只有 16 字节，打开标志和大小均为零，槽仍为只读 `0x89`。Target 写入和 getfile 信号保持零；没有创建、截断、固件或存档操作。
+Route13/14 是独立候选，已备份安装。**Route13 读取完成但未观察到自动重入；Route14 待测**。它们在 VM 结束、正常运行后接收新 A/B，分别发起一次 Target `0180` 读取或 `0192` 打开请求。目标固定为槽 0 的 `/Assets/routetest/common/probe.dat`；读取范围只有 16 字节，打开标志和大小均为零，槽仍为只读 `0x89`。Target 写入和 getfile 信号保持零；没有创建、截断、固件或存档操作。
 
 [官方 Target 命令](https://www.analogue.co/developer/docs/openfpga/host-target-commands)说明读文件和按路径打开已有文件的协议，**没有承诺这些命令会重新调用 Chip32**。本轮只检验这个假设，不能把文件请求完成记为换核成功。`runtime_request.sv` 等待运行复位释放、退出系统菜单及 A/B 松开，随后只发一个请求；结果锁存，不自动重试。新硬件重新编译，不复用 Route12 的 bitstream。
 
@@ -177,6 +177,8 @@ Route13/14 是独立候选，**已备份安装，尚未获得实机结果**。�
 | Route14 | 打开同一个现有文件，flags=0 | `0x00020001` | `0x0002000F` |
 
 S 位 0=有效模式、1=请求发出、2=见到 ACK、3=见到新的 DONE，位 10:8=结果码，位 17:16=模式。N 是本次 arm 后的请求数，C 是锁存选择。M/D 延续 Route12：冷启动 C1/A，重新进入 VM 后 C2/目标身份；E6 为无选择，E7 为身份不符。
+
+[Route13 实机结果](evidence/route13-device-report.json)：蓝屏、M=`0xC1`、S=`0x1000F`、N=`1`。已发出一次读取，见到 ACK、新 DONE，结果码为 0；仍停在冷启动阶段，没有观察到自动换核。此步未核对被忽略的合成数据内容，未单独计时，也没有请求 ID/D/C。该结果只约束本轮 0180 路径，不等于所有运行期接口不可行。不重复未改动的 Route13；下一项为已安装的 Route14 打开请求。
 
 上机时先测 Route13：完全关机重开 → Run → 松开 A → 蓝屏稳定后短按 B 一次，等待约 3 秒，再读取 ID/M/D/C/S/N，**先不选 Reload test**。若直接橙屏且 ID/D=`0x504C4201`、M=C2，才支持自动重入；若仍蓝屏、M=C1、N=1 且 S 表示请求完成，只能确认读取成功。之后的手动 Reload test → probe.dat 可作同入口对照，必须单独记录。Route14 同理，不能混合两种触发来源。
 
@@ -197,6 +199,8 @@ This is a **native FPGA routing diagnostic**, not a unified frontend. Two offici
 
 The local trial removes unused audio clocks and explicitly excepts APF protocol I/O. Internal timing passes; this is not external board-I/O signoff. Physical reports accept A/B startup, VM PMP reporting and fixed A-to-B switching. Route9/10 did not capture input during VM polling. Route12 now passes the full OS-mediated control: runtime B selection, slot reload, VM re-entry and immutable B identity; then runtime A selection, a second reload and return to immutable A. Both final images and M=0xC2 match. This establishes native A-to-B-to-A routing within one entry using an explicit OS reload step. The read-only 16-byte slot and parameter 0x89 preserve FPGA state before re-entry. Direct automatic triggering and real game/BIOS/save handoff remain unverified. Keep the installed Route12 package as the accepted control; historical reports and game entries are preserved.
 
-Route13/14 are backed-up and installed candidates, not device accepted. Installation added 20 files (3,206,722 bytes); three shared files matched and all 4,232 protected originals were SHA256 verified unchanged. A fresh runtime key sends one bounded read (0180) or existing-file open (0192, flags=0) against the same read-only synthetic seed. Real SDK command RTL checks cover protocol, input guards and immutable observations; ten bytecode cases use modeled hardware/registers and do not generate an OS callback. Record ID/M/D before any manual reload: a completed file command alone is not re-entry. The accepted Route12 control remains unchanged.
+Route13/14 are backed-up and installed candidates. Route13 completed one read but did not show automatic re-entry; Route14 remains pending. Installation added 20 files (3,206,722 bytes); three shared files matched and all 4,232 protected originals were SHA256 verified unchanged. A fresh runtime key sends one bounded read (0180) or existing-file open (0192, flags=0) against the same read-only synthetic seed. Real SDK command RTL checks cover protocol, input guards and immutable observations; ten bytecode cases use modeled hardware/registers and do not generate an OS callback. Record ID/M/D before any manual reload: a completed file command alone is not re-entry. The accepted Route12 control remains unchanged.
+
+The Route13 user report gives blue, M=0xC1, S=0x1000F and N=1: mode 1, one issued request, ACK/new DONE seen and result zero. The ignored payload was not checked for integrity and the interval was not independently timed. This does not rule out other runtime interfaces. Do not repeat the unchanged read test; proceed to Route14 open.
 
 Both new board builds pass internal timing (44 records each, all TNS zero; minimum slack 0.149/0.142 ns) with explicit APF I/O exceptions. They use 840/860 ALMs, two M10Ks and no DSPs. Each flow retains 167 reviewed ordinary warnings and no critical warning; external board I/O timing is not certified. The 23-file package is 3,378,810 bytes. Packaging regression: 24 passed, one Windows symlink check skipped. See the linked validation and build receipts above.
