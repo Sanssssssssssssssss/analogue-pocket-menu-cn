@@ -17,7 +17,7 @@
 | 封面、收藏操作、中文暂停菜单 | 已实现；暂停保存／恢复仍需更多实机反馈 |
 | 用户自己的 GB/GBC 目录与中文别名 | 公共 v9 生成器，读取原文件并在电脑生成菜单包 |
 | 安装前计划、版本备份、回读校验、回退 | 有；默认仅预览，明确加 `--apply` 才写卡 |
-| GBA / NES / SNES、全机种自动换核心 | 稳定版不含；GBA 实验的中文菜单与游戏启动获单机确认，存档／返回待验收；NES/SNES 与自动换核未实现，见[路线图](docs/ROADMAP.md) |
+| GBA / NES / SNES、全机种自动换核心 | 稳定版不含；GBA 实验的中文菜单与游戏启动获单机确认，存档／返回待验收；NES 有离线核心候选，SNES 尚无可安装版，自动换核未实现，见[各机种状态](docs/PER-SYSTEM-MENUS.md) |
 | Analogue OS 系统首页、系统设置汉化 | 不在当前功能范围；此界面运行于 GB/GBC 核心内 |
 
 当前版本 **`v0.1.2-public.1`（公开预览）**。FPGA 程序与已经使用者验收的 `0.1.2-cn-lab` 相同；公开版新增通用打包／安装工具及文档。新工具已用合成文件测试，尚未完成多台 Pocket 实机验收。启动游戏偶尔短暂闪屏、加载稍慢仍是已知问题。
@@ -25,6 +25,8 @@
 当前实验分支包含 [GBA / NES / SNES 接口实验](experiments/multi_system/README.md)，并继续进行[独立 GBA 完整核心接入](experiments/gba_menu/README.md)。用户已确认 `0.2.0-gba.3` 的中文菜单与游戏启动可用；普通存档、RTC、保存返回和更多游戏仍待实机验收，没有可安装的全机种公共发行版。
 
 2026-11-01 当前方向为[各机种独立的中文可视化菜单](docs/PER-SYSTEM-MENUS.md)：保留官方 openFPGA 的机种列表及 Change Core，分别完善 GB/GBC、GBA，再逐个适配其他核心。系统首页和跨机种合并启动器的研究已收束。
+
+后续离线工作包括 [GBA 缓动过渡候选](experiments/gba_menu/MOTION.md)、[FC/NES 原生菜单候选](experiments/nes_menu/README.md)和 [SFC/SNES 原型](experiments/snes_menu/README.md)。GBA 动画已有逐像素离线验证；NES 完整编译与继承时序通过但待实机；SNES 时序未通过，不提供安装包。这些候选均未安装，也不属于稳定发行版。
 
 本分支还提供[机种图标菜单](docs/MACHINE-MENU.md)：GB / GBC 掌机图标 → 分类 → 原有游戏封面，经典系列集中在收藏入口。复用稳定核心，用户已确认新布局可用。
 

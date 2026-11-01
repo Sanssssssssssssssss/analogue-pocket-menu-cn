@@ -1,0 +1,11 @@
+{
+  "scope": "Actual raster/cache RTL, inferred RAM; synthetic page writes, no APF/FIFO/CPU/physical device",
+  "result": "passed",
+  "native_page_preview": true,
+  "menu_colors": "RGB565 cache is lossless for the current fixed-layout pages",
+  "game_colors": "all 18 framebuffer bits retained; 38400 compared pixels",
+  "inputs": {
+    "gba_motion_video.sv": "e9c7a67dabfd50503ff509f86969bf722f372b80e3103ec2262e6f3e9d31ad94",
+    "tb_motion.sv": "db5e9bd83734c94508d8ee6e85add2c972542284421ddfad77cf03b3639d14e3"
+  }
+}

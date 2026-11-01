@@ -8,9 +8,11 @@ This branch also develops an [isolated full-core GBA integration](experiments/gb
 
 As of 2026-11-01, the active direction is [separate visual menus for each platform](docs/PER-SYSTEM-MENUS.md): retain the official openFPGA platform list and Change Core, improve GB/GBC and GBA independently, then adapt other native cores individually. OS home-screen replacement and a merged cross-platform launcher are no longer active work.
 
+New local work includes a [GBA slide candidate](experiments/gba_menu/MOTION.md), a [native NES menu candidate](experiments/nes_menu/README.md), and a [SNES prototype](experiments/snes_menu/README.md). GBA motion passed offline pixel comparisons. NES passed full compilation and inherited multi-corner timing but awaits device testing and a completed library/artwork pass. SNES timing failed, so no installable package is provided. None of these new candidates is installed or part of the stable release.
+
 The GBA hardware trial reported `Error in core setup` before its menu appeared. The core folder/author/shortname mismatch has been corrected. Existing GB/GBC libraries can use the [display update tool](docs/DISPLAY-UPDATES.md) to add titles/covers while preserving game/save identities.
 
-The [current GBA experiment](experiments/gba_menu/README.md) fixed the previous startup failure by initializing the lifecycle and acquiring frame ownership before painting. The user confirmed menu and game launch. The [frontend aggregation experiment](experiments/unified_frontend/README.md) also stages Chinese captions, artwork and footer updates without changing launch/save records. A shared Pocket Lab platform association has been installed locally, and the user confirmed its grouping and core selection. Native icon-based automatic cross-core switching remains unimplemented.
+The [current GBA experiment](experiments/gba_menu/README.md) fixed the previous startup failure by initializing the lifecycle and acquiring frame ownership before painting. The user confirmed menu and game launch. The [display work](experiments/unified_frontend/README.md) stages Chinese captions, artwork and footer updates without changing launch/save records. The earlier shared Pocket Lab grouping was subsequently removed after backup, following the decision to retain separate platforms. Native icon-based automatic cross-core switching remains unimplemented.
 
 A native **openFPGA GB/GBC cover-flow frontend for Analogue Pocket**, with Simplified Chinese controls, Unicode game titles, folders and a black background.
 
@@ -28,7 +30,7 @@ This image is output from the actual menu RTL simulation, using synthetic entrie
 - Folder navigation: A opens, B returns, including at the root.
 - Optional cover art, favorites controls and a Chinese pause menu.
 - Local v9 library generation, installation plan, verified backup, file readback and rollback.
-- Known limitations: occasional flash when handing off to a game, loading delay, incomplete per-game/sound/save/pause testing. GBA remains a separate experiment; NES/SNES and automatic cross-core launching are **not implemented**. Analogue OS menus remain outside this frontend.
+- Known limitations: occasional flash when handing off to a game, loading delay, incomplete per-game/sound/save/pause testing. GBA and NES remain separate experiments; SNES has no installable candidate and automatic cross-core launching is unimplemented. Analogue OS menus remain outside this frontend.
 
 ## Install
 

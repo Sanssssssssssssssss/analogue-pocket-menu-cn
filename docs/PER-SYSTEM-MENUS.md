@@ -45,6 +45,24 @@ GBA 当前上传整张页面；GB/GBC 缓存封面后逐帧移动、缩放。接
 
 上机首轮只测 GB、GBC、GBA：各切换约 10 次，A 进入分类、B 返回，各启动一款游戏，记录黑屏、错图、闪白或按键卡住。之后再用无重要进度的 GBA 游戏验证游戏内保存 → L+R+Select → 保存并返回 → 再次启动；这不等同即时存档，优先保护《缩小帽》。新一轮实机反馈待收集，FC/NES、SFC/SNES 可视化菜单仍未完成。
 
-## English
+## 本轮用户反馈与离线候选
+
+用户确认 GB/GBC CoverFlow 在多次切换、进入／返回与游戏启动测试中稳定，未遇到本轮询问的黑屏、错图、闪白或按键卡住。GBA CN 菜单能够进入，动画仍未验收。此反馈不扩展为所有游戏、存档或 RTC 已通过。
+
+已在备份后移除共同 Pocket Lab 分组：只更新两个本项目核心的关联元数据，删除一份共同平台元数据；4,416 个保护文件哈希未变。可用核心继续保留。用户提出拔卡后，后续开发只在电脑进行，没有继续写卡。
+
+| 候选 | 目前范围 |
+|---|---|
+| [GBA 动画](../experiments/gba_menu/MOTION.md) | 小缓存保留旧封面，正反向 8 帧缓动整页滑动；实际光栅 806,400 个菜单像素与 38,400 个完整色深游戏像素比对通过。中文自绘页面预览也通过同样检查；完整编译、接口联接及实机验收分别记录。尚非 GB/GBC 的独立封面移动／缩放。 |
+| [FC / NES](../experiments/nes_menu/README.md) | 原生菜单、独立普通存档接口及光栅已有离线检查；完整编译与 128 条时序记录通过，最小 slack +0.145 ns。已准备本地核心候选，游戏库、封面与上机验证未完成，动画仍为静态。 |
+| [SFC / SNES](../experiments/snes_menu/README.md) | 只适配标准 NTSC 游戏的原型；用原上游加载器判定映射和存档大小。完整编译有负时序余量，最小 −2.823 ns，因此没有安装包。特殊芯片和 PAL 继续使用原入口。 |
+
+本轮没有安装上述候选。先在电脑完成 GBA 动画和新机种的验证，之后重新识别卡、备份，再准备一次上机测试；现有可用版可以继续使用。
+
+## English update
+
+The user reports stable GB/GBC CoverFlow navigation and game launch in this round, and confirms that GBA CN opens while its animation remains unaccepted. The shared Pocket Lab grouping was removed after backup; 4,416 protected files stayed unchanged. Subsequent work is local only. A separate GBA slide renderer passed full-frame raster/cache comparisons, including full-depth game pixels. Native NES has one fitted candidate with positive inherited multi-corner timing, but no device or completed library/artwork acceptance. Standard-NTSC SNES remains blocked by negative timing and has no installable package. None of these new candidates has been installed.
+
+## Earlier English overview
 
 The active direction retains Analogue's native openFPGA platform list and Change Core. Each platform gets its own Chinese visual game menu inside its native core. GB/GBC and GBA remain separate implementations; no merged launcher or OS UI replacement is being pursued. GB/GBC menus and the GBA experimental menu/game launch have user reports; GBA save/RTC/return coverage is pending. NES/SNES have offline interface work only. Shared artwork/title tools do not remove platform-specific loading, rendering and save integration. The direction update was documentation only. A subsequent authorized cleanup removed Route0–15 after backup; nine GBA covers and one display alias were updated in five menu pages. All 81 GBA pages were read back and 4,420 protected files stayed unchanged. No game, save, core binary, firmware or animation updates were installed. The linked receipt separates computer checks from pending device feedback.

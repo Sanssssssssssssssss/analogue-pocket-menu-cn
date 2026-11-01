@@ -12,7 +12,10 @@ from prepare_test import prepare
 p=argparse.ArgumentParser(description=__doc__)
 for name in ('build','intel-model','out'):p.add_argument('--'+name,required=True)
 p.add_argument('--fade',action='store_true',help='Probe the separate fade candidate')
+p.add_argument('--motion',action='store_true',help='Probe the separate cover-slide candidate')
+p.add_argument('--case',action='append',choices=['complete','retained-game-ownership','missing-tail'],help='Run selected startup cases; defaults to all')
 a=p.parse_args();build=Path(a.build).resolve();out=prepare(a.out);here=Path(__file__).resolve().parent
+if a.fade and a.motion:raise ValueError('Select one renderer candidate')
 page=out/'library/Assets/gbalab/common/menu.bin'
 (out/'page.hex').write_text(''.join(f'{b:02x}\n' for b in page.read_bytes()))
 shutil.copy2(build/'src/fpga/build/gba_menu_error.hex',out)
@@ -27,6 +30,9 @@ bench=here/'tb_boot.sv'
 if a.fade:
     bench=out/'tb_boot.sv'
     bench.write_text((here/'tb_boot.sv').read_text().replace('.menu_fault(fault),','.menu_fault(fault),.menu_active(owned),'))
+if a.motion:
+    bench=out/'tb_boot.sv'
+    bench.write_text((here/'tb_boot.sv').read_text().replace('.menu_fault(fault),','.menu_fault(fault),.menu_active(owned),.menu_motion(owned && !bound),.menu_forward(1\'b1),'))
 inputs=[bench,here/'gba_menu.sv',here/'gba_menu_pixels.sv',command,video,
         build/'src/fpga/pocket/data_loader.sv',build/'src/fpga/apf/common.v',Path(a.intel_model).resolve()]
 if a.fade:inputs.append(build/'src/fpga/core/menu_fade.sv')
@@ -35,9 +41,10 @@ r=subprocess.run(['iverilog','-g2012','-s','tb_boot','-o',str(out/'boot.sim'),*m
 (out/'build.log').write_text(r.stdout+r.stderr);r.check_returncode()
 cases=[]
 for name,flags in [('complete',[]),('retained-game-ownership',['+dirty_boot']),('missing-tail',['+drop_last'])]:
+    if a.case and name not in a.case:continue
     r=subprocess.run(['vvp',str(out/'boot.sim'),*flags],cwd=out,capture_output=True,text=True,timeout=600)
     (out/(name+'.log')).write_text(r.stdout+r.stderr);print(r.stdout+r.stderr,flush=True);r.check_returncode()
     cases.append({'case':name,'result':'passed'})
 receipt={'scope':'Actual menu/APF command/FIFO/video integration; RAM table storage, host and ready/idle inputs modeled; no GBA CPU or physical device',
-         'fade_candidate':a.fade,'cases':cases,'input_hashes':{str(x):hashlib.sha256(x.read_bytes()).hexdigest() for x in inputs}}
+         'fade_candidate':a.fade,'motion_candidate':a.motion,'cases':cases,'input_hashes':{str(x):hashlib.sha256(x.read_bytes()).hexdigest() for x in inputs}}
 (out/'receipt.json').write_text(json.dumps(receipt,indent=2)+'\n')
