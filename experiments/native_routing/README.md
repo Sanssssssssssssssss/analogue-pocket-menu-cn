@@ -197,13 +197,15 @@ python experiments/native_routing/stage_trial.py --runtime --build .work/native-
 
 ## Route15：缓冲路径读回
 
-新增独立候选 Route15，尚未安装或实机验收。Route14 的文件名通过组合逻辑返回；[官方 BRIDGE 说明](https://www.analogue.co/developer/docs/openfpga/bus-communication)规定读取有一字缓冲，SDK 寄存器和已能运行的 GBA 菜单都按读 strobe 更新返回值。Route15 仅为 F300 文件参数区增加 `runtime_param_buffer.sv`，诊断区和按键机制保持原样。
+新增独立候选 Route15，已备份安装，实机结果待确认。Route14 的文件名通过组合逻辑返回；[官方 BRIDGE 说明](https://www.analogue.co/developer/docs/openfpga/bus-communication)规定读取有一字缓冲，SDK 寄存器和已能运行的 GBA 菜单都按读 strobe 更新返回值。Route15 仅为 F300 文件参数区增加 `runtime_param_buffer.sv`，诊断区和按键机制保持原样。
 
 `tb_runtime_bridge.sv` 使用真实 APF 串行桥及同步器，对旧组合逻辑和新缓冲逻辑并行读取。宿主按官方“先预读、再取上一字”的流程操作：旧路径首字为 `ets/`，丢失 `/Ass`；新路径完整返回 `/Assets/routetest/common/probe.dat`，全部 66 个字的末尾填充、flags 和 size 均符合预期。为 Icarus 仿真，仅对上游可选位置端口改为命名端口，并把过程赋值 inout 改为显式三态驱动；状态机没有替换为假模型。实际 Pocket 的读取轨迹未捕获，因此这是路径错误的候选原因，不能把仿真结果当作硬件修复已验收。
 
 新候选保留只读槽、零创建／截断标志和单次请求；只生成 Route15，不覆盖 Route12/13/14。另有 5 条真实字节码分支模型检查，仍不模拟自动 OS 回调。上机先确认 S 从 `0x2040F` 变为成功完成状态 `0x2000F`，再独立判定是否橙屏、M=C2、ID/D=B。成功打开但仍蓝屏/M=C1，也必须记为“文件打开成功、未自动重入”。
 
 [串行总线与字节码收据](evidence/buffered-open-validation.json)、[板级编译收据](evidence/buffered-open-builds.json)：A/B 使用 744/867 ALM、均为 2 M10K、0 DSP，各 44 条时序摘要 TNS=0，最小 slack 为 0.127/0.115 ns；各 167 条普通警告、无 Critical Warning，警告代码与数量分组与前版一致。外部 APF I/O 仍在明确例外范围内。包为 13 个文件、1,774,351 字节；打包回归 24 项通过、1 项 Windows 符号链接检查跳过。Route14 原始结果单独保留，不会改写为已修好。
+
+[安装记录](evidence/buffered-open-install-report.json)：重新识别卡并备份当前 4,258 个受保护文件、48,023,184 字节后，仅新增 Route15 的 10 个文件、1,602,263 字节；3 个共用文件一致，新增文件及受保护原文件全部校验通过。没有覆盖、存档或固件写入。先完全关机重开 Route15，Run 后松开所有键，蓝屏稳定时短按 B 一次，约 3 秒后读取结果；先不选 Reload test。仍蓝屏时记录 M/S/N，变橙屏时核对 ID/M/D，分别判断文件是否成功打开和是否发生换核。
 
 ```sh
 python experiments/native_routing/prepare_runtime.py --buffered-open --archive /path/to/core-template.zip --out .work/native-routing/buffered-open
@@ -224,4 +226,4 @@ The Route13 user report gives blue, M=0xC1, S=0x1000F and N=1: mode 1, one issue
 
 Both new board builds pass internal timing (44 records each, all TNS zero; minimum slack 0.149/0.142 ns) with explicit APF I/O exceptions. They use 840/860 ALMs, two M10Ks and no DSPs. Each flow retains 167 reviewed ordinary warnings and no critical warning; external board I/O timing is not certified. The 23-file package is 3,378,810 bytes. Packaging regression: 24 passed, one Windows symlink check skipped. See the linked validation and build receipts above.
 
-Route15 is a separate uninstalled candidate that buffers only filename-struct reads to match APF's previous-word protocol. A serial-level regression runs actual APF bridge FSMs and synchronizers: the modeled pipelined host receives an old path starting with `ets/`, while the buffered path and all 66 words (padding/zero flags/size) match. Icarus adapters only legalize optional ports and procedural tri-state declarations. The actual firmware read trace is not captured; this remains a plausible cause of error 4, not hardware acceptance. Five bytecode model cases pass without simulating any OS callback. A successful open and automatic re-entry must still be observed separately.
+Route15 is a separate installed candidate that buffers only filename-struct reads to match APF's previous-word protocol. A serial-level regression runs actual APF bridge FSMs and synchronizers: the modeled pipelined host receives an old path starting with `ets/`, while the buffered path and all 66 words (padding/zero flags/size) match. Icarus adapters only legalize optional ports and procedural tri-state declarations. The actual firmware read trace is not captured; this remains a plausible cause of error 4, not hardware acceptance. Five bytecode model cases pass without simulating any OS callback. A successful open and automatic re-entry must still be observed separately. Installation added ten files (1,602,263 bytes); three shared files matched and 4,258 protected originals were verified unchanged after a fresh backup. No overwrite, save or firmware writes occurred.
