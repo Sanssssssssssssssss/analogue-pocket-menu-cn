@@ -155,12 +155,44 @@ python experiments/native_routing/stage_trial.py --handoff --build .work/native-
 
 也可用 `prepare_handoff.py --archive /path/to/core-template.zip` 从固定官方模板准备新工程，再完成硬件编译。包为 23 个文件约 3.36 MB，其中 3 个为已有共用文件。已重新识别卡并备份，新增 20 个文件、3,185,007 字节；安装后 4,208 个原文件校验一致，见[安装记录](evidence/handoff-install-report.json)。
 
-[Route12 初始运行与选择锁存已确认](evidence/route12-input-device-report.json)：正常启动 A 后按 B，用户确认 ID=A、M=C1、C=2。正常运行阶段的输入与锁存通路通过；当前同一次会话继续测试 Reload test，系统重载后的 VM 重入与按选择换核仍待确认。此结果不解释 Route9/10 等待期间没有捕获输入的原因。
+[Route12 初始运行与选择锁存已确认](evidence/route12-input-device-report.json)：正常启动 A 后按 B，用户确认 ID=A、M=C1、C=2。该阶段只确认正常运行时的输入与锁存；后续重载结果见下文。此结果不解释 Route9/10 等待期间没有捕获输入的原因。
 
 [首次重载切 B 已通过](evidence/route12-reload-device-report.json)：选择 Reload test → probe.dat 后，橙屏、ID/D=`0x504C4201`、M=C2。[同会话返回 A 也通过](evidence/route12-return-device-report.json)：用户先确认 C=1，再重载得到蓝屏、ID/D=`0x504C4100`、M=C2。因此同一入口的“正常运行时选择 → OS 重载 → VM 重入 → 原生 A/B 换核”已双向通过。保留 Route12 为可用对照；目前还包含一次系统菜单操作。
+
+## 运行期只读请求候选
+
+Route13/14 是独立候选，**尚未安装或获得实机结果**。它们在 VM 结束、正常运行后接收新 A/B，分别发起一次 Target `0180` 读取或 `0192` 打开请求。目标固定为槽 0 的 `/Assets/routetest/common/probe.dat`；读取范围只有 16 字节，打开标志和大小均为零，槽仍为只读 `0x89`。Target 写入和 getfile 信号保持零；没有创建、截断、固件或存档操作。
+
+[官方 Target 命令](https://www.analogue.co/developer/docs/openfpga/host-target-commands)说明读文件和按路径打开已有文件的协议，**没有承诺这些命令会重新调用 Chip32**。本轮只检验这个假设，不能把文件请求完成记为换核成功。`runtime_request.sv` 等待运行复位释放、退出系统菜单及 A/B 松开，随后只发一个请求；结果锁存，不自动重试。新硬件重新编译，不复用 Route12 的 bitstream。
+
+`tb_runtime.sv` 使用真实 SDK `core_bridge_cmd`，只有宿主回答和 datatable RAM 为模型：检查防误触、互斥与单次请求、文件名全部字节及零填充、零打开标志、固定参数、BU/OK、错误码、旧 done 拒绝和只读诊断地址。`probe_runtime.py` 另执行 10 条真实字节码分支，**FPGA 身份和 VM 寄存器保存仍为模型，未模拟自动 OS 回调**。既有加载器 31 项回归通过。
+
+[离线验证收据](evidence/runtime-validation.json)与[板级编译收据](evidence/runtime-builds.json)分开保存。A/B 使用 840/860 ALM、均为 2 M10K、0 DSP；各 44 条时序摘要 TNS=0，最小 slack 为 0.149/0.142 ns。两份全流程编译均无 Critical Warning，仍有 167 条已记录的普通警告；APF I/O 例外仍不等于外部板级时序签核。候选包 23 个文件、3,378,810 字节，其中 3 个为已有共用文件。打包回归 24 项通过、1 项因 Windows 无符号链接权限跳过。
+
+| 入口 | 正常运行时的新按键触发 | S 初始值 | 请求正常完成、尚未重入时的典型 S |
+|---|---|---|---|
+| Route13 | 读取现有槽的 16 字节 | `0x00010001` | `0x0001000F` |
+| Route14 | 打开同一个现有文件，flags=0 | `0x00020001` | `0x0002000F` |
+
+S 位 0=有效模式、1=请求发出、2=见到 ACK、3=见到新的 DONE，位 10:8=结果码，位 17:16=模式。N 是本次 arm 后的请求数，C 是锁存选择。M/D 延续 Route12：冷启动 C1/A，重新进入 VM 后 C2/目标身份；E6 为无选择，E7 为身份不符。
+
+上机时先测 Route13：完全关机重开 → Run → 松开 A → 蓝屏稳定后短按 B 一次，等待约 3 秒，再读取 ID/M/D/C/S/N，**先不选 Reload test**。若直接橙屏且 ID/D=`0x504C4201`、M=C2，才支持自动重入；若仍蓝屏、M=C1、N=1 且 S 表示请求完成，只能确认读取成功。之后的手动 Reload test → probe.dat 可作同入口对照，必须单独记录。Route14 同理，不能混合两种触发来源。
+
+```sh
+python experiments/native_routing/prepare_runtime.py --archive /path/to/core-template.zip --out .work/native-routing/runtime
+# 编译 runtime/A/src/fpga 和 runtime/B/src/fpga；按前文重新链接 vm_contract.rs。
+python experiments/native_routing/probe_runtime.py --prepared .work/native-routing/runtime --bass /path/to/bass --model /path/to/vm-contract --library /path/to/libchip32_sim-HASH.rlib --out .work/native-routing/runtime-check
+python experiments/native_routing/stage_trial.py --runtime --build .work/native-routing/runtime --validation .work/native-routing/runtime-check/receipt.json --out .work/native-routing/runtime-package
+```
+
+该流程只生成电脑上的候选包，不写卡。已通过的 Route12 与游戏入口继续保留。
 
 ## English
 
 This is a **native FPGA routing diagnostic**, not a unified frontend. Two official-template board projects carry immutable A/B identities; three assembled Chip32 loaders compare input visibility before initialization, after reset release, and after full initialization. The old logging VM must reject the absent FPGA identity instead of claiming a switch. Diagnostic EXIT 0 is not routing success: M=0xA0 is required for the A/B/A identity check.
 
 The local trial removes unused audio clocks and explicitly excepts APF protocol I/O. Internal timing passes; this is not external board-I/O signoff. Physical reports accept A/B startup, VM PMP reporting and fixed A-to-B switching. Route9/10 did not capture input during VM polling. Route12 now passes the full OS-mediated control: runtime B selection, slot reload, VM re-entry and immutable B identity; then runtime A selection, a second reload and return to immutable A. Both final images and M=0xC2 match. This establishes native A-to-B-to-A routing within one entry using an explicit OS reload step. The read-only 16-byte slot and parameter 0x89 preserve FPGA state before re-entry. Direct automatic triggering and real game/BIOS/save handoff remain unverified. Keep the installed Route12 package as the accepted control; historical reports and game entries are preserved.
+
+Route13/14 are offline candidates, not installed or device accepted. A fresh runtime key sends one bounded read (0180) or existing-file open (0192, flags=0) against the same read-only synthetic seed. Real SDK command RTL checks cover protocol, input guards and immutable observations; ten bytecode cases use modeled hardware/registers and do not generate an OS callback. Record ID/M/D before any manual reload: a completed file command alone is not re-entry. The accepted Route12 control remains unchanged.
+
+Both new board builds pass internal timing (44 records each, all TNS zero; minimum slack 0.149/0.142 ns) with explicit APF I/O exceptions. They use 840/860 ALMs, two M10Ks and no DSPs. Each flow retains 167 reviewed ordinary warnings and no critical warning; external board I/O timing is not certified. The 23-file package is 3,378,810 bytes. Packaging regression: 24 passed, one Windows symlink check skipped. See the linked validation and build receipts above.

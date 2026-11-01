@@ -1,0 +1,87 @@
+{
+  "date": "2026-11-01",
+  "scope": "Offline runtime Target read/open candidates; new hardware, not reused Route12 binaries; no card access or automatic re-entry acceptance",
+  "programs": [
+    {
+      "program": "A",
+      "compile": "successful",
+      "timing_records": 44,
+      "minimum_reported_slack_ns": 0.149,
+      "all_tns_zero": true,
+      "board_io_scope": "APF protocol I/O explicitly excepted, following existing GBA constraints; no external setup/hold signoff",
+      "rbf_sha256": "427263a9dabc29f7ea1dde3e9aaae5f45be1f9a0c72de55ed63c3ee505b9f89a",
+      "source_sha256": {
+        "core/core_top.v": "1dec67a1560bb8ef1779f466ad621068f7169f78608a67c53810b8f20a294448",
+        "core/route_probe.sv": "c539c3bc767118a7e034dd29f88fd9fd7eb0b5f0eae16c6946feef14b081ba0a",
+        "core/core_constraints.sdc": "41f82740164b7aef9e684d6cfb488911cee7d9c471f2f253c71bf41d2bbd61bc",
+        "core/runtime_request.sv": "e9f94eaff2fe229236cbeeae45c282dc20c4b1a9e141da9542f0706547663cba",
+        "core/core_bridge_cmd.v": "f22034f2d309b4172288f1a5ef18afe4f22a803dbb4418e49842fbc7b6fd1687",
+        "apf/common.v": "c1615e2c6c12b111537f6ca11e826e5061eb91f405e349bdc649a17b48e24d4e",
+        "ap_core.qsf": "1843aed8f80c4bffd35abaed5e066b4e0cb8cef018a2fd5003829ef4789edcc8"
+      },
+      "reports_sha256": {
+        "ap_core.flow.rpt": "17b1b176a472fa858109012de0ccd483513b39d6bdf4f37dfbbfff963a50c7eb",
+        "ap_core.fit.summary": "0b0d81686a575a78caa557d144460926c40c8d6bb3c4e70e6fbc09aad0c4f5c0",
+        "ap_core.sta.summary": "7bb5b4a77b3a311ece9ae2e603645e61e4c161c48ff40520eb65f17ea85d43bd"
+      },
+      "resources": {
+        "ALMs": 840,
+        "RAM_blocks": 2,
+        "DSP_blocks": 0
+      },
+      "warnings": {
+        "critical": 0,
+        "total": 167,
+        "review": "Template unused/stuck/disabled I/O, width truncations in unchanged template, unused PLL outputs, build-ID padding, APF clock routing and I/O assignment limits; wide case completeness warnings. Runtime decode overlap and mode width warnings removed."
+      }
+    },
+    {
+      "program": "B",
+      "compile": "successful",
+      "timing_records": 44,
+      "minimum_reported_slack_ns": 0.142,
+      "all_tns_zero": true,
+      "board_io_scope": "APF protocol I/O explicitly excepted, following existing GBA constraints; no external setup/hold signoff",
+      "rbf_sha256": "9a4f550565de4407b3d6b632baea2c4c434506ac54adbc04ee2ba5e84635eb14",
+      "source_sha256": {
+        "core/core_top.v": "bc297bca7711927d5c7f7b9d6439776cdf8f379a3423d938ca9fd085b7cf23f8",
+        "core/route_probe.sv": "c539c3bc767118a7e034dd29f88fd9fd7eb0b5f0eae16c6946feef14b081ba0a",
+        "core/core_constraints.sdc": "41f82740164b7aef9e684d6cfb488911cee7d9c471f2f253c71bf41d2bbd61bc",
+        "core/runtime_request.sv": "e9f94eaff2fe229236cbeeae45c282dc20c4b1a9e141da9542f0706547663cba",
+        "core/core_bridge_cmd.v": "f22034f2d309b4172288f1a5ef18afe4f22a803dbb4418e49842fbc7b6fd1687",
+        "apf/common.v": "c1615e2c6c12b111537f6ca11e826e5061eb91f405e349bdc649a17b48e24d4e",
+        "ap_core.qsf": "1843aed8f80c4bffd35abaed5e066b4e0cb8cef018a2fd5003829ef4789edcc8"
+      },
+      "reports_sha256": {
+        "ap_core.flow.rpt": "2898b9cdbc124fe01c8c861ed27c65793daf809920af51a8850018935e1a805e",
+        "ap_core.fit.summary": "f3d993c6856846259556f2f18db30c5d0aebea9762d6bbf38c0835d948406d86",
+        "ap_core.sta.summary": "d90da6c213fd8d7dbd0e6893691cf2d7e4e40957b8020a38ac3087713ea8b88f"
+      },
+      "resources": {
+        "ALMs": 860,
+        "RAM_blocks": 2,
+        "DSP_blocks": 0
+      },
+      "warnings": {
+        "critical": 0,
+        "total": 167,
+        "review": "Template unused/stuck/disabled I/O, width truncations in unchanged template, unused PLL outputs, build-ID padding, APF clock routing and I/O assignment limits; wide case completeness warnings. Runtime decode overlap and mode width warnings removed."
+      }
+    }
+  ],
+  "package_files": 23,
+  "package_bytes": 3378810,
+  "source_only_publication": true,
+  "save_slots": 0,
+  "firmware_files": 0,
+  "target_write_enabled": false,
+  "validation": {
+    "runtime_RTL_with_actual_command_SDK": "passed",
+    "modeled_bytecode_cases": 10,
+    "existing_loader_regression_cases": 31,
+    "packaging_tests_passed": 24,
+    "packaging_tests_skipped": 1
+  },
+  "actual_installed_control_source": "5f7a229996a27410640547bb183164d4797a8f44",
+  "candidate_installed": false
+}

@@ -17,7 +17,7 @@ def sha(p):return hashlib.sha256(p.read_bytes()).hexdigest()
 def write_json(p,value):
     p.parent.mkdir(parents=True,exist_ok=True);p.write_text(json.dumps(value,indent=2)+'\n',encoding='utf8')
 
-def audit(build,name):
+def audit(build,name,runtime=False):
     fpga=build/name/'src/fpga';folder=fpga/'output_files'
     flow=(folder/'ap_core.flow.rpt').read_text();fit=(folder/'ap_core.fit.summary').read_text()
     sta=(folder/'ap_core.sta.summary').read_text();report=(folder/'ap_core.sta.rpt').read_text()
@@ -32,28 +32,42 @@ def audit(build,name):
     source=fpga/'core/core_top.v';text=source.read_text()
     if "assign audio_mclk = 0;" not in text:raise ValueError('Trial silence modification missing')
     for field in ['read','write','getfile','openfile']:
-        if f'wire            target_dataslot_{field} = 0;' not in text:raise ValueError('Target file operation enabled')
+        declaration=f'wire            target_dataslot_{field}'+(';' if runtime and field in ['read','openfile'] else ' = 0;')
+        if declaration not in text:raise ValueError('Unexpected Target operation: '+field)
+    sources=[source,fpga/'core/route_probe.sv',fpga/'core/core_constraints.sdc']
+    if runtime:
+        for declaration in ["wire    [15:0]  target_dataslot_id = 16'd0;", "wire    [31:0]  target_dataslot_slotoffset = 32'd0;",
+            "wire    [31:0]  target_dataslot_bridgeaddr = 32'h60000080;", "wire    [31:0]  target_dataslot_length = 32'd16;",
+            "wire    [31:0]  target_buffer_param_struct = 32'hF3000000;",'wire    [31:0]  target_buffer_resp_struct = 0;']:
+            if declaration not in text:raise ValueError('Unreviewed runtime command parameters')
+        sources += [fpga/p for p in ['core/runtime_request.sv','core/core_bridge_cmd.v','apf/common.v','ap_core.qsf']]
     return {'program':name,'compile':'successful','timing_records':len(slack),'minimum_reported_slack_ns':min(slack),'all_tns_zero':True,
         'board_io_scope':'APF protocol I/O explicitly excepted, following existing GBA constraints; no external setup/hold signoff',
-        'rbf_sha256':sha(folder/'ap_core.rbf'),'source_sha256':{p.relative_to(fpga).as_posix():sha(p) for p in [source,fpga/'core/route_probe.sv',fpga/'core/core_constraints.sdc']},
+        'rbf_sha256':sha(folder/'ap_core.rbf'),'source_sha256':{p.relative_to(fpga).as_posix():sha(p) for p in sources},
         'reports_sha256':{p.name:sha(p) for p in [folder/'ap_core.flow.rpt',folder/'ap_core.fit.summary',folder/'ap_core.sta.summary']}}
 
-def stage(build,validation,out,isolation=False,interaction=False,handoff=False):
-    if sum([isolation,interaction,handoff])>1:raise ValueError('Select one diagnostic profile')
+def stage(build,validation,out,isolation=False,interaction=False,handoff=False,runtime=False):
+    if sum([isolation,interaction,handoff,runtime])>1:raise ValueError('Select one diagnostic profile')
     build=Path(build).resolve();out=Path(out).resolve()
     if out.exists() or not all(p.is_relative_to(ROOT/'.work') for p in [out,build]):raise ValueError('Use fresh checkout .work output and local build')
     proof=json.loads(Path(validation).read_text());here=Path(__file__).resolve().parent
     inputs=['loader.asm','route_probe.sv','tb_probe.sv']
     if isolation or interaction or handoff:inputs+=['isolation_loader.asm','prepare_isolation.py','vm_contract.rs','probe_isolation.py','prepare_probe.py','prepare_trial.py']
     if handoff:inputs+=['timing_body.asm','reentry_body.asm','prepare_handoff.py','probe_handoff.py']
+    if runtime:
+        from probe_runtime import INPUTS
+        inputs=INPUTS
     for name in inputs:
         if proof['inputs'][name]!=sha(here/name):raise ValueError('Offline validation is stale: '+name)
-    reviewed=[audit(build,n) for n in ['A','B']]
+    reviewed=[audit(build,n,runtime) for n in ['A','B']]
     for item in reviewed:
         if item['source_sha256']['core/route_probe.sv']!=sha(here/'route_probe.sv'):raise ValueError('Compiled probe source differs')
+        if runtime and item['source_sha256']!=proof['hardware_sources'][item['program']]:raise ValueError('Runtime RTL validation is stale')
     reverse=bytes(int(f'{n:08b}'[::-1],2) for n in range(256));assert reverse.translate(reverse)==bytes(range(256))
     out.mkdir(parents=True);files=out/'files'
-    if isolation:
+    if runtime:
+        entries=[(13,'Route13','Runtime read request re-entry hypothesis'),(14,'Route14','Runtime open request re-entry hypothesis')]
+    elif isolation:
         entries=[(4,'Route4','Boot A without polling'),(5,'Route5','Read and report identity A'),
                  (6,'Route6','Load A then B without input'),(7,'Route7','Cold boot B')]
     elif interaction:
@@ -69,7 +83,7 @@ def stage(build,validation,out,isolation=False,interaction=False,handoff=False):
         for name in ['audio','input','variants','video']:shutil.copy2(build/'A'/f'{name}.json',folder/f'{name}.json')
         core=json.loads((build/'A/core.json').read_text())['core']
         core['metadata'].update(platform_ids=['routetest'],shortname=f'Route{i}',author='pocketlab',description=description,
-            url='https://github.com/Sanssssssssssssssss/analogue-pocket-menu-cn',version='0.0.4-handoff' if handoff else '0.0.3-input' if interaction else '0.0.2-isolate' if isolation else '0.0.1-trial',date_release='2026-11-01')
+            url='https://github.com/Sanssssssssssssssss/analogue-pocket-menu-cn',version='0.0.5-runtime' if runtime else '0.0.4-handoff' if handoff else '0.0.3-input' if interaction else '0.0.2-isolate' if isolation else '0.0.1-trial',date_release='2026-11-01')
         core['framework']['hardware']={'link_port':False,'cartridge_adapter':'0x80000000'}
         core['cores']=[{'name':n,'id':j,'filename':f'probe_{n.lower()}.rbf_r'} for j,n in enumerate(['A','B'])]
         for name in ['A','B']:
@@ -77,7 +91,7 @@ def stage(build,validation,out,isolation=False,interaction=False,handoff=False):
             translated=raw.translate(reverse);assert translated.translate(reverse)==raw
             (folder/f'probe_{name.lower()}.rbf_r').write_bytes(translated)
         if mode:
-            loader=build/('handoff' if handoff else 'isolation' if isolation else 'loaders')/mode/'loader.bin'
+            loader=build/('runtime' if runtime else 'handoff' if handoff else 'isolation' if isolation else 'loaders')/mode/'loader.bin'
             expected=next(x['bytecode_sha256'] for x in proof['loaders'] if x['mode']==mode)
             if sha(loader)!=expected or loader.stat().st_size>8192:raise ValueError('Loader differs from assembled validation')
             shutil.copy2(loader,folder/'loader.bin');core['framework']['chip32_vm']='loader.bin'
@@ -85,10 +99,11 @@ def stage(build,validation,out,isolation=False,interaction=False,handoff=False):
         write_json(folder/'input.json',{'input':{'magic':'APF_VER_1','controllers':[{'type':'default','mappings':[{'id':0,'name':'A','key':'pad_btn_a'},{'id':1,'name':'B','key':'pad_btn_b'}]}]}})
         slot={'id':0,'name':'Probe seed','required':True,'filename':'probe.dat','size_exact':16,'address':'0x60000080','nonvolatile':False}
         if handoff:slot['parameters']=8
-        if i==12:slot.update(name='Reload test',parameters=0x89,extensions=['dat'])
+        if i==12 or runtime:slot.update(name='Reload test',parameters=0x89,extensions=['dat'])
         write_json(folder/'data.json',{'data':{'magic':'APF_VER_1','data_slots':[slot]}})
         fields=[('ID',0),('R',4),('U',8),('K',0x1C),('P',0x90),('M',0xA0),('D',0xA4)]
         if i==12:fields.append(('C',0x14))
+        if runtime:fields += [('C',0xB8),('S',0xB0),('N',0xB4)]
         write_json(folder/'interact.json',{'interact':{'magic':'APF_VER_1','variables':[{'name':n,'id':60000+j,'type':'number_u32','enabled':False,'address':hex(0x60000000+offset)} for j,(n,offset) in enumerate(fields)],'messages':[]}})
     seed=files/'Assets/routetest/common/probe.dat';seed.parent.mkdir(parents=True);seed.write_bytes(b'PLAB-PROBE-V1'.ljust(16,b'\0'))
     write_json(files/'Platforms/routetest.json',{'platform':{'category':'Handheld','name':'Pocket Lab Test','manufacturer':'Pocket Lab','year':2026}})
@@ -105,4 +120,5 @@ if __name__=='__main__':
     profiles.add_argument('--isolation',action='store_true',help='Stage only new Route4-7 minimal loaders')
     profiles.add_argument('--interaction',action='store_true',help='Stage only new Route8-10 corrected input loaders')
     profiles.add_argument('--handoff',action='store_true',help='Stage only new Route11-12 timing and OS reload controls')
-    a=p.parse_args();print(json.dumps(stage(a.build,a.validation,a.out,a.isolation,a.interaction,a.handoff)))
+    profiles.add_argument('--runtime',action='store_true',help='Stage only new Route13-14 read-only runtime request hypotheses')
+    a=p.parse_args();print(json.dumps(stage(a.build,a.validation,a.out,a.isolation,a.interaction,a.handoff,a.runtime)))
