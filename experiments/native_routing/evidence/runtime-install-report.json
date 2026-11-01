@@ -1,0 +1,18 @@
+{
+  "date": "2026-11-01",
+  "package_source_commit": "0d192273efcb2ecc8b23e23c6e45612d92d825b5",
+  "scope": "Added isolated runtime read/open candidates; automatic re-entry device acceptance pending",
+  "entries": ["pocketlab.Route13", "pocketlab.Route14"],
+  "added_files": 20,
+  "added_bytes": 3206722,
+  "shared_files_verified": 3,
+  "protected_files_sha256_verified": 4232,
+  "protected_backup_bytes": 44815080,
+  "overwritten_files": 0,
+  "save_writes": 0,
+  "firmware_writes": 0,
+  "control_preserved": "Route11/12 package and shared file hashes matched before installation; originals verified again afterward",
+  "backup": "Fresh local snapshot and exact candidate copied and verified; private journal, scripts and rollback list retained locally",
+  "rollback": "Remove only the 20 listed additions when their SHA256 still matches; retain shared files and all original cores and saves",
+  "acceptance_plan": "Two runtime command tests first. If command completion does not re-enter VM, do not repeat unchanged tests. Only a working trigger advances to repeated native switching and real game handoff."
+}

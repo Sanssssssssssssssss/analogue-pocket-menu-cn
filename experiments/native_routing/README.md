@@ -2,6 +2,8 @@
 
 2026-11-01。这是独立诊断源码，**不是统一游戏前端**。Route12 已完成实机运行时选择与系统重载触发的 A→B→A；固定换核、VM 桥接读写、双向重入均有现场记录。自绘菜单直接触发及真实游戏／存档交接仍待验证。
 
+后续按三关推进：① Route13/14 各测一次运行期请求，区分“文件完成”和“自动重入”；② 有一种触发成立后，再验双向切换、冷启动和退出；③ 接入 GB/GBC/GBA 的实际加载、返回与隔离存档校验。**当前明确待测两项，总轮数不能预先保证**。若两种请求都完成却不触发 VM，就停止重复这条假设；若请求本身失败，先按错误码排查，不能据此断言换核不可行。下文的源码、收据和现场报告作为可复用记录，游戏入口与已验收 Route12 独立保留。
+
 目标是把三个问题分别验证：加载器还在运行时能否收到按键；宿主能否显示该阶段的视频；第二次 `CORE` 是否确实配置了另一个 FPGA 程序。启动时选中编号、真正重配置、游戏运行后重新唤起加载器，是三个不同结论。
 
 ## 新核对的边界
@@ -161,7 +163,7 @@ python experiments/native_routing/stage_trial.py --handoff --build .work/native-
 
 ## 运行期只读请求候选
 
-Route13/14 是独立候选，**尚未安装或获得实机结果**。它们在 VM 结束、正常运行后接收新 A/B，分别发起一次 Target `0180` 读取或 `0192` 打开请求。目标固定为槽 0 的 `/Assets/routetest/common/probe.dat`；读取范围只有 16 字节，打开标志和大小均为零，槽仍为只读 `0x89`。Target 写入和 getfile 信号保持零；没有创建、截断、固件或存档操作。
+Route13/14 是独立候选，**已备份安装，尚未获得实机结果**。它们在 VM 结束、正常运行后接收新 A/B，分别发起一次 Target `0180` 读取或 `0192` 打开请求。目标固定为槽 0 的 `/Assets/routetest/common/probe.dat`；读取范围只有 16 字节，打开标志和大小均为零，槽仍为只读 `0x89`。Target 写入和 getfile 信号保持零；没有创建、截断、固件或存档操作。
 
 [官方 Target 命令](https://www.analogue.co/developer/docs/openfpga/host-target-commands)说明读文件和按路径打开已有文件的协议，**没有承诺这些命令会重新调用 Chip32**。本轮只检验这个假设，不能把文件请求完成记为换核成功。`runtime_request.sv` 等待运行复位释放、退出系统菜单及 A/B 松开，随后只发一个请求；结果锁存，不自动重试。新硬件重新编译，不复用 Route12 的 bitstream。
 
@@ -187,12 +189,14 @@ python experiments/native_routing/stage_trial.py --runtime --build .work/native-
 
 该流程只生成电脑上的候选包，不写卡。已通过的 Route12 与游戏入口继续保留。
 
+重新识别卡后，已备份当前受保护的 4,232 个文件、44,815,080 字节，仅新增 Route13/14 的 20 个文件、3,206,722 字节；3 个共用文件哈希一致，安装后原文件与新增文件全部校验通过。见[本轮安装记录](evidence/runtime-install-report.json)。精确新增清单、回退边界、安装脚本、候选包和源码 bundle 留在私有版本备份中，不公开个人卡清单。文件安装校验不代表自动重入已通过。
+
 ## English
 
 This is a **native FPGA routing diagnostic**, not a unified frontend. Two official-template board projects carry immutable A/B identities; three assembled Chip32 loaders compare input visibility before initialization, after reset release, and after full initialization. The old logging VM must reject the absent FPGA identity instead of claiming a switch. Diagnostic EXIT 0 is not routing success: M=0xA0 is required for the A/B/A identity check.
 
 The local trial removes unused audio clocks and explicitly excepts APF protocol I/O. Internal timing passes; this is not external board-I/O signoff. Physical reports accept A/B startup, VM PMP reporting and fixed A-to-B switching. Route9/10 did not capture input during VM polling. Route12 now passes the full OS-mediated control: runtime B selection, slot reload, VM re-entry and immutable B identity; then runtime A selection, a second reload and return to immutable A. Both final images and M=0xC2 match. This establishes native A-to-B-to-A routing within one entry using an explicit OS reload step. The read-only 16-byte slot and parameter 0x89 preserve FPGA state before re-entry. Direct automatic triggering and real game/BIOS/save handoff remain unverified. Keep the installed Route12 package as the accepted control; historical reports and game entries are preserved.
 
-Route13/14 are offline candidates, not installed or device accepted. A fresh runtime key sends one bounded read (0180) or existing-file open (0192, flags=0) against the same read-only synthetic seed. Real SDK command RTL checks cover protocol, input guards and immutable observations; ten bytecode cases use modeled hardware/registers and do not generate an OS callback. Record ID/M/D before any manual reload: a completed file command alone is not re-entry. The accepted Route12 control remains unchanged.
+Route13/14 are backed-up and installed candidates, not device accepted. Installation added 20 files (3,206,722 bytes); three shared files matched and all 4,232 protected originals were SHA256 verified unchanged. A fresh runtime key sends one bounded read (0180) or existing-file open (0192, flags=0) against the same read-only synthetic seed. Real SDK command RTL checks cover protocol, input guards and immutable observations; ten bytecode cases use modeled hardware/registers and do not generate an OS callback. Record ID/M/D before any manual reload: a completed file command alone is not re-entry. The accepted Route12 control remains unchanged.
 
 Both new board builds pass internal timing (44 records each, all TNS zero; minimum slack 0.149/0.142 ns) with explicit APF I/O exceptions. They use 840/860 ALMs, two M10Ks and no DSPs. Each flow retains 167 reviewed ordinary warnings and no critical warning; external board I/O timing is not certified. The 23-file package is 3,378,810 bytes. Packaging regression: 24 passed, one Windows symlink check skipped. See the linked validation and build receipts above.
