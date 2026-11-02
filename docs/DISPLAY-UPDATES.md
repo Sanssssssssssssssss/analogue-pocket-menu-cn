@@ -1,8 +1,8 @@
 # 更新已有菜单的显示名和封面
 
-`tools/update_display.py` 在电脑上更新已有 v9 菜单，保留机种、分类、ROM／存档／休眠路径、CRC、收藏标记及日志路径。游戏页按新标题重建字母索引；目录页顺序保留。生成和安装分开执行，安装沿用版本备份及回读校验。
+`tools/update_display.py` 在电脑上更新已有 v9 菜单，保留机种、分类、ROM／存档／休眠路径、CRC、收藏标记及日志路径。部分素材更新保留原顺序和字母索引；只有叶页全部游戏都提供 `title` 时，才按新标题排序并重建索引。生成和安装分开执行，安装沿用版本备份及回读校验。
 
-映射是 UTF-8 JSON，键为含前导 `/` 的卡内游戏路径。每个涉及更新的游戏页须包含所有游戏的 `title`，包括不变的标题，避免排序时丢失原中文名。可指定本地图片及 SHA256；`fallback: true` 为没有封面的条目生成标注“文字封面”的卡片。
+映射是 UTF-8 JSON，键为含前导 `/` 的卡内游戏路径。可以只补部分标题或图片，未指定的原中文名继续保留。可指定本地图片及 SHA256；`fallback: true` 为没有封面的条目生成标注“文字封面”的卡片。
 
 ```json
 {
@@ -22,6 +22,6 @@ python tools/install.py --card X:/ --package dist/core --library .work/display-u
 
 可参考 [yingw/rom-name-cn](https://github.com/yingw/rom-name-cn) 的中文对照和 [libretro-thumbnails](https://github.com/libretro-thumbnails) 的包装图。处理私人库时，保留来源、修订和文件校验记录；不要把个人游戏清单、BIOS 或存档提交本仓库。中文显示名不能证明 ROM 是汉化版。
 
-English: `update_display.py` stages title/cover changes over an existing v9 library. Supply every game's display title on an updated game page so sorting and the letter index stay consistent. ROM/save/suspend paths, CRCs, favorite identities, parent links and log paths remain intact. Optional local covers require their SHA256; missing art can use clearly labeled text cards. Stage first, then use the existing backed-up installer. A translated display name does not translate the game itself.
+English: `update_display.py` stages title/cover changes over an existing v9 library. Partial updates retain the existing order and letter index. A leaf page is sorted and reindexed only when every game has an explicitly supplied title. Existing captions and ROM/save/suspend paths, CRCs, favorite identities, parent links and log paths remain intact. Optional local covers require their SHA256; missing art can use clearly labeled text cards. Stage first, then use the existing backed-up installer. A translated display name does not translate the game itself.
 
 GBA 实验使用不同的 GBAF1 格式，请使用 [`experiments/gba_menu/display_update.py`](../experiments/gba_menu/display_update.py)，参数见[聚合实验](../experiments/unified_frontend/README.md)。它只生成电脑副本，不能用上面的 GB/GBC 安装命令写入。English: the separate GBAF1 updater stages files locally; the GB/GBC installer above does not install those GBA files.
