@@ -36,6 +36,9 @@ def confined(root, rel):
     return target
 
 def identity(card):
+    # Windows temp/reader paths may use 8.3 aliases or directory junctions.
+    # Compare the canonical root in both preflight and later rollback checks.
+    card=Path(card).resolve()
     marker=card/'Analogue_Pocket.json'
     if json.loads(marker.read_text(encoding='utf-8-sig')).get('product')!='Analogue Pocket':
         raise ValueError('Expected an Analogue Pocket card root or its local copy')
