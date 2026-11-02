@@ -82,7 +82,8 @@ def cheat_payload(profile,raw):
 
 
 def pack(entries,platform,covers=None):
-    if not 1<=len(entries)<=2047 or not entries[-1]['folder']:raise ValueError('Page requires final parent')
+    # CB=7 is a direct 128-texture cache. Larger counts can alias at wrap.
+    if not 1<=len(entries)<=128 or not entries[-1]['folder']:raise ValueError('Page requires final parent and at most 128 texture slots')
     count=len(entries);base=64+count*1024;pause=base+count*65536
     rows=[];blobs=[];matched=0;missing=[]
     for entry in entries:
@@ -147,12 +148,13 @@ def build(card,out,platform,titles=None,covers=None,folders=None,cheats=None,off
             'save':f'/Saves/{namespace}/common/{tag}.sav','cheat':f'/Assets/{namespace}/cheat/{tag}.cht','cheat_bytes':len(payload)})
     if not refs:raise ValueError('No native candidate ROM files')
     for key,node in list(nodes.items()):
-        if len(node['games'])<=512:continue
+        if len(node['games'])+len(node['children'])<=127:continue
         games=node['games'];node['games']=[]
-        for i in range(0,len(games),512):
-            child=key+'/@page'+str(i//512+1)
+        for i in range(0,len(games),127):
+            child=key+'/@page'+str(i//127+1)
             if child in nodes:raise ValueError('Reserved pagination key collision')
-            nodes[child]={'title':'第 '+str(i//512+1)+' 页','parent':key,'children':set(),'games':games[i:i+512]};node['children'].add(child)
+            nodes[child]={'title':'第 '+str(i//127+1)+' 页','parent':key,'children':set(),'games':games[i:i+127]};node['children'].add(child)
+    if any(len(n['games'])+len(n['children'])>127 for n in nodes.values()):raise ValueError('More than 127 child folders; organize into nested categories')
     def page(key):return f'/Assets/{namespace}/common/menu.bin' if not key else f'/Assets/{namespace}/common/libs/{hashlib.sha256(key.encode()).hexdigest()[:16]}.bin'
     if len({page(k) for k in nodes})!=len(nodes):raise ValueError('Category identity collision')
     estimate=sum(64+(len(n['children'])+len(n['games'])+1)*66560+153600 for n in nodes.values())+len(ids)*32768+sum(map(len,payloads.values()))

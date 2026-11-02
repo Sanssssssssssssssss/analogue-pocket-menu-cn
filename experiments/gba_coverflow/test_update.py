@@ -1,4 +1,4 @@
-import importlib.util,json,shutil,sys,tempfile,unittest
+import importlib.util,json,shutil,struct,sys,tempfile,unittest
 from pathlib import Path
 from unittest.mock import patch
 
@@ -92,5 +92,17 @@ class UpdateSafety(unittest.TestCase):
         self.assertFalse(any(int(m['id'],16) in [0,0x20] for m in video['display_modes']))
         updater.rollback(self.card,self.backup,True)
         self.assertEqual((self.card/updater.CORE/'video.json').read_bytes(),before)
+
+    def test_oversized_pages_are_rejected_before_conversion_or_update(self):
+        manifest=json.loads((self.f1/'library-manifest.json').read_text());item=manifest['files'][0];p=self.f1/item['path'];raw=p.read_bytes()
+        n=129;base=64+n*1024;rows=raw[64:1088]*(n-1)+raw[1088:2112]
+        oversized=struct.pack('<4s5I',b'GBAF',1,n,base,base+n*76800,0).ljust(64,b'\0')+rows+bytes(n*76800+153600)
+        p.write_bytes(oversized);item.update(bytes=len(oversized),sha256=updater.sha(p));(self.f1/'library-manifest.json').write_text(json.dumps(manifest))
+        output=self.root/'rejected'
+        with self.assertRaisesRegex(ValueError,'128 texture'):new.upgrade(self.f1,output)
+        self.assertFalse(output.exists());self.assertEqual(p.read_bytes(),oversized)
+        f2=self.root/'oversized-F2.bin'
+        f2.write_bytes(struct.pack('<4s5I',b'GBAF',2,n,base,base+n*65536,65536).ljust(64,b'\0')+rows+bytes(n*65536+153600))
+        with self.assertRaisesRegex(ValueError,'128 texture'):updater.records(f2)
 
 if __name__=='__main__':unittest.main()

@@ -69,7 +69,7 @@ def plan(card,package,library,platform,offline_source=False):
         raw=allowed(library,rel,platform).read_bytes()
         if len(raw)<64:raise ValueError('Truncated menu')
         magic,version,count,base,pause,stride=struct.unpack_from('<4s5I',raw)
-        if magic!=b'GBAF' or version!=2 or not 1<=count<=2047 or base!=64+count*1024 or pause!=base+count*65536 or stride!=65536 or len(raw)!=pause+153600:raise ValueError('Menu layout differs')
+        if magic!=b'GBAF' or version!=2 or not 1<=count<=128 or base!=64+count*1024 or pause!=base+count*65536 or stride!=65536 or len(raw)!=pause+153600:raise ValueError('Menu layout differs or exceeds 128 texture slots')
         for i in range(count):
             row=raw[64+i*1024:64+(i+1)*1024];flags,rom_bytes,save_bytes,cheat_bytes=struct.unpack_from('<4I',row,4)
             if row[:4]!=b'ENT1' or flags not in (0,1) or save_bytes!=32768 or cheat_bytes>65536 or cheat_bytes%4:raise ValueError('Invalid menu record')

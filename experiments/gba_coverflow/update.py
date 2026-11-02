@@ -31,6 +31,7 @@ def records(path):
         if magic!=b'GBAF' or version not in (1,2) or not 1<=count<=2047 or art!=64+count*1024:raise ValueError('Invalid source menu')
         if version==1 and (stride or pause!=art+count*76800):raise ValueError('Invalid F1 layout')
         if version==2 and (stride!=65536 or pause!=art+count*65536):raise ValueError('Invalid F2 layout')
+        if version==2 and count>128:raise ValueError('GBA CoverFlow exceeds 128 texture slots')
         if path.stat().st_size!=pause+153600:raise ValueError('Incomplete menu pack')
         rows=[f.read(1024) for _ in range(count)]
         if any(len(row)!=1024 or row[:4]!=b'ENT1' for row in rows):raise ValueError('Invalid launch records')

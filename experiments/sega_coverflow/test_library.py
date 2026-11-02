@@ -81,5 +81,18 @@ class Library(unittest.TestCase):
         for code in ('00E0-0001','00C123-7F','ZZZ-ZZZ','000-000'):
             with self.assertRaises(ValueError):decode(code)
 
+    def test_large_directory_pages_without_wrapping_texture_slot_aliases(self):
+        for i in range(129):
+            p=self.card/f'Assets/gg/common/RPG/extra{i:03}.gg';p.write_bytes(i.to_bytes(4,'little')*8192)
+        before=snapshot(self.card);out=self.root/'paged';result=library.build(self.card,out,'gg')
+        counts=[];games=0
+        for row in result['files']:
+            if not row['path'].startswith('Assets/ggclab/common/'):continue
+            raw=(out/row['path']).read_bytes();count=int.from_bytes(raw[8:12],'little');counts.append(count)
+            self.assertEqual(len({i&127 for i in range(count)}),count)
+            games+=sum(raw[64+i*1024+4]==0 for i in range(count))
+        self.assertEqual(max(counts),128);self.assertEqual(games,132)
+        self.assertEqual(before,snapshot(self.card))
+
 
 if __name__=='__main__':unittest.main()

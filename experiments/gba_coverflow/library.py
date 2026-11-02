@@ -67,6 +67,7 @@ def upgrade(source,out,titles=None,folders=None,covers=None):
         if rel.is_absolute() or '..' in rel.parts or not str(rel).startswith('Assets/gbalab/common/') or path.is_symlink() or not path.resolve().is_relative_to(source):raise ValueError('Source pack escapes menu namespace')
         if gb.sha(path)!=item['sha256']:raise ValueError('Source menu changed: '+str(rel))
         entries,pause=read_page(path)
+        if len(entries)>128:raise ValueError('GBA CoverFlow has 128 texture slots per page; split the source library before conversion')
         plans.append((rel,entries,pause));needed+=64+len(entries)*(1024+STRIDE)+len(pause)
     ancestor=out.parent
     while not ancestor.exists():ancestor=ancestor.parent
