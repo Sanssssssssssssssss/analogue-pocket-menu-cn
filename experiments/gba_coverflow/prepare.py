@@ -13,7 +13,7 @@ spec=importlib.util.spec_from_file_location('gba_prepare',ROOT/'experiments/gba_
 base=importlib.util.module_from_spec(spec);spec.loader.exec_module(base)
 replace=base.replace
 
-def controller(text):
+def controller(text,exit_paths=1):
     text=replace(text,'// GBAF1 page reader and GBA launch/save lifecycle, clocked by the APF bridge.',
         '// GBAF2 CoverFlow adapter; inherited GBA launch, ordinary save and RTC lifecycle.')
     text=replace(text,'input wire [31:0] save_capacity,','''input wire [31:0] save_capacity,
@@ -113,7 +113,7 @@ def controller(text):
     text=replace(text,'else begin menu_reset<=1;menu_pause<=0;game_bound<=0;timer<=0;state<=ROM_START;end',
         'else begin cf_menu<=0;menu_reset<=1;menu_pause<=0;game_bound<=0;timer<=0;state<=ROM_START;end')
     text=replace(text,'game_bound<=0;menu_reset<=1;menu_pause<=0;menu_show<=0;timer<=0;state<=RECORD_REQ;',
-        'cf_menu<=1;cf_pending<=0;cf_level_target<=0;cf_title_target<=0;game_bound<=0;menu_reset<=1;menu_pause<=0;menu_show<=0;timer<=0;state<=RECORD_REQ;')
+        'cf_menu<=1;cf_pending<=0;cf_level_target<=0;cf_title_target<=0;game_bound<=0;menu_reset<=1;menu_pause<=0;menu_show<=0;timer<=0;state<=RECORD_REQ;',exit_paths)
     text=replace(text,'HOME_OPEN:begin root_path<=1;',
         'HOME_OPEN:begin cf_menu<=1;cf_level_target<=0;cf_title_target<=0;root_path<=1;')
     return text

@@ -35,4 +35,6 @@ vvp .work/line-check
 
 ## English
 
+The [NES adapter](../nes_coverflow/README.md) adds a separate five-slot associative cache while retaining the same candidate wrapping, geometry and raster. Its packed independent art RAM and deliberately permuted logical-to-physical mapping pass complete raster comparisons. This adapter does not alter the default GBA-generated module.
+
 This extracts the accepted GB/GBC CoverFlow compositor and cache ordering into isolated build inputs. Independent cover movement, scaling, brightness, rounded corners, reflections, title fade/marquee and page indicators are retained. A ready/response texture transport, completed-line guard, clock bridge, optional original-RTL pose table and Unicode bitmap rows adapt it to other native cores. The 135 accepted inputs remain unchanged. The new transport corrects an upstream signed-clipping bug; the raster reference copy documents that one expression change. Portable simulation RAM is crosschecked against real Intel models in Icarus, since direct use of those models in Verilator did not exercise writes correctly. Ten-frame raster checks include explicit pose/cache assertions and the asynchronous bridge. These synthetic tests do not establish game execution, physical memory timing or device acceptance.

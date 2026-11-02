@@ -1,0 +1,20 @@
+Fitter Status : Successful - Mon Nov  2 11:12:19 2026
+Quartus Prime Version : 22.1std.2 Build 922 07/20/2023 SC Lite Edition
+Revision Name : nes_pocket
+Top-level Entity Name : apf_top
+Family : Cyclone V
+Device : 5CEBA4F23C8
+Timing Models : Final
+Logic utilization (in ALMs) : 16,010 / 18,480 ( 87 % )
+Total registers : 16947
+Total pins : 224 / 224 ( 100 % )
+Total virtual pins : 0
+Total block memory bits : 2,246,272 / 3,153,920 ( 71 % )
+Total RAM Blocks : 283 / 308 ( 92 % )
+Total DSP Blocks : 40 / 66 ( 61 % )
+Total HSSI RX PCSs : 0
+Total HSSI PMA RX Deserializers : 0
+Total HSSI TX PCSs : 0
+Total HSSI PMA TX Serializers : 0
+Total PLLs : 2 / 4 ( 50 % )
+Total DLLs : 0 / 4 ( 0 % )
