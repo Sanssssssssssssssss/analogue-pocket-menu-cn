@@ -98,7 +98,7 @@ def upgrade(source,out,titles=None,folders=None,covers=None):
                         cover=candidate;break
                 if cover:matched+=1
                 else:missing+=1
-            picture=gb.picture(cover,entry['folder'],kind(title))
+            picture=gb.picture(cover,entry['folder'],kind(title)) if cover or entry['folder'] else gb.title_card(title,'gba')
             if len(picture)!=ART_BYTES:raise ValueError('Wrong shared CoverFlow image layout')
             table=bytearray(entry['record']);struct.pack_into('<II',table,16,width,subwidth)
             # ROM/save/RTC path structs and content identities remain byte exact.

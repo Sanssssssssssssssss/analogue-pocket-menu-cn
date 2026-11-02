@@ -100,7 +100,8 @@ def pack(entries,platform,covers=None):
         else:
             cover=None
             if not entry['folder']:missing.append(entry['rom'])
-        rows.append(bytes(row));blobs.append((gb.picture(cover,entry['folder'],kind(entry['title']))+title+sub).ljust(65536,b'\0'))
+        art=gb.picture(cover,entry['folder'],kind(entry['title'])) if cover or entry['folder'] else gb.title_card(entry['title'],platform)
+        rows.append(bytes(row));blobs.append((art+title+sub).ljust(65536,b'\0'))
     pause_frames=[]
     for i in range(2):
         image=visual.pause_frame(i);image.paste((0,0,0),(0,140,240,160));pause_frames.append(visual.rgb565(image))

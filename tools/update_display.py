@@ -9,35 +9,12 @@ from pathlib import Path
 import shutil
 import struct
 
-from PIL import Image,ImageDraw
 import build_library as lib
 from install import confined,identity
 from style_library import ROOT_PACK,decode,encode
 
 
-def title_card(title,platform):
-    image=Image.new('RGB',(256,256),'black');draw=ImageDraw.Draw(image)
-    draw.rounded_rectangle((15,10,240,245),radius=12,outline='#718d84',width=3)
-    lines=[platform.upper(),'文字封面','']
-    for char in title:
-        if lib.columns(lines[-1]+char,lib.font())[0]>200:
-            if len(lines)==8:
-                lines[-1]=lines[-1][:-2]+'…';break
-            lines.append(char)
-        else:lines[-1]+=char
-    for i,line in enumerate(lines):
-        if not line:continue
-        width,raw,_,missing=lib.columns(line,lib.font())
-        if missing:raise ValueError('Unavailable cover glyphs: '+''.join(missing))
-        columns=struct.unpack('<512H',raw)
-        for x in range(width):
-            for y in range(16):
-                if columns[x]&(1<<y):draw.point(((256-width)//2+x,24+i*27+y),fill='#e8e6dd')
-    raw=bytearray()
-    for size in (128,80):
-        for r,g,b in lib.base.fit(image,size).get_flattened_data():
-            raw.extend(struct.pack('<H',((r>>3)<<11)|((g>>2)<<5)|(b>>3)))
-    return bytes(raw)
+title_card=lib.title_card
 
 
 @lru_cache(maxsize=512)

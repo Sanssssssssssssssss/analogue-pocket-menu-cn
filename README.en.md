@@ -6,7 +6,7 @@ The public stable release supports GB/GBC. One Pocket user confirmed Chinese men
 
 The development branch includes a [batch preflight/update/rollback tool](docs/BATCH-UPDATE.md) for all six supported components, preserving current display defaults and both old and new progress. Actual-card verification and physical acceptance of new candidates remain pending.
 
-[Build from your own filenames](docs/FILENAME-MENUS.md): `python tools/build_menus.py --card X:/ --out ./my-menus` detects six supported groups and defaults to ROM filename captions, including Chinese. Covers are optional. This command only generates local libraries; installation/refresh still needs a matching core and verified backup.
+[Build from your own filenames](docs/FILENAME-MENUS.md): `python tools/build_menus.py --card X:/ --out ./my-menus` detects six supported groups and defaults to ROM filename captions, including Chinese. Missing artwork gets a text cover bearing the game name. This command only generates local libraries; installation/refresh still needs a matching core and verified backup.
 
 A native **openFPGA GB/GBC cover-flow frontend for Analogue Pocket**, with Simplified Chinese controls, Unicode game titles, folders and a black background.
 

@@ -1,6 +1,6 @@
 # 用自己的 ROM 文件名生成菜单
 
-开发分支支持一条命令扫描自己的游戏目录，生成六组原生 CoverFlow 菜单。默认标题是 ROM 文件名去掉扩展名，中文／英文／常见日文直接生成字形。封面与显示别名可选，缺图使用占位图；原文件名、ROM 内容和已有进度不变。
+开发分支支持一条命令扫描自己的游戏目录，生成六组原生 CoverFlow 菜单。默认标题是 ROM 文件名去掉扩展名，中文／英文／常见日文直接生成字形。封面与显示别名可选；缺图时自动生成带游戏名的文字封面，沿用 GB 菜单的卡片样式。原文件名、ROM 内容和已有进度不变。
 
 在源码目录安装 `requirements.txt` 后执行：
 
@@ -31,6 +31,6 @@ python tools/build_menus.py --card X:/ --out ./my-menus
 
 ## English
 
-After installing `requirements.txt`, run `python tools/build_menus.py --card X:/ --out ./my-menus`. It detects the supported platform directories, recursively scans ROMs and defaults captions to each filename stem. Chinese, English and common Japanese glyphs are generated locally. Covers and per-path aliases are optional. Use `--systems` to select a subset. Output must be a new local directory outside the source card/copy.
+After installing `requirements.txt`, run `python tools/build_menus.py --card X:/ --out ./my-menus`. It detects the supported platform directories, recursively scans ROMs and defaults captions to each filename stem. Chinese, English and common Japanese glyphs are generated locally. Covers and per-path aliases are optional; missing artwork produces a text cover bearing the game name in the existing GB card style. Use `--systems` to select a subset. Output must be a new local directory outside the source card/copy.
 
 The tool writes libraries and a summary only; it never installs to the card or changes ROMs/existing progress. Rebuild into a fresh output after adding/removing/renaming files. New GBA libraries paginate at 128 entries including Back; existing F1 upgrades still require exact launch/save-record compatibility. Optional BIOS/covers/aliases and explicit invalid-header exclusions are described above. Legacy `.sms` GG images use header identification plus a checksum-pinned exception; the filename alone does not establish the platform. Installation and safe refresh still use compatible core-specific validators and verified backups. This is not runtime directory enumeration. The stable public binary remains GB/GBC; other native candidates await hardware acceptance.

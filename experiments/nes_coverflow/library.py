@@ -46,7 +46,7 @@ def pack(entries,covers=None):
         else:
             cover=None
             if not entry['folder']:missing.append(entry['rom'])
-        art=gb.picture(cover,entry['folder'],kind(entry['title']))
+        art=gb.picture(cover,entry['folder'],kind(entry['title'])) if cover or entry['folder'] else gb.title_card(entry['title'],'nes')
         rows.append(bytes(row));blobs.append((art+title+subtitle).ljust(65536,b'\0'))
     pause_frames=[]
     for i in range(2):

@@ -10,7 +10,7 @@
 
 开发分支提供[整批预检／更新／回退](docs/BATCH-UPDATE.md)：统一准备六个组件，保留已有画面默认值与新旧进度。实际卡核对与新候选实机验收仍待完成。
 
-[用自己的文件名建库](docs/FILENAME-MENUS.md)：`python tools/build_menus.py --card X:/ --out ./my-menus` 自动扫描六组已有目录，默认显示 ROM 文件名；中文可用，封面可选。此命令只在电脑生成菜单，安装和刷新仍需匹配核心及备份。
+[用自己的文件名建库](docs/FILENAME-MENUS.md)：`python tools/build_menus.py --card X:/ --out ./my-menus` 自动扫描六组已有目录，默认显示 ROM 文件名；中文可用，缺图自动生成带游戏名的文字封面。此命令只在电脑生成菜单，安装和刷新仍需匹配核心及备份。
 
 *预览来自实际菜单 RTL 仿真，使用自绘占位图和合成测试条目；不是掌机实拍，也不代表游戏运行验证。*
 

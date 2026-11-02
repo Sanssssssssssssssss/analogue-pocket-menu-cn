@@ -87,6 +87,32 @@ def picture(path, folder=False, icon='folder'):
             raw.extend(struct.pack('<H', ((r>>3)<<11)|((g>>2)<<5)|(b>>3)))
     return bytes(raw)
 
+def title_card(title, platform, strict=True):
+    """Identify games without external artwork using the existing GB card style."""
+    image=Image.new('RGB',(256,256),'black');draw=ImageDraw.Draw(image)
+    draw.rounded_rectangle((15,10,240,245),radius=12,outline='#718d84',width=3)
+    lines=[platform.upper(),'文字封面','']
+    for char in title:
+        if columns(lines[-1]+char,font())[0]>200:
+            if len(lines)==8:
+                lines[-1]=lines[-1][:-2]+'…';break
+            lines.append(char)
+        else:lines[-1]+=char
+    for i,line in enumerate(lines):
+        if not line:continue
+        width,raw,_,missing=columns(line,font())
+        if missing and strict:raise ValueError('Unavailable cover glyphs: '+''.join(missing))
+        bits=struct.unpack('<512H',raw)
+        for x in range(width):
+            for y in range(16):
+                if bits[x]&(1<<y):draw.point(((256-width)//2+x,24+i*27+y),fill='#e8e6dd')
+    raw=bytearray()
+    for size in (128,80):
+        for r,g,b in base.fit(image,size).get_flattened_data():
+            raw.extend(struct.pack('<H',((r>>3)<<11)|((g>>2)<<5)|(b>>3)))
+    return bytes(raw)
+
+
 def pack(entries, glyphs, log_id, warnings):
     if not 1 <= len(entries) <= MAX_ENTRIES:
         raise ValueError(f'A folder needs 1..{MAX_ENTRIES} entries (including Back): {log_id}')
@@ -101,7 +127,8 @@ def pack(entries, glyphs, log_id, warnings):
         table[:40] = title.encode('ascii','replace')[:39].ljust(40,b'\0')
         struct.pack_into('<B3xIIH',table,40,flags,entry.get('size',0),entry['crc'],width)
         tables.append(table)
-        art.append(picture(entry.get('cover'),entry.get('folder',False),entry.get('icon','folder'))+text+bytes(65536-45568-1024))
+        image=picture(entry.get('cover'),entry.get('folder',False),entry.get('icon','folder')) if entry.get('cover') or entry.get('folder') else title_card(title,'gb' if entry.get('gb_only') else 'gbc',strict=False)
+        art.append(image+text+bytes(65536-45568-1024))
         for path in (entry['rom'],f'{SAVES}/{entry["save_id"]}.sav',f'{SAVES}/{entry["save_id"]}.sus'):
             paths.append(path_bytes(path))
     return (struct.pack('<4sHHHH4x',b'GBCV',9,len(entries),128,80)+base.index_block([e.get('sort_title',e['title']) for e in entries])+

@@ -31,7 +31,7 @@ def snapshot(root):
     return {p.relative_to(root).as_posix():hashlib.sha256(p.read_bytes()).hexdigest() for p in root.rglob('*') if p.is_file()}
 
 
-def entries(folder):
+def entries(folder, artwork=False):
     manifest=delivery.read(folder/'library-manifest.json');result={};pages={}
     for item in manifest['files']:
         if not item['path'].startswith('Assets/') or not item['path'].endswith('.bin') or 'bios' in item['path']:continue
@@ -40,13 +40,13 @@ def entries(folder):
             count=struct.unpack_from('<H',raw,6)[0];art=528+count*128;paths=art+count*65536
             for i in range(count):
                 row=raw[528+i*128:528+(i+1)*128];path=raw[paths+i*768:paths+i*768+256].split(b'\0')[0].decode('utf8')
-                if not row[40]&128:result[path]=(raw[art+i*65536+45568:art+i*65536+46592],row)
+                if not row[40]&128:result[path]=(raw[art+i*65536:art+i*65536+45568] if artwork else raw[art+i*65536+45568:art+i*65536+46592],row)
         else:
             count,art=struct.unpack_from('<II',raw,8)
             for i in range(count):
                 row=raw[64+i*1024:64+(i+1)*1024];path=row[32:288].split(b'\0')[0].decode('utf8')
                 if row[4]:page.append(path)
-                else:result[path]=(raw[art+i*65536+45568:art+i*65536+46592],row)
+                else:result[path]=(raw[art+i*65536:art+i*65536+45568] if artwork else raw[art+i*65536+45568:art+i*65536+46592],row)
         pages['/'+item['path']]=(count,page)
     return result,pages
 
@@ -95,6 +95,23 @@ class FilenameMenus(unittest.TestCase):
             seen.add(name);pending.extend(pages[name][1])
         self.assertEqual(seen,set(pages));self.assertEqual(before,snapshot(self.card))
 
+    def test_missing_art_gives_each_filename_a_distinct_card_in_all_formats(self):
+        profiles={'GB-GBC':('gb','gb'),'GBA':('gba','gba'),'NES':('nes','nes'),
+                  'GG':('gg','gg'),'SMS':('sms','sms'),'SG1000':('sg1000','sg')}
+        for _,(platform,suffix) in profiles.items():
+            for index,name in enumerate(('陌生旅程甲','陌生旅程乙')):
+                if platform=='gba':raw=gba_rom(index)
+                elif platform=='nes':raw=b'NES\x1a'+bytes([1])+bytes(11)+bytes(16383)+bytes([index])
+                else:raw=bytes(32767)+bytes([index])
+                put(self.card/f'Assets/{platform}/common/{name}.{suffix}',raw)
+        before=snapshot(self.card);build_menus.build(self.card,self.root/'out')
+        for system in profiles:
+            games,_=entries(self.root/'out/libraries'/system,artwork=True)
+            cards=[art for art,_ in games.values()]
+            self.assertEqual(len(cards),2);self.assertNotEqual(cards[0],cards[1])
+            self.assertTrue(all(card!=build_library.picture(None) for card in cards))
+        self.assertEqual(before,snapshot(self.card))
+
     def test_gba_paged_folders_keep_back_links_and_generated_chinese_labels(self):
         for i in range(4):put(self.card/f'Assets/gba/common/目录{i}/自己的游戏.gba',gba_rom(i))
         put(self.card/'Assets/gba/common/目录0/子目录/另一个.gba',gba_rom(5))
@@ -129,6 +146,14 @@ class FilenameMenus(unittest.TestCase):
         self.assertEqual(result['systems']['GBA']['excluded'],1)
         games,_=entries(self.root/'out/libraries/GBA')
         self.assertEqual(games['/Assets/gba/common/Unknown.gba'][0],build_library.columns('我的标题',build_library.font())[1])
+        self.assertEqual(before,snapshot(self.card))
+
+    def test_gb_missing_glyph_warning_survives_text_cover_generation(self):
+        rel='Assets/gb/common/Own.gb';put(self.card/rel,bytes(32768))
+        aliases=self.root/'names.json';delivery.write(aliases,{rel:'自选\U0010ffff'})
+        before=snapshot(self.card);build_menus.build(self.card,self.root/'out',titles=aliases)
+        manifest=delivery.read(self.root/'out/libraries/GB-GBC/library-manifest.json')
+        self.assertTrue(any('\U0010ffff' in row.get('missing_glyphs',[]) for row in manifest['warnings']))
         self.assertEqual(before,snapshot(self.card))
 
     def test_output_on_input_and_unknown_alias_are_rejected(self):
