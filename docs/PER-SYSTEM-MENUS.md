@@ -1,5 +1,7 @@
 # 各机种独立的中文可视化菜单
 
+2026-11-02 更新：用户要求直接复用已验收 GB/GBC CoverFlow 的独立封面移动／缩放，并在支持机种、图文、配置和稳定性完成后统一测试。以下 `.4` 整页滑动是历史候选，已停止作为交付方案。当前进度见[完整交付目标](COMPLETE-DELIVERY.md)、[共用绘制](../experiments/coverflow_shared/README.md)及[GBA 适配](../experiments/gba_coverflow/README.md)；新核心尚未安装。
+
 2026-11-01，当前开发方向：保留官方 openFPGA 的机种入口与 Change Core；进入机种后，用该机种自己的原生 FPGA 核心显示中文游戏库。GB/GBC 和 GBA 分别维护，不继续合并入口或替换系统首页。
 
 ```text

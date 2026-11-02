@@ -1,0 +1,23 @@
+# Pocket 完整前端交付
+
+2026-11-02，当前总目标已建立，进行中。用户明确要求复用已经在 GB/GBC 使用的 CoverFlow，并将能稳定实现的机种、中文显示名、封面、分类、金手指和屏幕风格整合后统一交付。卡最后再连接核对；现阶段只在电脑开发。
+
+## 成品标准
+
+- 视觉基准是冻结的 `core/src/core/cover_picker.sv`：封面独立移动、缩放、明暗、倒影、标题与分类交互。整页滑动不符合要求，`0.2.0-gba.4` 仅保留为历史原型，停止作为交付候选。
+- 各机种使用自己的原生核心，沿用官方 openFPGA 和 Change Core；共用 CoverFlow 绘制逻辑。系统固件不在修改范围内。
+- 以最后接卡确认的实际游戏库为准。中文显示名与实际路径分开，作品主入口中文优先，保留备选和恢复映射。缺图、别名推断和改版分别记录。
+- 金手指必须有运行它的核心、匹配版本和无冲突配置。仅有 `.cht` 文件不能算生效；无法核对或核心不支持的条目不自动启用。
+- 屏幕风格在各核心可用能力内整合。默认原比例、居中、无外框；GBA 清晰且无 LCD 网格。可选风格不改变已有默认设置。
+- 每个可交付机种都需要加载／返回／存档／输入／视频检查、完整布局布线与时序检查、局部备份、回读和回退。离线结果、实机启动和实际游玩分别记录。
+- 资源不足、缺源代码或仍不稳定的机种保留原入口，写清原因，不加入可安装成品包。最终统一请求一轮实机验收，不把零散原型当成完成品。
+
+## 辅助工具
+
+[Pocket Sync](https://github.com/neil-morrison44/pocket-sync) 用于核心、资源与备份管理；首次连接会写 `pocket_sync.json`，开发时先使用电脑副本。社区 [openFPGA Validator](https://github.com/neil-morrison44/openfpga-validator) 固定版本 `0.7.0` 用于校验打包格式。两者不能替代本项目的原生绘制、游戏加载或硬件验证。
+
+私人游戏目录、版本匹配、工具下载和交付状态保存在游戏实验室 `AnaloguePocket/2026-11-02-complete-frontends/`，不进入公开仓库。公开证据只包含合成用例、源码、编译与已明确范围的设备报告。
+
+## English
+
+Active goal: deliver the supported native-core menus together, reusing the accepted GB/GBC CoverFlow visuals, with Chinese titles, artwork, library organization, supported version-matched cheats and display-style integration. The whole-page GBA slide is superseded by the user's explicit feedback. No firmware replacement or merged cross-core launcher is being pursued. Work is offline until the final card verification. Unsupported or unstable platforms keep their original entry and are excluded from the installable delivery. Simulation, fitting/timing, device launch and play/save acceptance remain separate gates.

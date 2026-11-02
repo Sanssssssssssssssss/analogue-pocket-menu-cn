@@ -4,6 +4,8 @@
 
 [English](README.en.md) · [下载公开预览版](https://github.com/Sanssssssssssssssss/analogue-pocket-menu-cn/releases) · [安装与回退](docs/INSTALL.zh-CN.md) · [验证范围](docs/VALIDATION.md) · [更新日志](CHANGELOG.md)
 
+2026-11-02：[完整交付工作](docs/COMPLETE-DELIVERY.md)正在复用原版 GB/GBC CoverFlow，统一支持机种的动画、中文名称、封面和可用配置。GBA 的整页滑动已停用为交付候选；[共用绘制](experiments/coverflow_shared/README.md)已有完整动画与时钟桥差分仿真，[原生 GBA 适配](experiments/gba_coverflow/README.md)已通过完整编译／时序，待实机验收。其他机种及配置仍在适配，公开稳定版范围不变。
+
 ![本项目原生 RTL 输出的中文菜单预览](docs/images/menu-preview.png)
 
 *预览来自实际菜单 RTL 仿真，使用自绘占位图和合成测试条目；不是掌机实拍，也不代表游戏运行验证。*

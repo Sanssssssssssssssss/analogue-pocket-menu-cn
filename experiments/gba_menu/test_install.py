@@ -9,6 +9,17 @@ installer=importlib.util.module_from_spec(spec);spec.loader.exec_module(installe
 
 
 class InstallSafety(unittest.TestCase):
+    def test_incompatible_core_and_menu_formats_stop_before_file_operations(self):
+        for core_format,library_format in [('GBAF1','GBAF2'),('GBAF2','GBAF1')]:
+            with self.subTest(core=core_format,library=library_format),tempfile.TemporaryDirectory() as tmp:
+                root=Path(tmp);card=root/'card';card.mkdir();package=root/'package';package.mkdir();library=root/'library';library.mkdir()
+                (card/'Analogue_Pocket.json').write_text(json.dumps({'product':'Analogue Pocket'}))
+                (package/'build-receipt.json').write_text(json.dumps({'core':'pocketlab.GBA','minimum_reported_slack_ns':0.1,'menu_format':core_format}))
+                (library/'library-manifest.json').write_text(json.dumps({'format':library_format}))
+                before=list(card.rglob('*'))
+                with self.assertRaisesRegex(ValueError,'format differ'):installer.plan(card,package,library)
+                self.assertEqual(before,list(card.rglob('*')))
+
     def test_allowlist_excludes_existing_games_progress_and_firmware(self):
         with tempfile.TemporaryDirectory() as tmp:
             root=Path(tmp)

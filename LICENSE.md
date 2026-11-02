@@ -6,6 +6,7 @@ This repository contains components under different licenses. It is not a blanke
 |---|---|
 | Game Boy hardware implementation | MiSTer / MiST Gameboy and budude2 Pocket port; `core/src/gb/gb.v` and other files retain GPL-3.0-or-later notices. Full text: [GPL](LICENSES/GPL-3.0-or-later.txt). Preserve all individual notices, including T80 and other modules. |
 | Cover picker, upstream simulation benches and `core/tools/` | [maxsorto/openfpga-GBC](https://github.com/maxsorto/openfpga-GBC/tree/666c4f33b70880047ab9e0a1987fa439ebfd78bb), MIT as declared in its README. Existing authorship retained. |
+| Extracted CoverFlow in `experiments/coverflow_shared/` | Inherits the preceding maxsorto cover picker and RAM wrapper under MIT; [original notice](LICENSES/UPSTREAM-NOTICE.txt) retained. Geometry/compositor extraction, transport adaptations and their differential tests do not relicense any native game core. |
 | Analogue Platform Framework | [Analogue APF notice](LICENSES/APF-Notice.txt), also retained in source; the notice specifies precedence for applicable MIT/GPL terms. |
 | GNU Unifont 18.0.01 and menu subset | [Font license](LICENSES/Unifont-LICENSE.txt), [SIL OFL 1.1](LICENSES/Unifont-OFL-1.1.txt). The full compressed font and generated subset are included; font names and source attribution are retained. |
 | Upstream 5×7 font | Adafruit GFX glcdfont, [BSD license](LICENSES/Adafruit-GFX.txt); upstream attribution retained. |

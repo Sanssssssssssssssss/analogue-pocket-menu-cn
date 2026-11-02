@@ -1,0 +1,8 @@
+{
+  "result": "passed",
+  "scope": "Actual bridge with independent clocks and synthetic memory; no hardware/SDRAM device",
+  "inputs": {
+    "memory_bridge.sv": "98eab6639b6fb43d4747b2d090cb61e3733af9095b777012e7de0c12063aa76b",
+    "tb_memory_bridge.sv": "bbd52ac2464f88814d397c2309da07b6e9e275eba844ca895894ea62aab60451"
+  }
+}

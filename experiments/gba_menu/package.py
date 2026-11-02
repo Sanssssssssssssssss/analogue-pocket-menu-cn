@@ -3,6 +3,7 @@
 """Stage an independent GBA menu core after full fit and timing have passed."""
 import argparse
 import hashlib
+import importlib.util
 import json
 from pathlib import Path
 import re
@@ -21,7 +22,8 @@ from apf_metadata import check_core
 def sha(p):return hashlib.sha256(p.read_bytes()).hexdigest()
 
 
-def stage(build,out,sources,motion=False):
+def stage(build,out,sources,motion=False,coverflow=False):
+    if motion and coverflow:raise ValueError('Select one experimental renderer')
     build,out=Path(build).resolve(),Path(out).resolve()
     if out.exists() or out.is_relative_to(build):raise ValueError('Use fresh staging outside build tree')
     files=build/'src/fpga/build/output_files'
@@ -42,7 +44,12 @@ def stage(build,out,sources,motion=False):
         raise ValueError('Unexpected GBA Pocket bitstream size')
     # Recreate all inputs from the pinned source plus current integration script.
     # Checking only the two new menu modules would miss stale lifecycle wiring.
-    reference=prepare(sources,ROOT/'.work/gba-menu'/('package-reference-'+uuid.uuid4().hex),True)
+    reference_path=ROOT/'.work/gba-menu'/('package-reference-'+uuid.uuid4().hex)
+    if coverflow:
+        spec=importlib.util.spec_from_file_location('coverflow_prepare',ROOT/'experiments/gba_coverflow/prepare.py')
+        renderer=importlib.util.module_from_spec(spec);spec.loader.exec_module(renderer)
+        reference=renderer.prepare(sources,reference_path)
+    else:reference=prepare(sources,reference_path,True)
     if motion:
         from prepare_motion import integrate_motion
         integrate_motion(reference)
@@ -63,14 +70,20 @@ def stage(build,out,sources,motion=False):
     for name in ('audio.json','input.json','interact.json','variants.json','video.json'):
         shutil.copy2(upstream/name,dst/name)
     meta=json.loads((upstream/'core.json').read_text())['core']
-    version='0.2.0-gba.4' if motion else '0.2.0-gba.3'
+    version='0.2.0-gba.5' if coverflow else '0.2.0-gba.4' if motion else '0.2.0-gba.3'
     meta['metadata'].update(platform_ids=['gbalab','gba'],shortname='GBA',
         description='Chinese GBA menu. L+R+Select: pause, save and return.',
         author='pocketlab',url='https://github.com/Sanssssssssssssssss/analogue-pocket-menu-cn',
-        version=version,date_release='2026-11-01' if motion else '2026-10-31')
+        version=version,date_release='2026-11-02' if coverflow else '2026-11-01' if motion else '2026-10-31')
     meta['framework']['sleep_supported']=False
     meta['cores']=[{'name':'default','id':0,'filename':'gba.rbf_r'}]
     (dst/'core.json').write_text(json.dumps({'core':meta},indent=2)+'\n')
+    if coverflow:
+        video=json.loads((dst/'video.json').read_text())
+        modes=video['video']['scaler_modes']
+        if len(modes)!=1 or modes[0]['width']!=240 or modes[0]['height']!=160:raise ValueError('Unexpected inherited game scaler modes')
+        modes.append({'width':320,'height':288,'aspect_w':10,'aspect_h':9,'rotation':0,'mirror':0})
+        (dst/'video.json').write_text(json.dumps(video,indent=2)+'\n')
     slots=[
         {'id':100,'name':'Chinese Menu','required':True,'deferload':True,'parameters':'0x8',
          'filename':'menu.bin','extensions':['bin'],'address':'0x70000000','size_maximum':'0x10000000'},
@@ -101,8 +114,9 @@ def stage(build,out,sources,motion=False):
     sources={p.relative_to(build).as_posix():sha(p) for p in (build/'src').rglob('*') if p.is_file() and not any(t in p.parts for t in ('build','db','incremental_db','output_files'))}
     sources['src/fpga/build/ap_core.qsf']=sha(build/'src/fpga/build/ap_core.qsf')
     sources['src/fpga/build/gba_menu_error.hex']=sha(build/'src/fpga/build/gba_menu_error.hex')
-    receipt={'core':CORE,'version':version,'hardware_playtest':'pending_motion_retest' if motion else 'pending_framebuffer_ownership_retest',
+    receipt={'core':CORE,'version':version,'hardware_playtest':'pending_coverflow_and_save_return' if coverflow else 'pending_motion_retest' if motion else 'pending_framebuffer_ownership_retest',
              'motion_candidate':motion,
+             'coverflow_candidate':coverflow,'menu_format':'GBAF2' if coverflow else 'GBAF1',
              'upstream':json.loads(Path(__file__).with_name('upstream-lock.json').read_text())['commit'],
              'bitstream_sha256':sha(dst/'gba.rbf_r'),'minimum_reported_slack_ns':min(slack),
              'timing_scope':'All inherited multi-corner constraints; board-level exceptions remain as upstream',
@@ -117,7 +131,8 @@ if __name__=='__main__':
     p=argparse.ArgumentParser(description=__doc__)
     for arg in ('build','out','sources'):p.add_argument('--'+arg,required=True)
     p.add_argument('--motion',action='store_true',help='Package the separate menu slide candidate')
+    p.add_argument('--coverflow',action='store_true',help='Package the shared GB/GBC CoverFlow adapter; requires GBAF2 assets')
     a=p.parse_args()
     try:
-        r=stage(a.build,a.out,a.sources,a.motion);print(json.dumps({k:r[k] for k in ('core','bitstream_sha256','minimum_reported_slack_ns','hardware_playtest')}))
+        r=stage(a.build,a.out,a.sources,a.motion,a.coverflow);print(json.dumps({k:r[k] for k in ('core','bitstream_sha256','minimum_reported_slack_ns','hardware_playtest')}))
     except (OSError,ValueError) as e:p.exit(2,str(e)+'\n')

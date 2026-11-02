@@ -35,6 +35,9 @@ def plan(card,package,library,saves=None):
     receipt=json.loads((package/'build-receipt.json').read_text(encoding='utf-8'))
     if receipt['core']!='pocketlab.GBA' or receipt['minimum_reported_slack_ns']<0:raise ValueError('Unreviewed build receipt')
     lib=json.loads((library/'library-manifest.json').read_text(encoding='utf-8'))
+    menu_format=receipt.get('menu_format','GBAF1')
+    if menu_format not in ('GBAF1','GBAF2') or lib.get('format')!=menu_format:
+        raise ValueError('Core and menu format differ; install matching GBAF1/GBAF2 components')
     components=[(package/'core',receipt),(library,lib)]
     if saves:components.append((Path(saves).resolve(),json.loads((Path(saves)/'save-manifest.json').read_text(encoding='utf-8'))))
     changes=[];seen=set()

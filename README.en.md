@@ -1,18 +1,8 @@
 # Analogue Pocket CoverFlow Chinese Menu
 
-This experimental branch also contains an [offline GBA / NES / SNES integration probe](experiments/multi_system/README.md). It validates native menu pages, loader contracts and standalone menu resources. It does not include an installable multi-system core or game execution.
+As of 2026-11-02, [complete delivery work](docs/COMPLETE-DELIVERY.md) retains official openFPGA / Change Core and develops separate native menus using the accepted GB/GBC CoverFlow. The [shared compositor](experiments/coverflow_shared/README.md) has differential geometry, complete-animation and clock-bridge checks; the [native GBA adapter](experiments/gba_coverflow/README.md) passed full fit/timing and awaits device acceptance. Other platforms and configuration integration remain in progress. The whole-page GBA slide is superseded following user feedback.
 
-The [machine icon menu](docs/MACHINE-MENU.md) uses the existing GB/GBC core: choose a machine illustration, then a category and game cover. An optional v9 restyler keeps existing game/save identities and groups classic shortcuts. The user has confirmed this layout works; this does not expand game/save coverage.
-
-This branch also develops an [isolated full-core GBA integration](experiments/gba_menu/README.md). One Pocket user confirmed Chinese menus and game launch in `0.2.0-gba.3`; ordinary saves, RTC and save-return still await hardware acceptance. The stable release supports GB/GBC only.
-
-As of 2026-11-01, the active direction is [separate visual menus for each platform](docs/PER-SYSTEM-MENUS.md): retain the official openFPGA platform list and Change Core, improve GB/GBC and GBA independently, then adapt other native cores individually. OS home-screen replacement and a merged cross-platform launcher are no longer active work.
-
-New local work includes a [GBA slide candidate](experiments/gba_menu/MOTION.md), a [native NES menu candidate](experiments/nes_menu/README.md), and a [SNES prototype](experiments/snes_menu/README.md). GBA motion passed pixel, startup and game-raster comparisons, full compilation and 104 inherited timing records (minimum slack +0.080 ns). NES passed full compilation and 128 timing records (+0.126 ns) but awaits device testing and completed card-library staging. SNES timing failed, so no installable package is provided. None of these new candidates is installed or part of the stable release.
-
-The GBA hardware trial reported `Error in core setup` before its menu appeared. The core folder/author/shortname mismatch has been corrected. Existing GB/GBC libraries can use the [display update tool](docs/DISPLAY-UPDATES.md) to add titles/covers while preserving game/save identities.
-
-The [current GBA experiment](experiments/gba_menu/README.md) fixed the previous startup failure by initializing the lifecycle and acquiring frame ownership before painting. The user confirmed menu and game launch. The [display work](experiments/unified_frontend/README.md) stages Chinese captions, artwork and footer updates without changing launch/save records. The earlier shared Pocket Lab grouping was subsequently removed after backup, following the decision to retain separate platforms. Native icon-based automatic cross-core switching remains unimplemented.
+The public stable release supports GB/GBC. One Pocket user confirmed Chinese menus and game launch in the earlier [GBA `.3` experiment](experiments/gba_menu/README.md); ordinary saves, RTC and save-return await hardware acceptance. NES has an offline static-menu candidate; SNES failed timing and has no installable package. Per-platform scope is recorded in [development status](docs/PER-SYSTEM-MENUS.md). None of the new shared-renderer candidates is installed or included in the stable release.
 
 A native **openFPGA GB/GBC cover-flow frontend for Analogue Pocket**, with Simplified Chinese controls, Unicode game titles, folders and a black background.
 

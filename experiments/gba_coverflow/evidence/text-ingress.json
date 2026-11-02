@@ -1,0 +1,9 @@
+{
+  "result": "passed",
+  "scope": "Synthetic bitmap columns through actual upstream data_loader and Intel FIFO; no card/game CPU/hardware",
+  "inputs": {
+    "tb_text_ingress.sv": "9f2a8492217c82cd9a214e552859ded59b3f1de06399b52d1b2b66e7c2367de8",
+    "data_loader.sv": "835124f2993469f72c5ff1967cf386a58d6dec51b5035c70b0480a54d50dafb6",
+    "motion-altera_mf.v": "bfdfde8688adb0f2223e6aba5ff56fba569d5ed2ed87866982c2f511aef0f7a6"
+  }
+}

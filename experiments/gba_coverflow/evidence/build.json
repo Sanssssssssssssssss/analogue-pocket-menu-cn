@@ -1,0 +1,21 @@
+{
+  "date": "2026-11-02",
+  "scope": "Offline full Quartus fit/timing; not installed and not device accepted",
+  "version_candidate": "0.2.0-gba.5",
+  "compiler": "Quartus Prime 22.1std.2 Build 922",
+  "ALMs": 16953,
+  "M10Ks": 282,
+  "DSP_blocks": 48,
+  "timing_records": 104,
+  "minimum_reported_slack_ns": 0.001,
+  "minimum_margin_note": "The minimum is a hold margin of 0.001 ns; setup and hold remain subject to the inherited constraints and pending device tests.",
+  "all_reported_TNS_zero": true,
+  "critical_warnings": 0,
+  "hardware_playtest": "pending",
+  "BIOS": "runtime supplied; embedded upstream BIOS removed",
+  "frozen_GB_GBC_inputs_modified": 0,
+  "card_writes": 0,
+  "firmware_writes": 0,
+  "rbf_sha256": "f0ff3b2b969b9e15688bcfd2a340c6c3017dae22704e961d194360c860e949c8",
+  "game_CPU_logic": "inherited unchanged from the pinned native GBA inputs; menu bridges and lifecycle are adapted separately"
+}

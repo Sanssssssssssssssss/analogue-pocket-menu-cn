@@ -1,0 +1,39 @@
+{
+  "result": "passed",
+  "scope": "GB/GBC compositor with one documented signed-clipping correction in a test-only reference copy vs extracted renderer; synthetic art/title columns, no game CPU/card/hardware",
+  "reference": {
+    "original_sha256": "200a7f117844ba7a3d3eab34d11d29bc2ba16656c482c5d91dbb6ec44069ab81",
+    "reference_patch": "Explicit signed multiplication for the original clipped-left-coordinate bug only; frozen repository source unchanged",
+    "original_expression": "facc  <= (xs - fx[fk]) * step_lut[S];",
+    "replacement_expression": "facc  <= ($signed(xs) - $signed(fx[fk])) * $signed({1'b0, step_lut[S]});",
+    "witness": "tb_reference_fetch.sv with actual frozen source and Intel models confirms the legacy unsigned-wrap samples"
+  },
+  "simulator": "verilator",
+  "ram_backend": "portable registered-address RAM; crosschecked in Icarus against Intel model before raster test",
+  "ram_validation_inputs": {
+    "tb_ram.sv": "45f0dba92c74fda151baaf00888ccebfdfbae60b7d11fd081a80ab37d7a9c737",
+    "sim_ram.sv": "29b650c8e6661cc13b61ea7689f4a826cbe44262603c06736e8a2781165046ed",
+    "coverflow_dpram_ce.v": "e5a0b71c22d8ae02f4de2cd791d8d21b6b1d12f5bd26e15aeae0b7e1eb66b4ea",
+    "picker_dpram.v": "3a59214287a534c9143a48b3293eab320f902b3fd1b12fd006ba1cbcc9402082",
+    "motion-altera_mf.v": "bfdfde8688adb0f2223e6aba5ff56fba569d5ed2ed87866982c2f511aef0f7a6"
+  },
+  "showcase": false,
+  "compact": true,
+  "async_bridge": true,
+  "cases": [
+    {
+      "pixel_enable": "4/5",
+      "result": "passed",
+      "log": "simulation-1.log"
+    }
+  ],
+  "inputs": {
+    "coverflow_reference.sv": "7ee2d3da048b394f39a5921f981f39d9a75a3568e49316fbb292141ef35eab58",
+    "coverflow_geometry.sv": "df4d79e55ba13b4de50ee7af5e5f87f0f223ee39ac65663ef6ca2864f8194669",
+    "coverflow_view.sv": "3482b7b78e3401c8836a6bb0aab657f605c0a8b156458e721ae64eed006fbd34",
+    "coverflow_line_fetch.sv": "eb64f4c44ea2919e044a7e6874f3f59a659c447599f8afdb68fb7b458988c7b0",
+    "sim_ram.sv": "29b650c8e6661cc13b61ea7689f4a826cbe44262603c06736e8a2781165046ed",
+    "memory_bridge.sv": "98eab6639b6fb43d4747b2d090cb61e3733af9095b777012e7de0c12063aa76b",
+    "tb_view.sv": "60f9cef6f2461b24b6c3610d08262f3f5f613712e59b92b8db23eda4249cd61f"
+  }
+}
