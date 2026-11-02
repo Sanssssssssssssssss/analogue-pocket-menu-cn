@@ -64,6 +64,10 @@ def stage(build,out,sources,motion=False,coverflow=False):
                     lines=raw.decode('utf-8').splitlines()
                     return [s for s in lines if not s.startswith('set_global_assignment -name LAST_QUARTUS_VERSION ')]
                 actual,expected=settings(actual),settings(expected)
+            elif rel.as_posix()=='src/fpga/build/gba_menu_error.hex':
+                # Generated hexadecimal text has host-native line endings.
+                # Glyph values, HDL and font inputs are otherwise byte-exact.
+                actual,expected=actual.replace(b'\r\n',b'\n'),expected.replace(b'\r\n',b'\n')
             if actual!=expected:
                 raise ValueError('Compiled source differs from current integration: '+rel.as_posix())
     pkg=out/'core';dst=pkg/'Cores'/CORE;dst.mkdir(parents=True)
