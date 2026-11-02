@@ -29,6 +29,8 @@ python experiments/nes_coverflow/install.py --card X:/ --package .work/nes-menu/
 
 最后一条仅预览。卡身份、逐个 ROM、菜单记录、进度路径及包格式核对通过后，`--backup` 指定全新的电脑备份目录并加 `--apply` 才会新增文件。仅适用于首次新增独立入口；已存在的目标会被拒绝。`--rollback --backup <目录>` 预览回退，加 `--apply` 后移除新增入口文件，保留游戏进度。目录、字体及封面缺项会记录，不能将合法 ROM 头视为兼容性证明。
 
+库生成器和安装器预检均支持 `--offline-source` 读取电脑既有 ROM 备份。安装器的离线模式只核对，不接受 `--apply` 或 `--rollback`；正式写卡仍要核对实际卡身份和 ROM。原备份不需要新增 Pocket 标记文件。
+
 ## English
 
 Offline native NES candidate reusing the accepted GB/GBC CoverFlow. Full fit and 128 timing records pass with +0.056 ns minimum slack, using 16,010 ALMs / 283 M10K / 40 DSP. Five fully associative texture slots use independent on-chip RAM; the game SDRAM path is retained. Synthetic cache, packed-RAM, raster, controller and installation/rollback checks pass. The original video clock produces an approximately 47.85 Hz menu; physical scaler, animation, mapper, audio and save acceptance remain pending. Memories/sleep are disabled in this independent experiment. Existing entries/progress are retained; only missing isolated ordinary saves are seeded. The whole NES directory is indexed, without ROM copies. No firmware is modified. New tools retain MIT licensing; inherited NES components keep their own licenses.

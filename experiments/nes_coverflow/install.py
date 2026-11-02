@@ -35,10 +35,11 @@ def verify_roms(card,refs):
     return by_name
 
 
-def plan(card,package,library):
+def plan(card,package,library,offline_source=False):
     card,package,library=map(lambda p:Path(p).resolve(),(card,package,library))
     if any(p.is_relative_to(card) or card.is_relative_to(p) for p in (package,library)):raise ValueError('Staging must be outside card')
-    ident=identity(card);build=json.loads((package/'build-receipt.json').read_text())
+    ident={'root':str(card),'scope':'read-only offline archive; actual card identity required before writes'} if offline_source else identity(card)
+    build=json.loads((package/'build-receipt.json').read_text())
     lib=json.loads((library/'library-manifest.json').read_text(encoding='utf8'))
     if build.get('core')!='pocketlab.NES' or build.get('menu_format')!='GBAF2/NES' or lib.get('format')!='GBAF2/NES' or build['minimum_slack_ns']<0 or build['timing_records']<40:raise ValueError('Matching timing-checked NES CoverFlow components required')
     refs=verify_roms(card,lib['source_refs']);changes=[];seen=set()
@@ -79,7 +80,7 @@ def plan(card,package,library):
         if not raw[64+(count-1)*1024+4]:raise ValueError('Missing parent entry')
     changes.sort(key=lambda c:(c['path']==CORE+'core.json',c['path']=='Platforms/neslab.json',c['path']))
     return {'identity':ident,'changes':changes,'source_refs':lib['source_refs'],'core_version':build['version'],
-        'status':'plan_only','source_writes':0,'firmware_writes':0,'original_save_writes':0,'hardware_acceptance':'pending'}
+        'status':'offline_validation_only' if offline_source else 'plan_only','source_writes':0,'firmware_writes':0,'original_save_writes':0,'hardware_acceptance':'pending'}
 
 
 def apply(card,package,library,backup):
@@ -133,11 +134,14 @@ def rollback(card,backup,execute=False):
 if __name__=='__main__':
     p=argparse.ArgumentParser(description=__doc__);p.add_argument('--card',required=True)
     for name in ['package','library','backup']:p.add_argument('--'+name)
-    p.add_argument('--apply',action='store_true');p.add_argument('--rollback',action='store_true');a=p.parse_args()
+    p.add_argument('--apply',action='store_true');p.add_argument('--rollback',action='store_true')
+    p.add_argument('--offline-source',action='store_true',help='Read-only preflight against a PC ROM archive; never permits writes')
+    a=p.parse_args()
+    if a.offline_source and (a.apply or a.rollback):p.error('Offline archive validation cannot apply or roll back')
     if a.rollback:
         if not a.backup:p.error('Rollback needs --backup')
         r=rollback(a.card,a.backup,a.apply)
     else:
         if not a.package or not a.library or (a.apply and not a.backup):p.error('Package/library and, for writes, backup required')
-        r=apply(a.card,a.package,a.library,a.backup) if a.apply else plan(a.card,a.package,a.library)
+        r=apply(a.card,a.package,a.library,a.backup) if a.apply else plan(a.card,a.package,a.library,a.offline_source)
     print(json.dumps({k:v for k,v in r.items() if k not in ('changes','source_refs','protected','identity')},indent=2))

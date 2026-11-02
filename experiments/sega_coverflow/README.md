@@ -38,6 +38,8 @@ python experiments/sega_coverflow/install.py --card X:/ --platform gg --package 
 
 SMS / SG 分别传 `sms` / `sg1000`，须单独编译。库生成器可用 `--offline-source` 读取电脑旧备份；最终安装仍重读当前卡上的全部 ROM。最后一条只预览；指定全新的电脑 `--backup` 并加 `--apply` 才首次新增入口。已有目标文件会被拒绝。安装前备份对应机种及 GBA 普通进度，日志记录每个原子写入；`--rollback --backup <目录>` 预览回退，加 `--apply` 执行，保留已玩出的新进度。
 
+安装器的 `--offline-source` 也可单独用于只读核对电脑旧 ROM 库、全部菜单／进度／代码绑定及包文件。该模式明确拒绝 `--apply` 和 `--rollback`；正式写入仍必须重新识别实际卡，不能把离线预检当作设备验收。
+
 打包重新生成并比对所有编译输入。QSF 仅忽略 `LAST_QUARTUS_VERSION`；准备器显式规范化上游冗余／默认设置，并逐角检查实际时序。上游 PRE_FLOW 自动生成的 MIF 只允许日期、时间、随机标识三词不同，完整 MIF SHA256 和原值进入构建收据。所有 HDL／字体／约束保持逐字节复核。
 
 ## 验证范围

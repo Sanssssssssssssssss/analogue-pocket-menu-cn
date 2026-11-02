@@ -78,5 +78,12 @@ class Install(unittest.TestCase):
         with self.assertRaises(ValueError):installer.rollback(card,root/'backup',True)
         self.assertEqual(snapshot(card),before)
 
+    def test_offline_preflight_cannot_apply_to_an_unidentified_archive(self):
+        card,package,stage,root=self.fixture(with_cheat=True);(card/'Analogue_Pocket.json').unlink();before=snapshot(card)
+        result=installer.plan(card,package,stage,'gg',True)
+        self.assertEqual(result['status'],'offline_validation_only')
+        with self.assertRaises(FileNotFoundError):installer.apply(card,package,stage,root/'backup','gg')
+        self.assertEqual(before,snapshot(card));self.assertFalse((root/'backup').exists())
+
 
 if __name__=='__main__':unittest.main()
