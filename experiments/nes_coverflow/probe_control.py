@@ -12,11 +12,12 @@ gba_probe=load('gba_lifecycle_probe',ROOT/'experiments/gba_coverflow/probe_contr
 
 def bench():
     s=gba_probe.bench()
+    s=replace(s,".cf_fetch_fault(1'b0),.cf_upload_ready(1'b1)",".cf_fetch_fault(1'b0)")
     s=replace(s,'gba_menu #(','nes_menu #(')
     s=s.replace('/Assets/gbalab/common/','/Assets/neslab/common/').replace('/Assets/gba/common/','/Assets/nes/common/').replace('.gba"','.nes"')
     s=replace(s,'reg [31:0] capacity=65536;','reg [31:0] capacity=262144;')
     s=replace(s,'.cf_want_art(cf_want),', ".cf_want_art(cf_want),.cf_wanted_slot(3'd2),.cf_upload_ready(art_bytes==45568),")
-    s=s.replace("32'h12800000","32'h42020000").replace("32'h13000000","32'h42030000")
+    s=s.replace("32'h42000000","32'h42020000").replace("32'h42800000","32'h42030000")
     s=replace(s,'end else if(slot==1)begin','end else if(slot==0)begin')
     s=replace(s,'length!=32768','length!=16400')
     s=replace(s,'capacity=bindings[1]=="/Assets/nes/common/Second.nes" ? 131072 : 65536;',

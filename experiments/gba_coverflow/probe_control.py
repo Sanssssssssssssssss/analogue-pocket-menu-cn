@@ -43,14 +43,14 @@ def bench():
         end
     end''')
     s=replace(s,'.frame_request(req)', '''.cf_want_art(cf_want),.cf_wanted_game(11'd0),.cf_anim(cf_anim),.cf_frame_tick(cf_frame),
-        .cf_mem_idle(1'b1),.cf_fetch_fault(1'b0),.cf_level(cf_level),.cf_title_level(cf_title_level),
+        .cf_mem_idle(1'b1),.cf_fetch_fault(1'b0),.cf_upload_ready(1'b1),.cf_level(cf_level),.cf_title_level(cf_title_level),
         .cf_menu(cf_menu),.cf_go(cf_go),.cf_direction(cf_direction),.cf_invalidate(cf_invalidate),.cf_commit(cf_commit),
         .cf_level_target(cf_target),.cf_title_target(cf_title_target),
         .frame_request(req)''')
     s=replace(s,'if(slot==100 && (address[31:28]==6 || address[31:28]==7))begin', '''if(slot==100 && address==32'h71000000)begin
                         if(length!=2048 || !cf_menu || bound || cf_title_level!=0)$fatal(1,"unsafe Unicode map transfer");
-                    end else if(slot==100 && address>=32'h12800000 && address<32'h13000000)begin
-                        if(!rst || bound || !cf_menu || address!=32'h12800000+art_bytes)$fatal(1,"unsafe art transfer");
+                    end else if(slot==100 && address>=32'h42000000 && address<32'h42800000)begin
+                        if(!rst || bound || !cf_menu || address!=32'h42000000+art_bytes)$fatal(1,"unsafe art transfer");
                         if(art_bytes==0)art_origin=off;
                         if(off!=art_origin+art_bytes || length!=(art_chunks==2 ? 12800:16384))$fatal(1,"art layout/chunk mismatch");
                         art_bytes=art_bytes+length;art_chunks=art_chunks+1;

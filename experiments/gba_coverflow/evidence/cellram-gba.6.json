@@ -1,0 +1,58 @@
+{
+  "date": "2026-11-03",
+  "candidate": "0.2.0-gba.6",
+  "scope": "Offline fit, timing and synthetic interface validation; no device acceptance",
+  "compiler": "Quartus Prime 22.1std.2 Build 922",
+  "ALMs": 17305,
+  "M10Ks": 284,
+  "DSP_blocks": 48,
+  "timing_records": 104,
+  "minimum_reported_slack_ns": 0.09,
+  "all_reported_TNS_zero": true,
+  "critical_warnings": 0,
+  "bitstream_format": "rbf_r",
+  "bitstream_sha256": "67b91aab041bdab26443bed34e856124fdaf50ec4f689afe5765aceaf3cf6a4d",
+  "backend": "Independent CRAM1 using native 100.663296 MHz clock and upstream asynchronous CellRAM driver; synchronized APF upload/control",
+  "fitter_seed": 5,
+  "raster": {
+    "full_frames": 4,
+    "pixel_comparisons": 448800,
+    "native_video_MHz": 8.388608,
+    "pixel_enable": "4/5",
+    "concurrent_full_atlas_upload": true,
+    "scope": "Calibrated RAM plus synthetic pin-level CellRAM; test-only reference signed-clipping correction"
+  },
+  "boot": {
+    "actual_components": [
+      "Generated production menu wiring",
+      "APF command engine",
+      "upstream data_loader",
+      "licensed Intel FIFO and RAM models"
+    ],
+    "modeled_components": [
+      "Host/files",
+      "native ready/idle inputs",
+      "CellRAM pins"
+    ],
+    "game_VS": 0,
+    "complete_covers": 2,
+    "physical_halfword_writes": 45568,
+    "duplicate_cover_reads": 0,
+    "scope": "Visible first native-rate raster and key starts actual animation; default probe does not complete eight sequential animation frames"
+  },
+  "lifecycle": "Synthetic controller checks cover A/B/wrap, three launches, ordinary saves, RTC, pause, failed-flush state retention, unsafe paths and stale completion",
+  "device_playtest": "pending",
+  "firmware_writes": 0,
+  "historical_failure": "GBA .5 failed on hardware and is blocked from publication; exact original cause unconfirmed",
+  "physical_limit": "Behavioral peripheral model, FPGA-side constraints and synthetic files do not establish board timing, all-game compatibility or save durability",
+  "clock_scope": {
+    "nominal_requested_memory_MHz": 100.663296,
+    "nominal_requested_video_MHz": 8.388608,
+    "TimeQuest_reported_memory_MHz_rounded": 100.69,
+    "TimeQuest_reported_video_MHz_rounded": 8.39,
+    "reported_memory_period_ns": 9.931,
+    "reported_video_period_ns": 119.175,
+    "simulation": "Upstream nominal clocks, same 12:1 ratio",
+    "static_timing": "Actual generated/quantized clocks in the full compiled design"
+  }
+}

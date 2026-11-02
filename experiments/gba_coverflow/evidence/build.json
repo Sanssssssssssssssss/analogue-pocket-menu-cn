@@ -11,11 +11,12 @@
   "minimum_margin_note": "The minimum is a hold margin of 0.001 ns; setup and hold remain subject to the inherited constraints and pending device tests.",
   "all_reported_TNS_zero": true,
   "critical_warnings": 0,
-  "hardware_playtest": "pending",
+  "hardware_playtest": "failed_2026-11-03",
   "BIOS": "runtime supplied; embedded upstream BIOS removed",
   "frozen_GB_GBC_inputs_modified": 0,
   "card_writes": 0,
   "firmware_writes": 0,
   "rbf_sha256": "f0ff3b2b969b9e15688bcfd2a340c6c3017dae22704e961d194360c860e949c8",
-  "game_CPU_logic": "inherited unchanged from the pinned native GBA inputs; menu bridges and lifecycle are adapted separately"
+  "game_CPU_logic": "inherited unchanged from the pinned native GBA inputs; menu bridges and lifecycle are adapted separately",
+  "later_device_feedback": "2026-11-03: candidate .5 failed with operation failed; initial code unavailable; restored accepted .3 and blocked repackaging/installation"
 }

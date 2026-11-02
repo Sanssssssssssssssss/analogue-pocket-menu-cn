@@ -75,11 +75,11 @@ def stage(build,out,sources,motion=False,coverflow=False):
     for name in ('audio.json','input.json','interact.json','variants.json','video.json'):
         shutil.copy2(upstream/name,dst/name)
     meta=json.loads((upstream/'core.json').read_text())['core']
-    version='0.2.0-gba.5' if coverflow else '0.2.0-gba.4' if motion else '0.2.0-gba.3'
+    version='0.2.0-gba.6' if coverflow else '0.2.0-gba.4' if motion else '0.2.0-gba.3'
     meta['metadata'].update(platform_ids=['gbalab','gba'],shortname='GBA',
         description='Chinese GBA menu. L+R+Select: pause, save and return.',
         author='pocketlab',url='https://github.com/Sanssssssssssssssss/analogue-pocket-menu-cn',
-        version=version,date_release='2026-11-02' if coverflow else '2026-11-01' if motion else '2026-10-31')
+        version=version,date_release='2026-11-03' if coverflow else '2026-11-01' if motion else '2026-10-31')
     meta['framework']['sleep_supported']=False
     meta['cores']=[{'name':'default','id':0,'filename':'gba.rbf_r'}]
     (dst/'core.json').write_text(json.dumps({'core':meta},indent=2)+'\n')

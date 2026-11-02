@@ -13,7 +13,21 @@ spec=importlib.util.spec_from_file_location('gba_prepare',ROOT/'experiments/gba_
 base=importlib.util.module_from_spec(spec);spec.loader.exec_module(base)
 replace=base.replace
 
-def controller(text,exit_paths=1):
+CRAM1_SDC='''
+# CoverFlow's independent asynchronous CellRAM1, on the native sys clock.
+# Same external latch/setup/hold budgets as CRAM0; native constraints remain.
+# These FPGA-side budgets do not replace a vendor/board timing model.
+set cf_cram1_clock [get_clocks {ic|mp1|mf_pllbase_inst|sys_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk}]
+set cf_cram1_period [get_clock_info -period $cf_cram1_clock]
+set_max_delay [expr {$cf_cram1_period * 2 - 5.0}] -from $cf_cram1_clock -to [get_ports {cram1_a[*] cram1_dq[*]}]
+set_max_delay [expr {$cf_cram1_period * 2 - 7.0}] -from $cf_cram1_clock -to [get_ports {cram1_ce0_n cram1_ce1_n cram1_clk cram1_cre cram1_lb_n cram1_oe_n cram1_ub_n cram1_we_n}]
+set_max_delay [expr {$cf_cram1_period - 2.0}] -from $cf_cram1_clock -to [get_ports {cram1_adv_n}]
+set_min_delay 0.000 -from $cf_cram1_clock -to [get_ports {cram1_a[*] cram1_dq[*] cram1_ce0_n cram1_ce1_n cram1_clk cram1_cre cram1_lb_n cram1_oe_n cram1_ub_n cram1_we_n cram1_adv_n}]
+set_max_delay $cf_cram1_period -from [get_ports {cram1_dq[*] cram1_wait}] -to $cf_cram1_clock
+set_min_delay 0.000 -from [get_ports {cram1_dq[*] cram1_wait}] -to $cf_cram1_clock
+'''
+
+def controller(text,exit_paths=1,cellram=False):
     text=replace(text,'// GBAF1 page reader and GBA launch/save lifecycle, clocked by the APF bridge.',
         '// GBAF2 CoverFlow adapter; inherited GBA launch, ordinary save and RTC lifecycle.')
     text=replace(text,'input wire [31:0] save_capacity,','''input wire [31:0] save_capacity,
@@ -116,44 +130,64 @@ def controller(text,exit_paths=1):
         'cf_menu<=1;cf_pending<=0;cf_level_target<=0;cf_title_target<=0;game_bound<=0;menu_reset<=1;menu_pause<=0;menu_show<=0;timer<=0;state<=RECORD_REQ;',exit_paths)
     text=replace(text,'HOME_OPEN:begin root_path<=1;',
         'HOME_OPEN:begin cf_menu<=1;cf_level_target<=0;cf_title_target<=0;root_path<=1;')
+    # NES/Sega adapt the legacy controller too; keep their accepted output
+    # unchanged while the GBA transport gains a physical-upload drain fence.
+    if cellram:
+        text=replace(text,'input wire cf_want_art,cf_anim,cf_frame_tick,cf_mem_idle,cf_fetch_fault,',
+            'input wire cf_want_art,cf_anim,cf_frame_tick,cf_mem_idle,cf_fetch_fault,cf_upload_ready,')
+        text=replace(text,"32'h12800000+({25'd0,cf_art_game[6:0]}<<16)+cf_chunk_offset,",
+            "32'h42000000+({25'd0,cf_art_game[6:0]}<<16)+cf_chunk_offset,")
+        text=replace(text,'CF_ART_DRAIN:if(timer>=SETTLE_CYCLES && io_idle)begin',
+            'CF_ART_DRAIN:if(timer>=SETTLE_CYCLES && io_idle && cf_upload_ready)begin')
+        text=replace(text,'cf_loaded_game<=cf_art_game;cf_commit<=1;state<=MENU;',
+            'cf_loaded_game<=cf_art_game;cf_commit<=1;state<=53;')
+        # Let need_clr invalidate the published cache miss before requesting
+        # another atlas. Otherwise the just-committed cover is read twice.
+        text=replace(text,'            CF_EXIT:if(cf_level==0',
+            '            53:state<=MENU;\n            CF_EXIT:if(cf_level==0')
     return text
 
 def prepare(source,out):
     out=base.prepare(source,out,True)
     core=out/'src/fpga/core';top=core/'core_top.sv'
-    (core/'gba_menu.sv').write_text(controller((core/'gba_menu.sv').read_text(encoding='utf8')),encoding='utf8',newline='\n')
+    (core/'gba_menu.sv').write_text(controller((core/'gba_menu.sv').read_text(encoding='utf8'),cellram=True),encoding='utf8',newline='\n')
     sys.path.insert(0,str(ROOT/'experiments/coverflow_shared'))
-    from prepare_view import prepare as shared_prepare
-    shared=shared_prepare(ROOT/'.work/coverflow-delivery'/('shared-'+out.name),compact=True)
-    for name in ['coverflow_geometry.sv','coverflow_view.sv','coverflow_line_fetch.sv','coverflow_dpram_ce.v','picker_dpram.v']:
+    from prepare_psram import build as shared_prepare
+    shared=shared_prepare(ROOT/'.work/coverflow-delivery'/('shared-'+out.name),source,
+        fast_response=True,clock_speed=100.663296)
+    files=['coverflow_geometry.sv','coverflow_psram_view.sv','coverflow_line_fetch16.sv',
+        'coverflow_psram.sv','coverflow_psram_cache.sv','coverflow_dpram_ce.v','picker_dpram.v']
+    for name in files:
         shutil.copy2(shared/name,core/name)
-    shutil.copy2(ROOT/'experiments/coverflow_shared/memory_bridge.sv',core/'coverflow_memory_bridge.sv')
     shutil.copy2(shared/'font_cn.hex',out/'src/fpga/build/font_cn.hex')
     s=top.read_text(encoding='utf8')
     s=replace(s,'gba_menu menu (',(HERE/'top_insert.sv').read_text(encoding='utf8')+'\ngba_menu menu (')
     s=replace(s,'.frame_ack(ui_frame_ack_b)', '''.cf_want_art(cf_want),.cf_wanted_game(cf_wanted),.cf_anim(cf_anim),.cf_frame_tick(cf_tick),
-    .cf_mem_idle(cf_mem_idle_b),.cf_fetch_fault(cf_fault_b),.cf_level(cf_level),.cf_title_level(cf_title_level),
+    .cf_mem_idle(cf_mem_idle),.cf_fetch_fault(cf_fetch_fault),.cf_upload_ready(cf_uploaded),.cf_level(cf_level),.cf_title_level(cf_title_level),
     .cf_menu(cf_menu),.cf_go(cf_go),.cf_direction(cf_direction),.cf_invalidate(cf_invalidate),.cf_commit(cf_commit),
     .cf_generation(cf_generation),.cf_loaded_game(cf_loaded),.cf_count(cf_count),
     .cf_level_target(cf_target),.cf_title_target(cf_title_target),.cf_title_width(cf_width),.cf_subtitle_width(cf_subwidth),
     .frame_ack(ui_frame_ack_b)''')
     s=replace(s,'.visible(ui_visible_bridge)', '.visible(cf_menu ? cf_level!=0 : ui_visible_bridge)')
-    s=replace(s,'!psram_busy && !ingress_write_busy && !sdram_wr_pending && !ss_loading && !ss_busy;',
-        '!psram_busy && !ingress_write_busy && !sdram_wr_pending && !ss_loading && !ss_busy && cf_mem_idle;')
-    s=replace(s,'wire        sdram_rd_req_mux  = ss_serving_active ? ss_sdram_rd_req     : sdram_read_req_gba;',
-        'wire        sdram_rd_req_mux = ui_reset_s ? cf_mem_req : sdram_read_req_gba;')
-    s=replace(s,'wire [24:0] sdram_rd_addr_mux = ss_serving_active ? ss_sdram_rd_addr    : sdram_read_addr_gba;',
-        "wire [24:0] sdram_rd_addr_mux = ui_reset_s ? 25'h0A00000+{2'd0,cf_mem_word[23:1]} : sdram_read_addr_gba;")
-    s=replace(s,".sdram_read_done     ( ss_serving_active ? 1'b0 : sdram_rd_ready )",
-        ".sdram_read_done     ( ui_reset_s ? 1'b0 : sdram_rd_ready )")
+    # CRAM0 belongs to the native GBA/save path; only the unused CRAM1 pins
+    # change ownership. No CoverFlow requests enter the game's SDRAM loader.
+    idle_cram1="assign cram1_a = 'h0;\nassign cram1_dq = {16{1'bZ}};\n"+''.join(
+        f'assign cram1_{name} = {value};\n' for name,value in [
+            ('clk',0),('adv_n',1),('cre',0),('ce0_n',1),('ce1_n',1),
+            ('oe_n',1),('we_n',1),('ub_n',1),('lb_n',1)])
+    s=replace(s,idle_cram1,'// CRAM1 is owned exclusively by the CoverFlow cache.\n')
     for signal in ['rgb','de','vs','hs','skip']:
         s=replace(s,f'.video_{signal}  ( video_{signal} )' if signal=='rgb' else f'.video_{signal}   ( video_{signal} )' if signal in ['de','vs','hs'] else '.video_skip ( video_skip )',
             f'.video_{signal} ( cf_game_{signal} )')
     s=replace(s,'video_adapter video_out (',(HERE/'video_mux.sv').read_text(encoding='utf8')+'\nvideo_adapter video_out (')
     top.write_text(s,encoding='utf8',newline='\n')
+    with (core/'core_constraints.sdc').open('a',encoding='utf8',newline='\n') as f:f.write(CRAM1_SDC)
     with (out/'src/fpga/build/ap_core.qsf').open('a') as f:
-        for name in ['coverflow_geometry.sv','coverflow_view.sv','coverflow_line_fetch.sv','coverflow_memory_bridge.sv','coverflow_dpram_ce.v','picker_dpram.v']:
+        for name in files:
             f.write('set_global_assignment -name '+('SYSTEMVERILOG_FILE' if name.endswith('.sv') else 'VERILOG_FILE')+' ../core/'+name+'\n')
+    settings=out/'src/fpga/build/ap_core.qsf'
+    settings.write_text(replace(settings.read_text(encoding='utf8'),
+        'set_global_assignment -name SEED 4','set_global_assignment -name SEED 5'),encoding='utf8',newline='\n')
     return out
 
 if __name__=='__main__':

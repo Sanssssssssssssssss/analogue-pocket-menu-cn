@@ -1,35 +1,54 @@
-// Shared CoverFlow reads 40..48 MiB of the 64 MiB SDRAM. GBA ROM occupies
-// 0..32 MiB and EWRAM starts at 32 MiB. No UI texture shares game/save memory.
+// Reuse the working GG cover cache on GBA's otherwise idle CRAM1 pins.
+// CRAM0 and the native ROM/EWRAM/save SDRAM transport keep their own buses.
 wire cf_menu,cf_go,cf_direction,cf_invalidate,cf_commit,cf_generation,cf_want,cf_anim,cf_tick;
 wire [10:0] cf_wanted,cf_loaded,cf_count;
 wire [3:0] cf_target,cf_title_target,cf_level,cf_title_level;
 wire [8:0] cf_width,cf_subwidth;
-wire cf_mem_req,cf_mem_idle,cf_underrun,cf_fetch_fault;
-wire [23:0] cf_mem_word;
-wire cf_source_request,cf_source_done,cf_view_idle,cf_bridge_idle,cf_view_fault,cf_bridge_fault;
+wire cf_mem_idle,cf_underrun,cf_fetch_fault,cf_uploaded;
+wire cf_source_request,cf_source_done,cf_view_idle,cf_backend_idle,cf_view_fault,cf_art_fault,cf_uploaded_s;
 wire [23:0] cf_source_word;
 wire [31:0] cf_source_data;
-assign cf_mem_idle=cf_view_idle && cf_bridge_idle;
-assign cf_fetch_fault=cf_view_fault || cf_bridge_fault;
-coverflow_memory_bridge cf_memory_bridge(.source_clock(clk_74a),.memory_clock(clk_sys),
-    .source_request(cf_source_request),.source_word_address(cf_source_word),.source_done(cf_source_done),.source_data(cf_source_data),
-    .source_idle(cf_bridge_idle),.source_fault(cf_bridge_fault),.memory_request(cf_mem_req),.memory_word_address(cf_mem_word),
-    .memory_done(sdram_rd_ready),.memory_data(sdram_rd_data));
-wire cf_mem_idle_b,cf_fault_b;
-synch_3 cf_idle_sync(cf_mem_idle,cf_mem_idle_b,clk_74a);
-synch_3 cf_fault_sync(cf_fetch_fault,cf_fault_b,clk_74a);
+wire cf_enable_s;
+synch_3 cf_cache_enable_sync(.i(cf_menu && !ui_bound && !ui_fault),.o(cf_enable_s),.clk(clk_sys),.rise(),.fall());
+synch_3 cf_idle_sync(.i(cf_view_idle && cf_backend_idle),.o(cf_mem_idle),.clk(clk_74a),.rise(),.fall());
+synch_3 cf_fault_sync(.i(cf_view_fault || cf_art_fault),.o(cf_fetch_fault),.clk(clk_74a),.rise(),.fall());
+synch_3 cf_uploaded_sync(.i(cf_uploaded_s),.o(cf_uploaded),.clk(clk_74a),.rise(),.fall());
 wire [23:0] cf_rgb;
 wire cf_de,cf_hs,cf_vs,cf_skip,cf_mode;
 reg [2:0] cf_pixel_div=0;
 always @(posedge clk_vid)cf_pixel_div<=cf_pixel_div==4 ? 3'd0:cf_pixel_div+1'b1;
 wire cf_pixel_ce=cf_pixel_div!=4; // 8.388608 MHz * 4/5, exact accepted menu rate.
-wire cf_text_we;
-wire [27:0] cf_text_addr;
-wire [15:0] cf_text_data;
+wire cf_text_we,cf_art_we;
+wire [27:0] cf_text_addr,cf_art_addr;
+wire [15:0] cf_text_data,cf_art_data;
 data_loader #(.ADDRESS_MASK_UPPER_4(4'h7),.OUTPUT_WORD_SIZE(2),.WRITE_MEM_CLOCK_DELAY(4)) cf_text_input(
     .clk_74a(clk_74a),.clk_memory(clk_74a),.bridge_wr(bridge_wr),.bridge_endian_little(bridge_endian_little),
     .bridge_addr(bridge_addr),.bridge_wr_data(bridge_wr_data),.write_en(cf_text_we),.write_addr(cf_text_addr),.write_data(cf_text_data));
-coverflow_view cf_view(.clk_74a(clk_74a),.clk_sys(clk_74a),.clk_vid(clk_vid),.pixel_ce(cf_pixel_ce),
+data_loader #(.ADDRESS_MASK_UPPER_4(4'h4),.OUTPUT_WORD_SIZE(2),.WRITE_MEM_CLOCK_DELAY(4)) cf_art_input(
+    .clk_74a(clk_74a),.clk_memory(clk_sys),.bridge_wr(bridge_wr),.bridge_endian_little(bridge_endian_little),
+    .bridge_addr(bridge_addr),.bridge_wr_data(bridge_wr_data),.write_en(cf_art_we),.write_addr(cf_art_addr),.write_data(cf_art_data));
+wire cf_art_begin=target_dataslot_read && target_dataslot_bridgeaddr[31:23]==9'h084 && target_dataslot_bridgeaddr[15:0]==0;
+reg cf_upload_toggle=0,cf_clear_toggle=0;
+reg [6:0] cf_upload_slot=0;
+always @(posedge clk_74a)begin
+    if(cf_art_begin)begin cf_upload_toggle<=~cf_upload_toggle;cf_upload_slot<=target_dataslot_bridgeaddr[22:16];end
+    if(cf_invalidate)cf_clear_toggle<=~cf_clear_toggle;
+end
+wire cf_upload_sync_s,cf_clear_sync_s;
+wire [6:0] cf_upload_slot_s;
+synch_3 cf_upload_event(.i(cf_upload_toggle),.o(cf_upload_sync_s),.clk(clk_sys),.rise(),.fall());
+synch_3 cf_clear_event(.i(cf_clear_toggle),.o(cf_clear_sync_s),.clk(clk_sys),.rise(),.fall());
+synch_3 #(.WIDTH(7)) cf_slot_sync(.i(cf_upload_slot),.o(cf_upload_slot_s),.clk(clk_sys),.rise(),.fall());
+reg cf_upload_seen=0,cf_clear_seen=0;
+always @(posedge clk_sys)begin cf_upload_seen<=cf_upload_sync_s;cf_clear_seen<=cf_clear_sync_s;end
+coverflow_psram_cache cf_images(.clk(clk_sys),.enable(cf_enable_s),
+    .invalidate(cf_clear_seen!=cf_clear_sync_s),.begin_upload(cf_upload_seen!=cf_upload_sync_s),.upload_slot(cf_upload_slot_s),
+    .write_en(cf_art_we),.write_addr(cf_art_addr),.write_data(cf_art_data),.upload_ready(cf_uploaded_s),.idle(cf_backend_idle),
+    .request(cf_source_request),.word_address(cf_source_word),.done(cf_source_done),.data(cf_source_data),.fault(cf_art_fault),
+    .cram_a(cram1_a),.cram_dq(cram1_dq),.cram_wait(cram1_wait),.cram_clk(cram1_clk),.cram_adv_n(cram1_adv_n),
+    .cram_cre(cram1_cre),.cram_ce0_n(cram1_ce0_n),.cram_ce1_n(cram1_ce1_n),.cram_oe_n(cram1_oe_n),
+    .cram_we_n(cram1_we_n),.cram_ub_n(cram1_ub_n),.cram_lb_n(cram1_lb_n));
+coverflow_psram_view cf_view(.clk_74a(clk_74a),.clk_sys(clk_sys),.clk_vid(clk_vid),.pixel_ce(cf_pixel_ce),
     .enable(cf_menu && !ui_fault),.hold_gb(ui_owned),.menu_active(ui_show && cf_menu),.vs(cf_game_vs),
     .ago(cf_go),.ago_dir(cf_direction),.invalidate(cf_invalidate),.cache_commit(cf_commit),.cache_game(cf_loaded),
     .idx(ui_selected),.count(cf_count),.level_target(cf_target),.tl_target(cf_title_target),.htw(cf_width),.hsw(cf_subwidth),
