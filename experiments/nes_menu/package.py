@@ -7,6 +7,7 @@ from prepare_build import prepare,ARCHIVE_SHA
 ROOT=Path(__file__).resolve().parents[2]
 sys.path.insert(0,str(ROOT/'tools'))
 from apf_metadata import check_core
+from display_styles import configure as configure_display
 def sha(p):return hashlib.sha256(p.read_bytes()).hexdigest()
 def stage(build,out,archive,coverflow=False):
     build,out=Path(build).resolve(),Path(out).resolve()
@@ -56,7 +57,7 @@ def stage(build,out,archive,coverflow=False):
         video=json.loads((dst/'video.json').read_text())
         if len(video['video']['scaler_modes'])!=4:raise ValueError('Inherited scaler slots differ')
         video['video']['scaler_modes'].append({'width':320,'height':288,'aspect_w':10,'aspect_h':9,'rotation':0,'mirror':0})
-        (dst/'video.json').write_text(json.dumps(video,indent=2)+'\n')
+        (dst/'video.json').write_text(json.dumps(configure_display(video,'nes'),indent=2)+'\n')
     slots=[{'id':100,'name':'Chinese Menu','required':True,'deferload':True,'parameters':'0x8','filename':'menu.bin','extensions':['bin'],'address':'0x70000000','size_maximum':'0x10000000'},
         {'id':0,'name':'Cartridge','required':False,'deferload':True,'parameters':'0x8','extensions':['nes'],'address':'0x10000000','size_maximum':'0x2000000'},
         {'id':10,'name':'Save','required':False,'deferload':True,'parameters':'0x0','nonvolatile':True,'extensions':['sav'],'address':'0x20000000','size_maximum':'0x40000'},

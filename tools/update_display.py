@@ -79,8 +79,9 @@ def stage(card,out,mapping):
             art=checked_picture(patch['cover'],patch['cover_sha256']) if patch.get('cover') else title_card(title,rom.split('/')[2]) if patch.get('fallback') else None
             if art:entry['blob']=art+entry['blob'][45568:]
             if before!=(entry['record'],entry['blob']):changed_games.add(rom)
-        if titles and all(not e['record'][40]&128 for e in pack['entries'][:-1]):
-            if set(titles)-set(mapping):raise ValueError('Sorting requires a display title for every game in the page')
+        # Partial artwork/title updates retain the existing order and indexes;
+        # sorting needs a complete caption mapping for this leaf page.
+        if titles and all('title' in mapping.get(rom,{}) for rom in titles) and all(not e['record'][40]&128 for e in pack['entries'][:-1]):
             if b'FPR1' in pack['header'] or b'FPR2' in pack['header']:raise ValueError('Cartridge fingerprint indexes need remapping before sorting')
             games=sorted(pack['entries'][:-1],key=lambda e:(not bool(e['record'][40]&2),lib.base.letter_group(titles[e['paths'][0]]),titles[e['paths'][0]].casefold(),e['paths'][0]))
             pack['entries']=games+[pack['entries'][-1]]

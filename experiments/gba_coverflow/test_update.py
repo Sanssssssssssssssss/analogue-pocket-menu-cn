@@ -81,4 +81,16 @@ class UpdateSafety(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,'slot 1 is occupied'):self.plan()
         self.assertFalse(self.staging.exists())
 
+    def test_explicit_styles_change_metadata_preserving_native_geometry_and_rollback(self):
+        before=(self.card/updater.CORE/'video.json').read_bytes()
+        result=updater.stage(self.card,self.package,self.f2,self.staging,True)
+        self.assertTrue(result['display_profile_updated']);self.assertEqual(result['OS_display_choice_writes'],0)
+        updater.apply(self.card,self.staging,self.backup)
+        video=json.loads((self.card/updater.CORE/'video.json').read_text())['video']
+        self.assertEqual(video['scaler_modes'][0],self.video['video']['scaler_modes'][0])
+        self.assertEqual(video['defaults']['sharpness'],3)
+        self.assertFalse(any(int(m['id'],16) in [0,0x20] for m in video['display_modes']))
+        updater.rollback(self.card,self.backup,True)
+        self.assertEqual((self.card/updater.CORE/'video.json').read_bytes(),before)
+
 if __name__=='__main__':unittest.main()

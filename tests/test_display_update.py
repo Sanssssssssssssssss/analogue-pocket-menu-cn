@@ -48,5 +48,23 @@ class DisplayUpdate(unittest.TestCase):
             with self.assertRaisesRegex(ValueError,'Unexpected game path'):
                 display.stage(card,root/'out',{'/Assets/gba/common/test.gba':{'title':'拒绝'}})
 
+    def test_partial_title_update_retains_page_order_and_letter_indexes(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root=Path(temp);card=root/'card';roms=card/'Assets/gb/common/1.ACT';roms.mkdir(parents=True)
+            (card/'Analogue_Pocket.json').write_text('{"product":"Analogue Pocket"}')
+            for name in ['Alpha','Zulu']:(roms/(name+'.gb')).write_bytes(bytes(32768))
+            bios=root/'bios.bin';bios.write_bytes(bytes(2304));lib.build(card,root/'base',bios=bios)
+            shutil.copytree(root/'base/Assets',card/'Assets',dirs_exist_ok=True)
+            result=display.stage(card,root/'out',{'/Assets/gb/common/1.ACT/Alpha.gb':{'title':'中文甲'}})
+            self.assertEqual(result['updated_games'],1)
+            for row in result['source_packs']:
+                old=decode((card/row['path']).read_bytes());changed=root/'out'/row['path']
+                if not changed.exists():continue
+                new=decode(changed.read_bytes())
+                self.assertEqual(old['header'],new['header'])
+                self.assertEqual([e['paths'] for e in old['entries']],[e['paths'] for e in new['entries']])
+                for a,b in zip(old['entries'],new['entries']):
+                    if a['paths'][0].endswith('/Zulu.gb'):self.assertEqual(a,b)
+
 
 if __name__=='__main__':unittest.main()

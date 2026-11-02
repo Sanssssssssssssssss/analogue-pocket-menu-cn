@@ -1,0 +1,14 @@
+{
+  "result": "passed",
+  "scope": "Actual Sega pause/error raster, real Chinese bitmap ROM and native bypass patterns; no game CPU/card/device",
+  "menu_geometry": [
+    256,
+    240
+  ],
+  "scaler_slot": 5,
+  "inputs": {
+    ".work/sega-menu/gg-integration-3/target/pocket/menu_video.sv": "cd1372cbdbf176901d978d62c44805558c74ea9755be399ebe7698c983385e13",
+    ".work/coverflow-delivery/sega-pause-video-1/tb_video.sv": "8dd294ab12ebd5e4799b04c01925800f461a83dbe170d4ca91a34e6970487a5d",
+    ".work/coverflow-delivery/sega-pause-video-1/gba_menu_error.hex": "3dab4e1d774d73d1745417d3f98013dcc0abb7ea56e063a1b5ae807082edc12d"
+  }
+}

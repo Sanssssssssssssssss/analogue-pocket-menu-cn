@@ -61,10 +61,11 @@ def mapping(path):
     return value
 
 
-def build(card,out,titles=None,covers=None,folders=None):
+def build(card,out,titles=None,covers=None,folders=None,offline_source=False):
     card,out=Path(card).resolve(),Path(out).resolve()
     if out.exists() or out.is_relative_to(card) or card.is_relative_to(out):raise ValueError('Fresh local staging outside source required')
-    ident=identity(card);titles,folders=mapping(titles),mapping(folders)
+    ident={'root':str(card),'scope':'read-only offline ROM archive; final card identity/hash verification required'} if offline_source else identity(card)
+    titles,folders=mapping(titles),mapping(folders)
     covers=Path(covers).resolve() if covers else None
     if covers and not covers.is_dir():raise ValueError('Missing cover root')
     base=safe_path(card,'Assets/nes/common')
@@ -142,5 +143,6 @@ def build(card,out,titles=None,covers=None,folders=None):
 if __name__=='__main__':
     p=argparse.ArgumentParser(description=__doc__);p.add_argument('--card',required=True);p.add_argument('--out',required=True)
     for name in ['titles','covers','folders']:p.add_argument('--'+name)
-    a=p.parse_args();r=build(a.card,a.out,a.titles,a.covers,a.folders)
+    p.add_argument('--offline-source',action='store_true',help='Read an existing PC ROM backup; installer still rechecks the actual card')
+    a=p.parse_args();r=build(a.card,a.out,a.titles,a.covers,a.folders,a.offline_source)
     print(json.dumps({k:r[k] for k in ['format','unique_games','pages','rom_copies','source_writes']},ensure_ascii=False))

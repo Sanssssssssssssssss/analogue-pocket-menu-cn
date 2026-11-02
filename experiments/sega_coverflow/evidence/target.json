@@ -1,0 +1,20 @@
+{
+  "result": "passed",
+  "scope": "Actual native prepared bridge/synchronizer plus target adapter; synthetic host only",
+  "operations": 11,
+  "byte_orders": [
+    "big",
+    "little"
+  ],
+  "checks": [
+    "boot Ready priority",
+    "read/write/open/flush parameters",
+    "error clamp",
+    "Stop/Run",
+    "unowned late completion"
+  ],
+  "log_sha256": "2f692fb2a2120e94cdfb6f52780b47b35182f8c5cb7fc92f82c609248ff69a6b",
+  "bench_sha256": "396e80e9a07cedbfdf418ad8aacc6cc8c3b5de2b62aeca1e5b85c5951bdf06bf",
+  "bridge_sha256": "f19f90030d39d32d3acc241efed287079764c86171f8da8cb0493921fffd526e",
+  "adapter_sha256": "ab60668de7a57c8446b57532714c3ead211ba0c44530cbe5b6ad9754d895fdb1"
+}

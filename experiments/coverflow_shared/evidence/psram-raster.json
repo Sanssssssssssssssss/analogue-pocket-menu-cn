@@ -1,0 +1,17 @@
+{
+  "result": "passed",
+  "scope": "Four complete raster frames at actual 74.25 MHz bridge / 5.369 MHz pixel clock ratios, pin-level synthetic CellRAM model, full atlas uploaded concurrently with raster work",
+  "reference_exception": "Test-only signed-clipping correction; frozen inputs unchanged",
+  "physical_acceptance": "pending; behavioral peripheral model does not establish board timing",
+  "inputs": {
+    ".work/coverflow-delivery/psram-raster-2/coverflow_reference.sv": "7ee2d3da048b394f39a5921f981f39d9a75a3568e49316fbb292141ef35eab58",
+    ".work/coverflow-delivery/psram-raster-2/coverflow_geometry.sv": "df4d79e55ba13b4de50ee7af5e5f87f0f223ee39ac65663ef6ca2864f8194669",
+    ".work/coverflow-delivery/psram-raster-2/coverflow_psram_view.sv": "a0687f5186c6291ac240813f48bb3a455dc9eec9c5786d700980334be44aeac0",
+    ".work/coverflow-delivery/psram-raster-2/coverflow_line_fetch16.sv": "4e3d29b7cf337f75f8406fdfa74cc5f38ca838d6d1d8d02ea557e0860a681208",
+    ".work/coverflow-delivery/psram-raster-2/coverflow_psram_cache.sv": "342be83a2bb27c7724273d8d1463e58aa5bb22f4a09391c22976ec4614416c6f",
+    ".work/coverflow-delivery/psram-raster-2/coverflow_psram.sv": "3b2379c961bf4fb7a71fa57aa3ccb7db28eba51286835c58fc180ba58cd1277b",
+    "experiments/coverflow_shared/sim_ram.sv": "29b650c8e6661cc13b61ea7689f4a826cbe44262603c06736e8a2781165046ed",
+    "experiments/coverflow_shared/sim_cellram.sv": "42c090a3743b7543696314c60ad4cf0f1d68902b41e0a465a229ce40657608bc",
+    ".work/coverflow-delivery/psram-raster-2/tb_view.sv": "76428f1044286fa02bcd92d198e310a4ede3066126feb982122d8d87320f758a"
+  }
+}

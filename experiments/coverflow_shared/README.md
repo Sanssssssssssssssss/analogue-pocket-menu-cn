@@ -33,6 +33,8 @@ vvp .work/line-check
 
 仿真需 Linux／WSL、Icarus、Verilator 和自行安装的 Intel 仿真库。第三方仿真库不随仓库发布。提取前校验原始模块 SHA-256；生成目录必须是新的 `.work` 子目录。继承代码来自 [maxsorto/openfpga-GBC](https://github.com/maxsorto/openfpga-GBC/tree/666c4f33b70880047ab9e0a1987fa439ebfd78bb)，保留其 [MIT 声明](../../LICENSES/UPSTREAM-NOTICE.txt)；没有重新许可原生游戏核心。
 
+独立 CellRAM 后端见[世嘉适配](../sega_coverflow/README.md)：复用固定 GBA 源码的 MIT PSRAM 驱动，只用原先空闲的 RAM bank。`prepare_psram.py` 生成单独的 16 位读取变体，不改变已编译 GBA 的默认生成输入。行为模型检查突发上传和并发读取，实体 RAM 仍待验收。
+
 ## English
 
 The [NES adapter](../nes_coverflow/README.md) adds a separate five-slot associative cache while retaining the same candidate wrapping, geometry and raster. Its packed independent art RAM and deliberately permuted logical-to-physical mapping pass complete raster comparisons. This adapter does not alter the default GBA-generated module.

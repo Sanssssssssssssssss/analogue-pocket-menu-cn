@@ -1,0 +1,32 @@
+{
+  "result": "passed",
+  "scope": "Two synthetic practical effects, mixed PAR and six/nine-digit Game Genie, actual upstream parser and monitor; no game execution or real ROM payload",
+  "decoded": [
+    [
+      "P",
+      291,
+      127,
+      0
+    ],
+    [
+      "G",
+      30906,
+      5,
+      3,
+      1
+    ],
+    [
+      "G",
+      30138,
+      5,
+      0,
+      0
+    ]
+  ],
+  "inputs": {
+    ".work/multi-system/sources/gg-cheats-8acc19d-audit/rtl/gg/cheat_loader.sv": "aec266432ad5feff51fa7343cb160e24eac3bd1b52bf0bb4e5f28dde6c95ea1d",
+    ".work/multi-system/sources/gg-cheats-8acc19d-audit/tools/sim/tb_cheat_loader.sv": "81cada895202c58ab36cbe55a548439ce676dbbf3b88c2fcd020862f4a49c48c",
+    "experiments/sega_coverflow/library.py": "a87e5115faded567de94e934b2967a7e74c6f5c050ec25e15365b4fc55f2ecdf",
+    ".work/coverflow-delivery/sega-profiles-2/synthetic.cht": "02d4c50e26983e1beee3421aa642dbc0e27b3a6041c5bed40db528a018e9b9fe"
+  }
+}

@@ -59,5 +59,12 @@ class Library(unittest.TestCase):
             with self.assertRaises(ValueError):build(card,root/'stage')
             self.assertEqual(before,snapshot(card))
 
+    def test_offline_archive_needs_explicit_flag_and_stays_unchanged(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root=Path(temp);card=root/'archive';p=card/'Assets/nes/common/game.nes';p.parent.mkdir(parents=True);p.write_bytes(rom(1));before=snapshot(card)
+            with self.assertRaises(FileNotFoundError):build(card,root/'denied')
+            result=build(card,root/'stage',offline_source=True)
+            self.assertEqual(before,snapshot(card));self.assertIn('final card',result['identity']['scope'])
+
 
 if __name__=='__main__':unittest.main()

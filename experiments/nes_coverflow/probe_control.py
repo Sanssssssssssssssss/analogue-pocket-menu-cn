@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: MIT
 """Exercise the actual NES CoverFlow controller with synthetic APF transactions."""
-import argparse,hashlib,json,subprocess,sys
+import argparse,hashlib,importlib.util,json,subprocess,sys
 from pathlib import Path
-from prepare import load,replace,ROOT,HERE
+spec=importlib.util.spec_from_file_location('nes_control_prepare',Path(__file__).with_name('prepare.py'))
+prepare_module=importlib.util.module_from_spec(spec);spec.loader.exec_module(prepare_module)
+load,replace,ROOT,HERE=prepare_module.load,prepare_module.replace,prepare_module.ROOT,prepare_module.HERE
 library=load('nes_coverflow_library',HERE/'library.py')
 gba_probe=load('gba_lifecycle_probe',ROOT/'experiments/gba_coverflow/probe_control.py')
 

@@ -17,6 +17,7 @@ ROOT=Path(__file__).resolve().parents[2]
 CORE='pocketlab.GBA'
 sys.path.insert(0,str(ROOT/'tools'))
 from apf_metadata import check_core
+from display_styles import configure as configure_display
 
 
 def sha(p):return hashlib.sha256(p.read_bytes()).hexdigest()
@@ -83,7 +84,7 @@ def stage(build,out,sources,motion=False,coverflow=False):
         modes=video['video']['scaler_modes']
         if len(modes)!=1 or modes[0]['width']!=240 or modes[0]['height']!=160:raise ValueError('Unexpected inherited game scaler modes')
         modes.append({'width':320,'height':288,'aspect_w':10,'aspect_h':9,'rotation':0,'mirror':0})
-        (dst/'video.json').write_text(json.dumps(video,indent=2)+'\n')
+        (dst/'video.json').write_text(json.dumps(configure_display(video,'gba'),indent=2)+'\n')
     slots=[
         {'id':100,'name':'Chinese Menu','required':True,'deferload':True,'parameters':'0x8',
          'filename':'menu.bin','extensions':['bin'],'address':'0x70000000','size_maximum':'0x10000000'},

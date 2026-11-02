@@ -4,6 +4,7 @@
 
 Only the owned bitstream/version, appended menu scaler and menu packs change.
 Original game/save identities, game display modes and settings are preserved.
+An explicit display-profile option also updates available style metadata.
 """
 import argparse,importlib.util,json,os,shutil,struct,sys
 from datetime import datetime,timezone
@@ -12,6 +13,7 @@ ROOT=Path(__file__).resolve().parents[2]
 spec=importlib.util.spec_from_file_location('gba_install',ROOT/'experiments/gba_menu/install.py')
 base=importlib.util.module_from_spec(spec);spec.loader.exec_module(base)
 sha,safe_path,identity,publish=base.sha,base.safe_path,base.identity,base.publish
+from display_styles import configure as configure_display
 CORE='Cores/pocketlab.GBA/'
 KNOWN_SOURCE={'73226a39e7fd25429ef939d0fd2668902b28674823c9ec65e1a0f0da13771af8'}
 MENU_MODE={'width':320,'height':288,'aspect_w':10,'aspect_h':9,'rotation':0,'mirror':0}
@@ -34,7 +36,7 @@ def records(path):
         if any(len(row)!=1024 or row[:4]!=b'ENT1' for row in rows):raise ValueError('Invalid launch records')
     return version,[row[:16]+row[24:] for row in rows]
 
-def stage(card,package,library,out):
+def stage(card,package,library,out,display_profile=False):
     card,package,library,out=map(lambda p:Path(p).resolve(),(card,package,library,out))
     if out.exists() or any(out.is_relative_to(p) or p.is_relative_to(out) for p in (card,package,library)):raise ValueError('Fresh separate staging required')
     ident=identity(card)
@@ -67,6 +69,7 @@ def stage(card,package,library,out):
     if len(modes) not in (1,2) or (modes[0]['width'],modes[0]['height'],modes[0]['aspect_w'],modes[0]['aspect_h'])!=(240,160,3,2):raise ValueError('Game scaler settings differ')
     if len(modes)==2 and modes[1]!=MENU_MODE:raise ValueError('Existing scaler slot 1 is occupied')
     if len(modes)==1:modes.append(MENU_MODE.copy())
+    if display_profile:video=configure_display(video,'gba')
     out.mkdir(parents=True);changes=[]
     for rel,p,record in [(binary,allowed(package/'core',binary),item),*pages]:
         dest=allowed(out,rel);dest.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(p,dest)
@@ -77,7 +80,8 @@ def stage(card,package,library,out):
         if previous!=digest:changes.append({'path':rel,'sha256':digest,'bytes':p.stat().st_size,'previous_sha256':previous})
     changes.sort(key=lambda c:(c['path']==binary,c['path']==CORE+'core.json',c['path']))
     result={'identity':ident,'changes':changes,'core_version':build['version'],'status':'staged_only','roms_verified':len(lib['roms']),'roms':lib['roms'],
-        'pages_checked':len(pages),'game_display_modes_preserved':True,'save_writes':0,'rom_writes':0,'firmware_writes':0,'hardware_playtest':'pending'}
+        'pages_checked':len(pages),'game_scaler_modes_preserved':True,'game_display_modes_preserved':not display_profile,
+        'display_profile_updated':display_profile,'OS_display_choice_writes':0,'save_writes':0,'rom_writes':0,'firmware_writes':0,'hardware_playtest':'pending'}
     (out/'update-plan.json').write_text(json.dumps(result,indent=2)+'\n')
     return result
 
@@ -137,7 +141,9 @@ def rollback(card,backup,execute=False):
     return {'rollback_files':len(changes),'applied':execute,'save_writes':0,'rom_writes':0,'firmware_writes':0}
 
 if __name__=='__main__':
-    p=argparse.ArgumentParser(description=__doc__);p.add_argument('--card',required=True);p.add_argument('--staging');p.add_argument('--package');p.add_argument('--library');p.add_argument('--backup');p.add_argument('--apply',action='store_true');p.add_argument('--rollback',action='store_true');a=p.parse_args()
+    p=argparse.ArgumentParser(description=__doc__);p.add_argument('--card',required=True);p.add_argument('--staging');p.add_argument('--package');p.add_argument('--library');p.add_argument('--backup');p.add_argument('--apply',action='store_true');p.add_argument('--rollback',action='store_true')
+    p.add_argument('--display-profile',action='store_true',help='Also declare the supported optional display styles; does not select an OS filter')
+    a=p.parse_args()
     if a.rollback:
         if not a.backup:p.error('--rollback needs --backup')
         r=rollback(a.card,a.backup,a.apply)
@@ -146,5 +152,5 @@ if __name__=='__main__':
         r=apply(a.card,a.staging,a.backup)
     else:
         if not a.package or not a.library or not a.staging:p.error('Planning needs --package, --library and --staging')
-        r=stage(a.card,a.package,a.library,a.staging)
+        r=stage(a.card,a.package,a.library,a.staging,a.display_profile)
     print(json.dumps({k:v for k,v in r.items() if k not in ('changes','identity','protected','roms')},indent=2))
