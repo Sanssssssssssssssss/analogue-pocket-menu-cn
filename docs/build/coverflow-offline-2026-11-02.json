@@ -1,0 +1,34 @@
+{
+  "date": "2026-11-02",
+  "scope": "Offline native-core candidates; not a hardware or all-game acceptance report",
+  "tested_source_commit": "6eb3a78c3acdc769d955df5a575df4359c31ceb9",
+  "ci": {
+    "url": "https://github.com/Sanssssssssssssssss/analogue-pocket-menu-cn/actions/runs/41462964985",
+    "conclusion": "success",
+    "platforms": ["ubuntu-latest / Python 3.11", "windows-latest / Python 3.13"],
+    "synthetic_tool_tests": {"distribution": 28, "gba_menu": 10, "gba_coverflow": 6, "nes_coverflow": 8, "sega_coverflow": 10},
+    "total_tests": 62
+  },
+  "compilation": {
+    "compiler": "Quartus Prime 22.1std.2 Build 922",
+    "GBA": {"ALM": 16953, "M10K": 282, "DSP": 48, "timing_records": 104, "minimum_slack_ns": 0.001, "critical_warnings": 0},
+    "NES": {"ALM": 16010, "M10K": 283, "DSP": 40, "timing_records": 128, "minimum_slack_ns": 0.056, "critical_warnings": 0},
+    "GG": {"ALM": 13808, "M10K": 222, "DSP": 32, "timing_records": 72, "minimum_slack_ns": 0.100, "reviewed_powerup_register_warnings": 23},
+    "SMS": {"ALM": 13799, "M10K": 222, "DSP": 32, "timing_records": 72, "minimum_slack_ns": 0.071, "reviewed_powerup_register_warnings": 16},
+    "SG1000": {"ALM": 13727, "M10K": 222, "DSP": 32, "timing_records": 72, "minimum_slack_ns": 0.046, "reviewed_powerup_register_warnings": 16},
+    "all_reported_TNS_zero": true,
+    "limitations": "Inherited external interface timing exceptions remain. GBA has a thin 0.001 ns hold margin. Behavioral CellRAM checks are not vendor-model or board signoff."
+  },
+  "metadata_validation": {
+    "tool": "openfpga-validator@0.7.0",
+    "core_archives_checked": 6,
+    "exit_codes": [0, 0, 0, 0, 0, 0],
+    "warnings": "Separate core archives omit Assets; runtime menus/BIOS are supplied separately."
+  },
+  "frozen_GB_GBC_inputs_changed": 0,
+  "local_Windows_fixture_note": "The separate fresh-checkout Windows run skipped one unavailable symbolic-link fixture; CI conclusions are recorded independently above.",
+  "frozen_input_count": 135,
+  "firmware_writes": 0,
+  "real_card_writes": 0,
+  "remaining_acceptance": ["Current card identity and ROM/save verification", "Physical animation and display modes", "Game compatibility/audio", "Ordinary saves, RTC, return and durability", "Cheat effects in actual games"]
+}

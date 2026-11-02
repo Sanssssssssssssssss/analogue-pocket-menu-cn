@@ -1,5 +1,9 @@
 # Validation scope / 验证范围
 
+2026-11-02 development update: the [offline receipt](build/coverflow-offline-2026-11-02.json) records 62 synthetic tool checks on Windows/Linux, six metadata-validated core packages, and full GBA/NES/GG/SMS/SG-1000 fits/timing. GB/GBC's 135 accepted inputs remain frozen. Physical animation, game/save/RTC and cheat-effect acceptance of the new candidates is pending. The public stable release remains GB/GBC; the following 2026-10-31 notes describe that release and earlier experiments.
+
+2026-11-02：开发分支的新候选已完成离线检查，见上方收据；新机种和新动画仍待实机。下面保留稳定版及早期实验的验收范围。
+
 2026-10-31. This public preview separates device reports, hardware simulation, compilation and new distribution-tool testing.
 
 | Level | Evidence | Limit |
