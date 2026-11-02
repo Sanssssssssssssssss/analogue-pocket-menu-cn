@@ -44,7 +44,7 @@ def stage(build,out,archive,coverflow=False):
         inputs[rel.as_posix()]=sha(q)
     pkg=out/'core';dst=pkg/'Cores/pocketlab.NES';dst.mkdir(parents=True)
     original=build/'pkg/pocket/Cores/agg23.NES'
-    for key in ['input','interact','audio','video']:shutil.copy2(original/(key+'.json'),dst/(key+'.json'))
+    for key in ['input','interact','audio','variants','video']:shutil.copy2(original/(key+'.json'),dst/(key+'.json'))
     meta=json.loads((original/'core.json').read_text())['core']
     version='0.3.0-nes.2' if coverflow else '0.3.0-nes.1'
     meta['metadata'].update(platform_ids=['neslab','nes'],shortname='NES',author='pocketlab',

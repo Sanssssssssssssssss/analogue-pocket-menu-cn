@@ -4,7 +4,7 @@
 
 [English](README.en.md) · [下载公开预览版](https://github.com/Sanssssssssssssssss/analogue-pocket-menu-cn/releases) · [安装与回退](docs/INSTALL.zh-CN.md) · [验证范围](docs/VALIDATION.md) · [更新日志](CHANGELOG.md)
 
-2026-11-02：[完整交付工作](docs/COMPLETE-DELIVERY.md)复用原版 GB/GBC CoverFlow。[原生 GBA](experiments/gba_coverflow/README.md)、[FC/NES](experiments/nes_coverflow/README.md)、[GG / SMS / SG-1000](experiments/sega_coverflow/README.md)已分别通过完整编译／时序和离线接口检查；新动画均待实机。世嘉候选接入原生、严格版本匹配的实用金手指，其他 UI 核心暂未集成该引擎。[屏幕风格](docs/DISPLAY-STYLES.zh-CN.md)沿用 Pocket 官方可选模式。整页滑动已停用；公开稳定版仍限 GB/GBC，不修改系统固件。
+2026-11-03：[完整交付工作](docs/COMPLETE-DELIVERY.md)复用原版 GB/GBC CoverFlow。FC/NES、GG 在补齐必需的 `variants.json` 后，已有单机用户报告菜单、动画及游戏启动正常；FC 名称与封面仍需补齐。GBA `.5` 上机失败，已恢复可启动的 `.3`；GBA CoverFlow 继续离线适配，拒绝重新安装已失败的 bitstream。[设备反馈](docs/DEVICE-FEEDBACK-2026-11-03.md)记录了范围。公开稳定版仍限 GB/GBC，不修改系统固件。
 
 ![本项目原生 RTL 输出的中文菜单预览](docs/images/menu-preview.png)
 
@@ -32,7 +32,7 @@
 
 2026-11-01 当前方向为[各机种独立的中文可视化菜单](docs/PER-SYSTEM-MENUS.md)：保留官方 openFPGA 的机种列表及 Change Core，分别完善 GB/GBC、GBA，再逐个适配其他核心。系统首页和跨机种合并启动器的研究已收束。
 
-当前离线候选为共用 CoverFlow 的 GBA `.5` 与 NES `.2`：完整编译分别通过 104／128 条时序检查，最小 slack +0.001／+0.056 ns，均待实机。旧 [GBA 整页滑动](experiments/gba_menu/MOTION.md)和 [NES 静态页](experiments/nes_menu/README.md)只保留历史记录。[SFC/SNES 原型](experiments/snes_menu/README.md)时序未通过，不提供安装包。新候选尚未安装，也不属于稳定发行版。
+共用 CoverFlow 的 NES `.2` 完整编译通过 128 条时序检查，最小 slack +0.056 ns，并获上述单机基本使用反馈。GBA `.5` 虽通过离线检查，仍因实体启动失败退出候选；时序通过不等于上机通过。旧 [GBA 整页滑动](experiments/gba_menu/MOTION.md)和 [NES 静态页](experiments/nes_menu/README.md)只保留历史记录。[SFC/SNES 原型](experiments/snes_menu/README.md)时序未通过，不提供安装包。实验候选不属于稳定发行版。
 
 本分支还提供[机种图标菜单](docs/MACHINE-MENU.md)：GB / GBC 掌机图标 → 分类 → 原有游戏封面，经典系列集中在收藏入口。复用稳定核心，用户已确认新布局可用。
 

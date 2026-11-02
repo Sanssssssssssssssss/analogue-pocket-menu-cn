@@ -8,14 +8,14 @@ ROOT=Path(__file__).resolve().parents[2]
 sys.path.insert(0,str(ROOT/'tools'))
 from install import safe_path,identity,publish
 from build_library import sha
-from apf_metadata import check_core
+from apf_metadata import REQUIRED_JSON,check_core
 CORE='Cores/pocketlab.NES/'
 ASSETS='Assets/neslab/common/'
 SAVES='Saves/neslab/common/'
 
 
 def allowed(root,rel):
-    if not (re.fullmatch(r'Cores/pocketlab\.NES/(?:core|data|audio|input|interact|video)\.json',rel)
+    if not (re.fullmatch(r'Cores/pocketlab\.NES/(?:core|data|audio|input|interact|variants|video)\.json',rel)
         or rel==CORE+'nes.rbf_r' or rel in ('Platforms/neslab.json','Platforms/_images/neslab.bin',ASSETS+'menu.bin')
         or re.fullmatch(ASSETS+r'libs/[0-9a-f]{16}\.bin',rel) or re.fullmatch(SAVES+r'[0-9a-f]{20}\.sav',rel)):
         raise ValueError('Outside isolated NES namespace: '+rel)
@@ -51,7 +51,8 @@ def plan(card,package,library,offline_source=False):
             if target.exists():raise ValueError('First-install tool refuses existing file: '+rel)
             if path.stat().st_size!=item['bytes'] or sha(path)!=item['sha256']:raise ValueError('Staged file changed')
             changes.append({**item,'source':str(root)})
-    if not {CORE.lower()+'core.json',(ASSETS+'menu.bin').lower()}.issubset(seen):raise ValueError('Incomplete entry')
+    required={CORE.lower()+name for name in REQUIRED_JSON}|{CORE.lower()+'nes.rbf_r',(ASSETS+'menu.bin').lower()}
+    if not required.issubset(seen):raise ValueError('Incomplete entry: required APF definitions missing')
     meta=check_core(package/'core'/CORE)
     if meta['metadata']['platform_ids']!=['neslab','nes'] or meta['framework']['sleep_supported']:raise ValueError('Unexpected platform/sleep profile')
     slots=json.loads((package/'core'/CORE/'data.json').read_text())['data']['data_slots']

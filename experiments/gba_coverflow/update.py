@@ -14,6 +14,7 @@ spec=importlib.util.spec_from_file_location('gba_install',ROOT/'experiments/gba_
 base=importlib.util.module_from_spec(spec);spec.loader.exec_module(base)
 sha,safe_path,identity,publish=base.sha,base.safe_path,base.identity,base.publish
 from display_styles import configure as configure_display
+from apf_metadata import check_candidate_bitstream
 CORE='Cores/pocketlab.GBA/'
 KNOWN_SOURCE={'73226a39e7fd25429ef939d0fd2668902b28674823c9ec65e1a0f0da13771af8'}
 MENU_MODE={'width':320,'height':288,'aspect_w':10,'aspect_h':9,'rotation':0,'mirror':0}
@@ -46,7 +47,7 @@ def stage(card,package,library,out,display_profile=False):
     if build.get('core')!='pocketlab.GBA' or build.get('menu_format')!='GBAF2' or lib.get('format')!='GBAF2' or build['minimum_reported_slack_ns']<0:raise ValueError('Matching timing-checked GBAF2 build/library required')
     by_name={item['path']:item for item in build['files']}
     binary=CORE+'gba.rbf_r';item=by_name[binary]
-    if sha(allowed(package/'core',binary))!=item['sha256']:raise ValueError('Candidate binary changed')
+    if check_candidate_bitstream(allowed(package/'core',binary))!=item['sha256']:raise ValueError('Candidate binary changed')
     current=allowed(card,binary)
     if sha(current) not in KNOWN_SOURCE | {item['sha256']}:raise ValueError('Current core is not the retained accepted source or this candidate')
     base.check_core(current.parent)

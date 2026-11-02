@@ -243,10 +243,12 @@ class Delivery(unittest.TestCase):
                 slot, address = {'GG': (1,0x10000000), 'SMS': (4,0x30000000), 'SG1000': (5,0x60000000)}[name]
                 slots = [{'id':100}, {'id':slot, 'address':hex(address)}, {'id':2, 'size_maximum':'0x8000'}, {'id':3}]
                 video['scaler_modes'] = [{}]*4 + [{'width':320, 'height':288}, {'width':256, 'height':240}]
-            contents = {'core': {'core': {'metadata': metadata, 'framework': {'sleep_supported': False,
+            contents = {'core': {'core': {'magic':'APF_VER_1','metadata': metadata, 'framework': {'sleep_supported': False,
                         'hardware': {'cartridge_adapter': -1}}, 'cores': [{'filename':platform+'.rbf_r'}]}},
-                        'data': {'data': {'data_slots': slots}}, 'video': {'video':video},
-                        'audio': {}, 'input': {}, 'interact': {}}
+                        'data': {'data': {'magic':'APF_VER_1','data_slots': slots}}, 'video': {'video':video},
+                        'audio': {'audio':{'magic':'APF_VER_1'}}, 'input': {'input':{'magic':'APF_VER_1'}},
+                        'interact': {'interact':{'magic':'APF_VER_1'}},
+                        'variants': {'variants':{'magic':'APF_VER_1','variant_list':[]}}}
             for key, value in contents.items():
                 delivery.write(core/(key+'.json'), value)
             put(core/(platform+'.rbf_r'), b'synthetic core fixture')

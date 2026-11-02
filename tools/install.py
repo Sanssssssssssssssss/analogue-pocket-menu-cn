@@ -82,7 +82,8 @@ def plan(card, package, library):
     required={'Cores/pocketlab.CoverFlow/core.json','Cores/pocketlab.CoverFlow/gbc.rbf_r',
               'Cores/pocketlab.CoverFlow/data.json','Cores/pocketlab.CoverFlow/video.json',
               'Cores/pocketlab.CoverFlow/input.json','Cores/pocketlab.CoverFlow/interact.json',
-              'Cores/pocketlab.CoverFlow/audio.json','Platforms/gbclab.json','Platforms/_images/gbclab.bin'}
+              'Cores/pocketlab.CoverFlow/audio.json','Cores/pocketlab.CoverFlow/variants.json',
+              'Platforms/gbclab.json','Platforms/_images/gbclab.bin'}
     if not required.issubset({x['path'] for x in p['files']}):raise ValueError('Incomplete core package')
     if not {'Assets/gbclab/common/covers.bin','Assets/gbclab/common/gbc_bios.bin'}.issubset({x['path'] for x in lib['files']}):
         raise ValueError('Incomplete library/BIOS manifest')

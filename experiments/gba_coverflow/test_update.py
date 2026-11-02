@@ -29,7 +29,11 @@ class UpdateSafety(unittest.TestCase):
         meta['core']['cores']=[{'name':'default','id':0,'filename':'gba.rbf_r'}]
         installed=self.card/updater.CORE;installed.mkdir(parents=True)
         (installed/'core.json').write_text(json.dumps(meta));(installed/'gba.rbf_r').write_bytes(b'synthetic-accepted-core')
-        (installed/'data.json').write_text(json.dumps({'data':{'data_slots':[{'id':v} for v in [100,4,1,10,11]]}}))
+        (installed/'data.json').write_text(json.dumps({'data':{'magic':'APF_VER_1','data_slots':[{'id':v} for v in [100,4,1,10,11]]}}))
+        for key in ('audio','input','interact','variants'):
+            value={'magic':'APF_VER_1'}
+            if key=='variants':value['variant_list']=[]
+            (installed/(key+'.json')).write_text(json.dumps({key:value}))
         self.video={'video':{'magic':'APF_VER_1','scaler_modes':[{'width':240,'height':160,'aspect_w':3,'aspect_h':2,'rotation':0,'mirror':0}],
             'display_modes':[{'id':'0x41'},{'id':'0x42'}]}}
         (installed/'video.json').write_text(json.dumps(self.video))
@@ -41,6 +45,15 @@ class UpdateSafety(unittest.TestCase):
         self.trust=patch.object(updater,'KNOWN_SOURCE',{updater.sha(installed/'gba.rbf_r')});self.trust.start();self.addCleanup(self.trust.stop)
 
     def plan(self):return updater.stage(self.card,self.package,self.f2,self.staging)
+
+    def test_device_failed_candidate_is_rejected_before_staging(self):
+        import apf_metadata
+        digest=updater.sha(self.package/'core'/updater.CORE/'gba.rbf_r')
+        before={p.relative_to(self.card).as_posix():p.read_bytes() for p in self.card.rglob('*') if p.is_file()}
+        with patch.dict(apf_metadata.REJECTED_CANDIDATES,{digest:'synthetic device failure'}):
+            with self.assertRaisesRegex(ValueError,'Device-rejected'):self.plan()
+        self.assertFalse(self.staging.exists())
+        self.assertEqual(before,{p.relative_to(self.card).as_posix():p.read_bytes() for p in self.card.rglob('*') if p.is_file()})
 
     def test_plan_apply_and_rollback_preserve_game_modes_and_new_progress(self):
         before={p.relative_to(self.card).as_posix():p.read_bytes() for p in self.card.rglob('*') if p.is_file()}

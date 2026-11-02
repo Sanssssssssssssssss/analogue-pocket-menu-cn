@@ -81,7 +81,7 @@ def stage(build,out,archive,gba_source,platform):
         inputs[rel.as_posix()]=sha(q)
     pkg=out/'core';dst=pkg/('Cores/pocketlab.'+short);dst.mkdir(parents=True)
     original=build/('pkg/Cores/kroy.'+short)
-    for key in ('input','audio'):shutil.copy2(original/(key+'.json'),dst/(key+'.json'))
+    for key in ('input','audio','variants'):shutil.copy2(original/(key+'.json'),dst/(key+'.json'))
     meta=json.loads((original/'core.json').read_text())['core'];version='0.4.0-'+platform+('.2' if platform=='gg' else '.1')
     meta['metadata'].update(platform_ids=[namespace,platform],shortname=short,author='pocketlab',
         description='Chinese CoverFlow. L+R+Select: pause, save and return.',version=version,date_release='2026-11-03' if platform=='gg' else '2026-11-02',

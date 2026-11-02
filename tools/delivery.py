@@ -47,9 +47,9 @@ def allowed(root, rel, component):
     core = 'Cores/pocketlab.' + short + '/'
     assets = 'Assets/' + ns + '/common/'
     names = ['core.json', 'data.json', 'audio.json', 'input.json', 'interact.json',
-             'video.json', binary + '.rbf_r']
+             'video.json', 'variants.json', binary + '.rbf_r']
     if component == 'GB-GBC':
-        names += ['icon.bin', 'info.txt', 'variants.json']
+        names += ['icon.bin', 'info.txt']
     leaf = 'covers.bin' if component == 'GB-GBC' else 'menu.bin'
     valid = rel in {core + n for n in names} | {
         f'Platforms/{ns}.json', f'Platforms/_images/{ns}.bin', assets + leaf}

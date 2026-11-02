@@ -17,9 +17,13 @@ class Install(unittest.TestCase):
         self.library=self.root/'library';library.build(self.card,self.library)
         self.package=self.root/'package';core=self.package/'core/Cores/pocketlab.NES';core.mkdir(parents=True)
         metadata=dict(platform_ids=['neslab','nes'],shortname='NES',author='pocketlab',description='Synthetic installer fixture',url='https://example.org',version='test',date_release='2026-11-02')
-        (core/'core.json').write_text(json.dumps({'core':{'metadata':metadata,'framework':{'sleep_supported':False},'cores':[{'filename':'nes.rbf_r'}]}}))
+        (core/'core.json').write_text(json.dumps({'core':{'magic':'APF_VER_1','metadata':metadata,'framework':{'sleep_supported':False},'cores':[{'filename':'nes.rbf_r'}]}}))
         (core/'nes.rbf_r').write_bytes(b'synthetic FPGA installer fixture, never a release')
-        (core/'data.json').write_text(json.dumps({'data':{'data_slots':[{'id':i} for i in [100,0,10,11]]}}))
+        (core/'data.json').write_text(json.dumps({'data':{'magic':'APF_VER_1','data_slots':[{'id':i} for i in [100,0,10,11]]}}))
+        for key in ('audio','input','interact','variants','video'):
+            value={'magic':'APF_VER_1'}
+            if key=='variants':value['variant_list']=[]
+            (core/(key+'.json')).write_text(json.dumps({key:value}))
         files=[{'path':p.relative_to(self.package/'core').as_posix(),'bytes':p.stat().st_size,'sha256':hashlib.sha256(p.read_bytes()).hexdigest()} for p in core.iterdir()]
         self.receipt={'core':'pocketlab.NES','version':'test','menu_format':'GBAF2/NES','minimum_slack_ns':1,'timing_records':128,'files':files}
         self.write_receipt()
@@ -28,6 +32,12 @@ class Install(unittest.TestCase):
 
     def write_receipt(self):
         (self.package/'build-receipt.json').write_text(json.dumps(self.receipt))
+
+    def test_variants_must_be_in_the_install_manifest(self):
+        self.receipt['files']=[x for x in self.receipt['files'] if not x['path'].endswith('/variants.json')];self.write_receipt()
+        before=snapshot(self.card)
+        with self.assertRaisesRegex(ValueError,'required APF definitions'):installer.plan(self.card,self.package,self.library)
+        self.assertEqual(before,snapshot(self.card))
 
     def test_install_rollback_keeps_originals_and_new_play_progress(self):
         before=snapshot(self.card);backup=self.root/'backup'

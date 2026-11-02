@@ -16,7 +16,7 @@ from prepare_build import prepare
 ROOT=Path(__file__).resolve().parents[2]
 CORE='pocketlab.GBA'
 sys.path.insert(0,str(ROOT/'tools'))
-from apf_metadata import check_core
+from apf_metadata import check_core,check_candidate_bitstream
 from display_styles import configure as configure_display
 
 
@@ -111,6 +111,7 @@ def stage(build,out,sources,motion=False,coverflow=False):
         interact['interact']['variables'].append({'name':label,'id':id_,'type':'number_u32','enabled':False,'address':hex(address)})
     (dst/'interact.json').write_text(json.dumps(interact,indent=2)+'\n',encoding='utf8')
     check_core(dst)
+    check_candidate_bitstream(dst/'gba.rbf_r')
     platforms=pkg/'Platforms';(platforms/'_images').mkdir(parents=True)
     platform={'platform':{'category':'Handheld','name':'GBA Menu CN','manufacturer':'Pocket Lab','year':2026}}
     (platforms/'gbalab.json').write_text(json.dumps(platform,indent=2)+'\n')

@@ -16,7 +16,7 @@ SHORT={'gg':'GG','sms':'SMS','sg1000':'SG1000'}
 
 def allowed(root,rel,platform):
     ns=PROFILES[platform][0];core='Cores/pocketlab.'+SHORT[platform]+'/'
-    if not (rel.startswith(core) and (rel[len(core):] in [k+'.json' for k in ('core','data','audio','input','interact','video')]+[platform+'.rbf_r'])
+    if not (rel.startswith(core) and (rel[len(core):] in [k+'.json' for k in ('core','data','audio','input','interact','variants','video')]+[platform+'.rbf_r'])
         or rel in (f'Platforms/{ns}.json',f'Platforms/_images/{ns}.bin',f'Assets/{ns}/common/menu.bin')
         or re.fullmatch(f'Assets/{ns}/common/libs/[0-9a-f]{{16}}\\.bin',rel)
         or re.fullmatch(f'Assets/{ns}/cheat/[0-9a-f]{{20}}\\.cht',rel)
@@ -56,7 +56,7 @@ def plan(card,package,library,platform,offline_source=False):
             if target.exists():raise ValueError('First-install tool refuses existing file: '+rel)
             if path.stat().st_size!=item['bytes'] or sha(path)!=item['sha256']:raise ValueError('Staged file changed')
             changes.append({**item,'source':str(root)})
-    required={core+k+'.json' for k in ('core','data','audio','input','interact','video')}|{core+platform+'.rbf_r',f'Platforms/{ns}.json',f'Platforms/_images/{ns}.bin',f'Assets/{ns}/common/menu.bin'}
+    required={core+k+'.json' for k in ('core','data','audio','input','interact','variants','video')}|{core+platform+'.rbf_r',f'Platforms/{ns}.json',f'Platforms/_images/{ns}.bin',f'Assets/{ns}/common/menu.bin'}
     if not {p.casefold() for p in required}.issubset(seen):raise ValueError('Incomplete entry')
     meta=check_core(package/'core'/core)
     if meta['metadata']['platform_ids']!=[ns,platform] or meta['framework']['sleep_supported'] or meta['framework']['hardware']['cartridge_adapter']!=-1:raise ValueError('Unexpected platform/sleep/cartridge profile')

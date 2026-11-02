@@ -22,9 +22,11 @@ class Install(unittest.TestCase):
         stage=root/'library';library.build(card,stage,platform,cheats=index if with_cheat else None)
         package=root/'package';core=package/'core'/('Cores/pocketlab.'+short);core.mkdir(parents=True)
         metadata=dict(platform_ids=[ns,platform],shortname=short,author='pocketlab',description='Synthetic installer fixture',url='https://example.org',version='test',date_release='2026-11-02')
-        contents={'core':{'core':{'metadata':metadata,'framework':{'sleep_supported':False,'hardware':{'cartridge_adapter':-1}},'cores':[{'filename':platform+'.rbf_r'}]}},
-            'data':{'data':{'data_slots':[{'id':100},{'id':slot,'address':hex(address)},{'id':2,'size_maximum':'0x8000'},{'id':3}]}},
-            'video':{'video':{'scaler_modes':[{}]*4+[{'width':320,'height':288},{'width':256,'height':240}]}},'audio':{},'input':{},'interact':{}}
+        contents={'core':{'core':{'magic':'APF_VER_1','metadata':metadata,'framework':{'sleep_supported':False,'hardware':{'cartridge_adapter':-1}},'cores':[{'filename':platform+'.rbf_r'}]}},
+            'data':{'data':{'magic':'APF_VER_1','data_slots':[{'id':100},{'id':slot,'address':hex(address)},{'id':2,'size_maximum':'0x8000'},{'id':3}]}},
+            'video':{'video':{'magic':'APF_VER_1','scaler_modes':[{}]*4+[{'width':320,'height':288},{'width':256,'height':240}]}},
+            'audio':{'audio':{'magic':'APF_VER_1'}},'input':{'input':{'magic':'APF_VER_1'}},'interact':{'interact':{'magic':'APF_VER_1'}},
+            'variants':{'variants':{'magic':'APF_VER_1','variant_list':[]}}}
         for key,value in contents.items():(core/(key+'.json')).write_text(json.dumps(value))
         (core/(platform+'.rbf_r')).write_bytes(b'synthetic fixture, never a device bitstream')
         p=package/'core/Platforms'/('_images/'+ns+'.bin');p.parent.mkdir(parents=True);p.write_bytes(b'synthetic fixture')
@@ -32,6 +34,13 @@ class Install(unittest.TestCase):
         receipt={'core':'pocketlab.'+short,'platform':platform,'namespace':ns,'version':'test','menu_format':'GBAF2/Sega','minimum_slack_ns':1,'timing_records':72}
         self.refresh(package,receipt)
         return card,package,stage,root
+
+    def test_variants_must_be_in_the_install_manifest(self):
+        card,package,stage,root=self.fixture();path=package/'build-receipt.json';receipt=json.loads(path.read_text())
+        receipt['files']=[x for x in receipt['files'] if not x['path'].endswith('/variants.json')];path.write_text(json.dumps(receipt))
+        before=snapshot(card)
+        with self.assertRaisesRegex(ValueError,'Incomplete entry'):installer.plan(card,package,stage,'gg')
+        self.assertEqual(before,snapshot(card))
 
     def refresh(self,package,receipt=None):
         if receipt is None:receipt=json.loads((package/'build-receipt.json').read_text())
