@@ -120,10 +120,12 @@ def pack(entries,covers=None):
     return header+b''.join(records)+b''.join(rgb565(frame(entries,i,covers)) for i in range(len(entries)))+b''.join(rgb565(pause_frame(i)) for i in range(2))
 
 
-def build(card,out,titles=None,covers=None,folder_titles=None,skip_invalid=False):
+def build(card,out,titles=None,covers=None,folder_titles=None,skip_invalid=False,page_limit=None):
     card,out=Path(card).resolve(),Path(out).resolve()
     if out.exists() or out.is_relative_to(card) or card.is_relative_to(out):
         raise ValueError('Use a new local output outside the input card/copy')
+    limit=MAX_ENTRIES if page_limit is None else page_limit
+    if not isinstance(limit,int) or not 3<=limit<=MAX_ENTRIES:raise ValueError('Page limit must be 3..2047')
     titles={} if not titles else json.loads(Path(titles).read_text(encoding='utf-8-sig'))
     if not isinstance(titles,dict) or any(not isinstance(t,str) or not t.strip() for t in titles.values()):
         raise ValueError('Titles must map card-relative paths to nonempty display titles')
@@ -162,6 +164,20 @@ def build(card,out,titles=None,covers=None,folder_titles=None,skip_invalid=False
                           'save':f'{SAVES}/{id_}.sav','rtc':f'{SAVES}/{id_}.rtc'})
     if not inventory:raise ValueError('No GBA ROMs found')
     if set(titles)-source_paths:raise ValueError('Unknown title mapping path')
+    for key,node in list(nodes.items()) if page_limit is not None else []:
+        capacity=limit-1
+        if len(node['children'])+len(node['games'])<=capacity:continue
+        items=[('folder',k) for k in sorted(node['children'])]+[('game',g) for g in sorted(node['games'],key=lambda e:e['title'].casefold())]
+        if (len(items)+capacity-1)//capacity>capacity:raise ValueError('Too many entries for automatic pages; add subfolders')
+        node['children']=set();node['games']=[]
+        for i in range(0,len(items),capacity):
+            child=(key+'/' if key else '')+'@page'+str(i//capacity+1)
+            if child in nodes:raise ValueError('Reserved pagination key collision')
+            part=items[i:i+capacity]
+            nodes[child]={'title':'第 '+str(i//capacity+1)+' 页','parent':key,
+                'children':{item for kind,item in part if kind=='folder'},'games':[item for kind,item in part if kind=='game']}
+            for old_child in nodes[child]['children']:nodes[old_child]['parent']=child
+            node['children'].add(child)
     def page_id(key):return 'root' if not key else hashlib.sha256(key.encode()).hexdigest()[:16]
     def page_path(key):return f'/{ASSETS}/'+('menu.bin' if not key else 'libs/'+page_id(key)+'.bin')
     def folder(key,title=None):
@@ -171,7 +187,7 @@ def build(card,out,titles=None,covers=None,folder_titles=None,skip_invalid=False
     for key,node in sorted(nodes.items()):
         entries=[folder(k) for k in sorted(node['children'])]+sorted(node['games'],key=lambda e:e['title'].casefold())
         entries.append(folder(node['parent'],'返回上级' if key else '返回首页'))
-        if len(entries)>MAX_ENTRIES:raise ValueError('Page exceeds 2047 entries: '+key)
+        if len(entries)>limit:raise ValueError('Page exceeds selected entry limit: '+key)
         for entry in entries:title_lines(entry['title']);path_field(entry['rom'])
         pages[page_path(key).lstrip('/')]=entries
     needed=sum(64+len(e)*1024+(len(e)+2)*FRAME_BYTES for e in pages.values())
@@ -185,6 +201,7 @@ def build(card,out,titles=None,covers=None,folder_titles=None,skip_invalid=False
         files.append({'path':rel,'sha256':gb.sha(path),'bytes':path.stat().st_size})
     receipt={'format':'GBAF1','source_writes':0,'rom_copies':0,'save_writes':0,'roms':inventory,'files':files,'skipped':skipped,
              'hardware_playtest':'pending','note':'GBA ordinary saves and RTC only; APF sleep/memories disabled in experimental core'}
+    if page_limit is not None:receipt['page_titles']={page_path(key):node['title'] for key,node in nodes.items()}
     (out/'library-manifest.json').write_text(json.dumps(receipt,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
     return receipt
 

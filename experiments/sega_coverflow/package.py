@@ -82,9 +82,9 @@ def stage(build,out,archive,gba_source,platform):
     pkg=out/'core';dst=pkg/('Cores/pocketlab.'+short);dst.mkdir(parents=True)
     original=build/('pkg/Cores/kroy.'+short)
     for key in ('input','audio'):shutil.copy2(original/(key+'.json'),dst/(key+'.json'))
-    meta=json.loads((original/'core.json').read_text())['core'];version='0.4.0-'+platform+'.1'
+    meta=json.loads((original/'core.json').read_text())['core'];version='0.4.0-'+platform+('.2' if platform=='gg' else '.1')
     meta['metadata'].update(platform_ids=[namespace,platform],shortname=short,author='pocketlab',
-        description='Chinese CoverFlow. L+R+Select: pause, save and return.',version=version,date_release='2026-11-02',
+        description='Chinese CoverFlow. L+R+Select: pause, save and return.',version=version,date_release='2026-11-03' if platform=='gg' else '2026-11-02',
         url='https://github.com/Sanssssssssssssssss/analogue-pocket-menu-cn')
     meta['framework']['sleep_supported']=False
     # Official legacy encoding for bit31: leave physical cartridge power off.
@@ -106,7 +106,7 @@ def stage(build,out,archive,gba_source,platform):
     if found!=1:raise ValueError('Native cheat master control differs')
     write('interact',interact)
     slots=[{'id':100,'name':'Chinese Menu','required':True,'deferload':True,'parameters':'0x8','filename':'menu.bin','extensions':['bin'],'address':'0x70000000','size_maximum':'0x10000000'},
-        {'id':slot,'name':'Cartridge','required':False,'deferload':True,'parameters':'0x8','extensions':{'gg':['gg'],'sms':['sms'],'sg1000':['sg','sg1','bin']}[platform],'address':f'0x{address:08X}','size_maximum':'0x400000'},
+        {'id':slot,'name':'Cartridge','required':False,'deferload':True,'parameters':'0x8','extensions':{'gg':['gg','sms'],'sms':['sms'],'sg1000':['sg','sg1','bin']}[platform],'address':f'0x{address:08X}','size_maximum':'0x400000'},
         {'id':2,'name':'Save','required':False,'deferload':True,'parameters':'0x0','nonvolatile':True,'extensions':['sav'],'address':'0x20000000','size_maximum':'0x8000'},
         {'id':3,'name':'Cheats','required':False,'deferload':True,'parameters':'0x200','extensions':['cht'],'address':'0x50000000','size_maximum':'0x10000'}]
     write('data',{'data':{'magic':'APF_VER_1','data_slots':slots}})

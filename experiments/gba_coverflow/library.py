@@ -61,6 +61,11 @@ def upgrade(source,out,titles=None,folders=None,covers=None):
     for key in keys- {''}:
         name=hashlib.sha256(key.encode()).hexdigest()[:16]
         page_titles[f'/Assets/gbalab/common/libs/{name}.bin']=folders.get(key,'GBA 游戏库' if key=='gba' else LABELS.get(key.rsplit('/',1)[-1],key.rsplit('/',1)[-1]))
+    extra_titles=manifest.get('page_titles',{})
+    if not isinstance(extra_titles,dict) or any(not isinstance(v,str) or not v.strip() for v in extra_titles.values()):raise ValueError('Invalid generated page titles')
+    declared_pages={'/'+item['path'] for item in manifest['files']}
+    if set(extra_titles)-declared_pages:raise ValueError('Page title references an undeclared menu')
+    page_titles.update(extra_titles)
     plans=[];needed=0
     for item in manifest['files']:
         rel=PurePosixPath(item['path']);path=source/rel
@@ -85,8 +90,8 @@ def upgrade(source,out,titles=None,folders=None,covers=None):
             if unknown or subunknown:raise ValueError('Missing glyphs: '+''.join(unknown+subunknown))
             if clipped:warnings.append({'path':entry['rom'],'reason':'long title clipped to 500 columns'})
             cover=None
-            if not entry['folder'] and covers:
-                for cover_root in covers:
+            if not entry['folder']:
+                for cover_root in covers or []:
                     candidate=cover_root/Path(entry['rom'].lstrip('/')).with_suffix('.png')
                     if candidate.is_file():
                         if not candidate.resolve().is_relative_to(cover_root):raise ValueError('Cover escapes root')
@@ -105,7 +110,7 @@ def upgrade(source,out,titles=None,folders=None,covers=None):
         files.append({'path':str(rel),'sha256':gb.sha(dest),'bytes':dest.stat().st_size})
     receipt={'format':'GBAF2','rendering':'shared accepted GB/GBC CoverFlow, 128/80 RGB565 atlas and Unicode bitmap rows',
         'source_manifest_sha256':gb.sha(source/'library-manifest.json'),'source_writes':0,'rom_copies':0,'save_writes':0,
-        'roms':manifest['roms'],'files':files,'warnings':warnings,'covers':{'matched_entry_references':matched,'missing_entry_references':missing},
+        'roms':manifest['roms'],'files':files,'warnings':warnings,'skipped':manifest.get('skipped',[]),'covers':{'matched_entry_references':matched,'missing_entry_references':missing},
         'hardware_playtest':'pending','rom_identity_status':'inherited snapshot; final card hash verification required'}
     (out/'library-manifest.json').write_text(json.dumps(receipt,ensure_ascii=False,indent=2)+'\n',encoding='utf8')
     return receipt

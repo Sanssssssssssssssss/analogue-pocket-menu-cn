@@ -1,6 +1,7 @@
 .work/
 .build/
 dist/
+my-menus/
 __pycache__/
 *.pyc
 .venv/

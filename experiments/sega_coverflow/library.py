@@ -7,11 +7,12 @@ from controller import ROOT,PROFILES
 sys.path.insert(0,str(ROOT/'tools'))
 from install import safe_path,identity
 import build_library as gb
+from sega_formats import legacy_gamegear
 from menu_icons import LABELS,kind
 spec=importlib.util.spec_from_file_location('sega_pause_images',ROOT/'experiments/gba_menu/library.py')
 visual=importlib.util.module_from_spec(spec);spec.loader.exec_module(visual)
 LABEL={'gg':'世嘉 掌机','sms':'世嘉 家用机','sg1000':'世嘉 早期主机'}
-EXT={'gg':('.gg',),'sms':('.sms',),'sg1000':('.sg','.sg1','.bin')}
+EXT={'gg':('.gg','.sms'),'sms':('.sms',),'sg1000':('.sg','.sg1','.bin')}
 
 
 def mapping(path):
@@ -131,7 +132,10 @@ def build(card,out,platform,titles=None,covers=None,folders=None,cheats=None,off
             excluded.append({'path':rel,'reason':'SC-3000 computer software; keyboard/platform not implemented by this SG-1000 entry'});continue
         if not 192<=path.stat().st_size<=4194304 or path.stat().st_size%4:
             excluded.append({'path':rel,'reason':'native aligned 192-byte..4-MiB limit'});continue
-        path_field('/'+rel,platform);raw=path.read_bytes();digest=hashlib.sha256(raw).hexdigest();tag=digest[:20]
+        path_field('/'+rel,platform);raw=path.read_bytes()
+        if platform=='gg' and path.suffix.lower()=='.sms' and not legacy_gamegear(raw):
+            excluded.append({'path':rel,'reason':'Legacy .sms file is not identified as a Game Gear image; source bytes preserved'});continue
+        digest=hashlib.sha256(raw).hexdigest();tag=digest[:20]
         if tag in ids and ids[tag]!=digest:raise ValueError('Progress identity prefix collision')
         ids[tag]=digest
         key=path.relative_to(source).parent.as_posix();key='' if key=='.' else key;ensure(key)
