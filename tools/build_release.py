@@ -29,6 +29,9 @@ def create(bitstream,out,display_profile=False):
     if display_profile:
         version='0.1.2-display.1';folder=stage/'Cores/pocketlab.CoverFlow'
         meta=json.loads((folder/'core.json').read_text(encoding='utf8'));meta['core']['metadata']['version']=version
+        # Official equivalent of the retained bit31 flag, also understood by
+        # older community metadata validators. Physical cart power stays off.
+        meta['core']['framework']['hardware']['cartridge_adapter']=-1
         (folder/'core.json').write_text(json.dumps(meta,indent=2)+'\n',encoding='utf8')
         video=json.loads((folder/'video.json').read_text(encoding='utf8'))
         (folder/'video.json').write_text(json.dumps(configure_display(video,'gbc'),indent=2)+'\n',encoding='utf8')

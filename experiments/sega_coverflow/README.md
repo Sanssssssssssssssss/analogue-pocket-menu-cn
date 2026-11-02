@@ -18,6 +18,8 @@
 
 每款游戏使用独立 32 KiB 普通存档，仅对缺失的新路径预建 FF 内容。原进度不覆盖，不猜测导入。L+R+Select 打开中文暂停页，可继续或保存并返回；Memories／休眠和实体卡带启动在这些实验入口关闭。原核心继续保留。
 
+元数据用官方兼容值 `cartridge_adapter: -1` 保持实体卡槽断电；它等价于 bit31 的 `0x80000000`。社区校验器 0.7.0 拒绝部分合法的新版十六进制字符串，因此采用官方定义的旧编码，见[官方 core.json](https://www.analogue.co/developer/docs/openfpga/core-definition-files/core-json)。此项不是刷写机器固件。
+
 原生金手指引擎支持 PAR 工作 RAM 写入及六／九位 Game Genie。自动配置要求 SHA1、CRC32、大小和可选 SHA256 全部匹配，最多两组实用效果，拒绝互相冲突的 RAM 写入。每条代码单独成组；原生解析器确认有效后才启用。改版／汉化 ROM 身份不符时不套用原版代码。解析失败保留已加载的游戏现场，B 可继续且不启用自动代码。手动 Cheats 总开关可以关闭。实际游戏效果仍需实机验收。
 
 `import_profiles.py` 可复用已有校验清单的实用代码包，生成 `SEGA-CHEATS1` 已知版本候选索引。候选数量不等于用户游戏匹配数量；只有 `library.py` 读取实际 ROM 后才确认匹配。数据库代码继承 [libretro-database](https://github.com/libretro/libretro-database/tree/da577d2865c2b1b834b2d5f2fd1368fc5110a01c/cht) 的 CC-BY-SA-4.0，生成私有库保留来源，公开仓库不附代码库或 ROM。

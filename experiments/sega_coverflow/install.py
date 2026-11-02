@@ -58,7 +58,7 @@ def plan(card,package,library,platform):
     required={core+k+'.json' for k in ('core','data','audio','input','interact','video')}|{core+platform+'.rbf_r',f'Platforms/{ns}.json',f'Platforms/_images/{ns}.bin',f'Assets/{ns}/common/menu.bin'}
     if not {p.casefold() for p in required}.issubset(seen):raise ValueError('Incomplete entry')
     meta=check_core(package/'core'/core)
-    if meta['metadata']['platform_ids']!=[ns,platform] or meta['framework']['sleep_supported'] or meta['framework']['hardware']['cartridge_adapter']!='0x00000000':raise ValueError('Unexpected platform/sleep/cartridge profile')
+    if meta['metadata']['platform_ids']!=[ns,platform] or meta['framework']['sleep_supported'] or meta['framework']['hardware']['cartridge_adapter']!=-1:raise ValueError('Unexpected platform/sleep/cartridge profile')
     slots=json.loads((package/'core'/core/'data.json').read_text())['data']['data_slots']
     if [s['id'] for s in slots]!=[100,slot,2,3] or int(slots[1]['address'],16)!=address or int(slots[2]['size_maximum'],16)!=32768:raise ValueError('Native APF datatable binding differs')
     video=json.loads((package/'core'/core/'video.json').read_text())['video']['scaler_modes']

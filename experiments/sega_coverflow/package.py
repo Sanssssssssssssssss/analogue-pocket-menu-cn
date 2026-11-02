@@ -87,7 +87,8 @@ def stage(build,out,archive,gba_source,platform):
         description='Chinese CoverFlow. L+R+Select: pause, save and return.',version=version,date_release='2026-11-02',
         url='https://github.com/Sanssssssssssssssss/analogue-pocket-menu-cn')
     meta['framework']['sleep_supported']=False
-    meta['framework']['hardware']['cartridge_adapter']='0x00000000'
+    # Official legacy encoding for bit31: leave physical cartridge power off.
+    meta['framework']['hardware']['cartridge_adapter']=-1
     meta['cores']=[{'name':'default','id':0,'filename':platform+'.rbf_r'}]
     def write(name,value):
         (dst/(name+'.json')).write_text(json.dumps(value,indent=2)+'\n',encoding='utf8',newline='\n')

@@ -22,7 +22,7 @@ class Install(unittest.TestCase):
         stage=root/'library';library.build(card,stage,platform,cheats=index if with_cheat else None)
         package=root/'package';core=package/'core'/('Cores/pocketlab.'+short);core.mkdir(parents=True)
         metadata=dict(platform_ids=[ns,platform],shortname=short,author='pocketlab',description='Synthetic installer fixture',url='https://example.org',version='test',date_release='2026-11-02')
-        contents={'core':{'core':{'metadata':metadata,'framework':{'sleep_supported':False,'hardware':{'cartridge_adapter':'0x00000000'}},'cores':[{'filename':platform+'.rbf_r'}]}},
+        contents={'core':{'core':{'metadata':metadata,'framework':{'sleep_supported':False,'hardware':{'cartridge_adapter':-1}},'cores':[{'filename':platform+'.rbf_r'}]}},
             'data':{'data':{'data_slots':[{'id':100},{'id':slot,'address':hex(address)},{'id':2,'size_maximum':'0x8000'},{'id':3}]}},
             'video':{'video':{'scaler_modes':[{}]*4+[{'width':320,'height':288},{'width':256,'height':240}]}},'audio':{},'input':{},'interact':{}}
         for key,value in contents.items():(core/(key+'.json')).write_text(json.dumps(value))
