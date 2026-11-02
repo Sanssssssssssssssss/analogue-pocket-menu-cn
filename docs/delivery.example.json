@@ -1,0 +1,10 @@
+{
+  "components": [
+    {"id": "GB-GBC", "package": "packages/GB-GBC", "mapping": "metadata/gbc-display-map.json"},
+    {"id": "GBA", "package": "packages/GBA", "library": "libraries/GBA"},
+    {"id": "NES", "package": "packages/NES", "titles": "metadata/nes-titles-1.json", "folders": "metadata/nes-folders-1.json", "covers": "metadata/covers"},
+    {"id": "GG", "package": "packages/GG", "titles": "metadata/gg-titles-1.json", "folders": "metadata/gg-folders-1.json", "covers": "metadata/covers", "cheats": "metadata/gg-cheats-index-1.json"},
+    {"id": "SMS", "package": "packages/SMS", "titles": "metadata/sms-titles-1.json", "folders": "metadata/sms-folders-1.json", "covers": "metadata/covers", "cheats": "metadata/sms-cheats-index-1.json"},
+    {"id": "SG1000", "package": "packages/SG1000", "titles": "metadata/sg1000-titles-2.json", "folders": "metadata/sg1000-folders-1.json", "covers": "metadata/covers"}
+  ]
+}

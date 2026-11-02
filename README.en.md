@@ -4,6 +4,8 @@ As of 2026-11-02, [complete delivery work](docs/COMPLETE-DELIVERY.md) retains of
 
 The public stable release supports GB/GBC. One Pocket user confirmed Chinese menus and game launch in the earlier [GBA `.3` experiment](experiments/gba_menu/README.md); ordinary saves, RTC and save-return await hardware acceptance. The new [NES CoverFlow candidate](experiments/nes_coverflow/README.md) passes full fit and 128 timing records with +0.056 ns minimum slack; its approximately 47.85 Hz menu and game/save behavior await device acceptance. SNES failed timing and has no installable package. Per-platform scope is recorded in [development status](docs/PER-SYSTEM-MENUS.md). None of the new shared-renderer candidates is installed or included in the stable release.
 
+The development branch includes a [batch preflight/update/rollback tool](docs/BATCH-UPDATE.md) for all six supported components, preserving current display defaults and both old and new progress. Actual-card verification and physical acceptance of new candidates remain pending.
+
 A native **openFPGA GB/GBC cover-flow frontend for Analogue Pocket**, with Simplified Chinese controls, Unicode game titles, folders and a black background.
 
 [简体中文](README.md) · [Releases](https://github.com/Sanssssssssssssssss/analogue-pocket-menu-cn/releases) · [Validation](docs/VALIDATION.md) · [Build](docs/BUILD.md) · [License](LICENSE.md)
