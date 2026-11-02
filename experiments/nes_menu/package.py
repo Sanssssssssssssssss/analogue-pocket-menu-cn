@@ -34,6 +34,11 @@ def stage(build,out,archive,coverflow=False):
         if p.suffix=='.qsf':
             def settings(x):return [s for s in x.decode().splitlines() if not s.startswith('set_global_assignment -name LAST_QUARTUS_VERSION ')]
             a,b=settings(a),settings(b)
+        elif p.suffix in ('.json','.qip') or rel.as_posix()=='projects/gba_menu_error.hex':
+            # These generated text files use the host's native newlines.
+            # Compare content across Windows preparation / Linux compilation;
+            # HDL, fonts and all other hardware inputs remain byte-exact.
+            a,b=a.replace(b'\r\n',b'\n'),b.replace(b'\r\n',b'\n')
         if a!=b:raise ValueError('Compiled inputs differ from current preparation: '+rel.as_posix())
         inputs[rel.as_posix()]=sha(q)
     pkg=out/'core';dst=pkg/'Cores/pocketlab.NES';dst.mkdir(parents=True)
