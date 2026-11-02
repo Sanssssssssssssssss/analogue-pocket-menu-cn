@@ -29,8 +29,12 @@ python tools/build_menus.py --card X:/ --out ./my-menus
 
 此命令只在电脑生成菜单。安装时仍须使用匹配格式的核心、当前卡版本核对和备份工具，见[整批更新](BATCH-UPDATE.md)。它没有实现核心运行时自动扫描目录，也没有自动导入其他模拟器存档。公共稳定二进制仍限 GB/GBC；其他候选的实际游戏、存档和新动画需要设备验收。
 
+已有 FC／世嘉入口可通过整批工具刷新：配置中将 `library` 指向此命令生成的对应目录，包的 bitstream 必须与当前入口完全一致。刷新保留现有画面／输入定义和存档，新增游戏使用内容身份对应的独立进度。GB/GBC 与 GBA 目前继续使用各自的更新规则；GBA 的 `.3` → F2 升级须保持原启动／存档绑定。
+
 ## English
 
 After installing `requirements.txt`, run `python tools/build_menus.py --card X:/ --out ./my-menus`. It detects the supported platform directories, recursively scans ROMs and defaults captions to each filename stem. Chinese, English and common Japanese glyphs are generated locally. Covers and per-path aliases are optional; missing artwork produces a text cover bearing the game name in the existing GB card style. Use `--systems` to select a subset. Output must be a new local directory outside the source card/copy.
 
 The tool writes libraries and a summary only; it never installs to the card or changes ROMs/existing progress. Rebuild into a fresh output after adding/removing/renaming files. New GBA libraries paginate at 128 entries including Back; existing F1 upgrades still require exact launch/save-record compatibility. Optional BIOS/covers/aliases and explicit invalid-header exclusions are described above. Legacy `.sms` GG images use header identification plus a checksum-pinned exception; the filename alone does not establish the platform. Installation and safe refresh still use compatible core-specific validators and verified backups. This is not runtime directory enumeration. The stable public binary remains GB/GBC; other native candidates await hardware acceptance.
+
+Installed NES/Sega entries can consume the generated `library` through the batch tool when the candidate bitstream exactly matches the installed one. Refresh preserves current display/input definitions and saves; new games get independent content-based progress identities. GB/GBC and GBA retain their existing update rules; the GBA `.3` to F2 upgrade requires unchanged launch/save bindings.

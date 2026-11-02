@@ -38,7 +38,7 @@ def verify_roms(card,refs,platform):
     return by_name
 
 
-def plan(card,package,library,platform,offline_source=False):
+def plan(card,package,library,platform,offline_source=False,refresh=False):
     card,package,library=map(lambda p:Path(p).resolve(),(card,package,library));ns,slot,address,_=PROFILES[platform]
     core='Cores/pocketlab.'+SHORT[platform]+'/'
     if any(p.is_relative_to(card) or card.is_relative_to(p) for p in (package,library)):raise ValueError('Staging must be outside card')
@@ -53,7 +53,7 @@ def plan(card,package,library,platform,offline_source=False):
             rel=item['path'];path=allowed(root,rel,platform);target=allowed(card,rel,platform)
             if rel.casefold() in seen:raise ValueError('Overlapping staged files')
             seen.add(rel.casefold())
-            if target.exists():raise ValueError('First-install tool refuses existing file: '+rel)
+            if target.exists() and not refresh:raise ValueError('First-install tool refuses existing file: '+rel)
             if path.stat().st_size!=item['bytes'] or sha(path)!=item['sha256']:raise ValueError('Staged file changed')
             changes.append({**item,'source':str(root)})
     required={core+k+'.json' for k in ('core','data','audio','input','interact','variants','video')}|{core+platform+'.rbf_r',f'Platforms/{ns}.json',f'Platforms/_images/{ns}.bin',f'Assets/{ns}/common/menu.bin'}
@@ -90,8 +90,10 @@ def plan(card,package,library,platform,offline_source=False):
                 if cheat.casefold() not in seen or allowed(library,cheat,platform).stat().st_size!=cheat_bytes:raise ValueError('Cheat binding/size differs')
         if not raw[64+(count-1)*1024+4]:raise ValueError('Missing parent entry')
     changes.sort(key=lambda c:(c['path']==core+'core.json',c['path']==f'Platforms/{ns}.json',c['path']))
-    return {'identity':ident,'platform':platform,'changes':changes,'source_refs':lib['source_refs'],'core_version':build['version'],
+    result={'identity':ident,'platform':platform,'changes':changes,'source_refs':lib['source_refs'],'core_version':build['version'],
         'status':'offline_validation_only' if offline_source else 'plan_only','source_writes':0,'firmware_writes':0,'original_save_writes':0,'hardware_acceptance':'pending'}
+    if refresh:result.update(primitives.refresh_library_plan(card,package/'core',changes,core))
+    return result
 
 
 def apply(card,package,library,backup,platform):

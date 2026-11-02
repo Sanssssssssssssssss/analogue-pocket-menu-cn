@@ -61,6 +61,44 @@ def read_manifest(root, filename):
             raise ValueError(f'Package/library checksum mismatch: {rel}')
     return value
 
+def refresh_library_plan(card, package, changes, core):
+    """Refresh native library files through delivery.py; retain working metadata."""
+    current=check_core(safe_path(card,core))
+    candidate=check_core(safe_path(package,core))
+    if current['cores']!=candidate['cores'] or current['metadata']['platform_ids']!=candidate['metadata']['platform_ids']:
+        raise ValueError('Library refresh requires the same native core identity')
+    for item in candidate['cores']:
+        rel=core.rstrip('/')+'/'+item['filename']
+        if sha(safe_path(card,rel))!=sha(safe_path(package,rel)):
+            raise ValueError('Library refresh requires the same native bitstream')
+    def definition(root,filename,key):
+        return json.loads(safe_path(root,core.rstrip('/')+'/'+filename).read_text(encoding='utf-8-sig'))[key]
+    if definition(card,'data.json','data')['data_slots']!=definition(package,'data.json','data')['data_slots']:
+        raise ValueError('Library refresh refuses changed native data-slot bindings')
+    def dimensions(root):
+        return [(row['width'],row['height']) for row in definition(root,'video.json','video')['scaler_modes']]
+    if dimensions(card)!=dimensions(package):
+        raise ValueError('Library refresh refuses changed native scaler bindings')
+    result=[];guards=[]
+    for row in changes:
+        rel=row['path'];target=safe_path(card,rel)
+        if target.exists() and not target.is_file():raise ValueError('Expected file: '+rel)
+        previous=sha(target) if target.is_file() else None
+        # Existing metadata contains the user's display/input choices. A
+        # library refresh neither installs another RBF nor replaces these.
+        if rel.startswith(core.rstrip('/')+'/') or rel.startswith('Platforms/'):
+            if previous is not None:
+                guards.append({'path':rel,'bytes':target.stat().st_size,'sha256':previous})
+                continue
+        if rel.startswith('Saves/') and previous is not None:
+            if target.stat().st_size!=row['bytes']:raise ValueError('Existing ordinary save has an unsupported size: '+rel)
+            continue
+        if previous==row['sha256']:
+            guards.append({'path':rel,'bytes':target.stat().st_size,'sha256':previous})
+        else:result.append({**row,'previous_sha256':previous})
+    return {'changes':result,'guards':guards,'operation':'library_refresh_same_bitstream'}
+
+
 def plan(card, package, library):
     card,package,library=map(lambda p:Path(p).resolve(),(card,package,library))
     ident=identity(card)

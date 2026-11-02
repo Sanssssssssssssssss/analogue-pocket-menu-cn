@@ -37,14 +37,26 @@ class UpdateSafety(unittest.TestCase):
         self.video={'video':{'magic':'APF_VER_1','scaler_modes':[{'width':240,'height':160,'aspect_w':3,'aspect_h':2,'rotation':0,'mirror':0}],
             'display_modes':[{'id':'0x41'},{'id':'0x42'}]}}
         (installed/'video.json').write_text(json.dumps(self.video))
-        build={'core':'pocketlab.GBA','menu_format':'GBAF2','version':'0.2.0-gba.5','minimum_reported_slack_ns':0.1,
-            'files':[{'path':updater.CORE+'gba.rbf_r','bytes':candidate.stat().st_size,'sha256':updater.sha(candidate)}]}
+        for p in installed.glob('*.json'):shutil.copy2(p,folder/p.name)
+        meta['core']['metadata'].update(version='0.2.0-gba.6',date_release='2026-11-03')
+        (folder/'core.json').write_text(json.dumps(meta))
+        build={'core':'pocketlab.GBA','menu_format':'GBAF2','version':'0.2.0-gba.6','minimum_reported_slack_ns':0.1,
+            'files':[{'path':updater.CORE+p.name,'bytes':p.stat().st_size,'sha256':updater.sha(p)} for p in folder.iterdir()]}
         (self.package/'build-receipt.json').write_text(json.dumps(build))
         self.save=self.card/'Saves/gba/common/MinishCap.sav';self.save.parent.mkdir(parents=True);self.save.write_bytes(b'precious progress')
         self.staging=self.root/'staging';self.backup=self.root/'backup'
         self.trust=patch.object(updater,'KNOWN_SOURCE',{updater.sha(installed/'gba.rbf_r')});self.trust.start();self.addCleanup(self.trust.stop)
 
     def plan(self):return updater.stage(self.card,self.package,self.f2,self.staging)
+
+    def test_update_uses_candidate_release_date_and_rejects_changed_definition(self):
+        self.plan()
+        meta=json.loads((self.staging/updater.CORE/'core.json').read_text())['core']['metadata']
+        self.assertEqual((meta['version'],meta['date_release']),('0.2.0-gba.6','2026-11-03'))
+        path=self.package/'core'/updater.CORE/'core.json';path.write_bytes(path.read_bytes()+b' ')
+        with self.assertRaisesRegex(ValueError,'APF definition missing or changed'):
+            updater.stage(self.card,self.package,self.f2,self.root/'rejected')
+        self.assertFalse((self.root/'rejected').exists())
 
     def test_device_failed_candidate_is_rejected_before_staging(self):
         import apf_metadata

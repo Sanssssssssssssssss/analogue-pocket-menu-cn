@@ -197,16 +197,18 @@ def component_plan(card, config, base, out):
         folder = 'nes_coverflow' if name == 'NES' else 'sega_coverflow'
         library = module(f'experiments/{folder}/library.py')
         installer = module(f'experiments/{folder}/install.py')
-        staged = out/'library'
+        staged = path('library') or out/'library'
         kwargs = {key: path(key) for key in ('titles', 'covers', 'folders')}
         platform = PROFILES[name][2]
         if name != 'NES':
             kwargs.update(platform=platform, cheats=path('cheats'))
-        manifest = library.build(card, staged, **kwargs)
+        manifest = read(staged/'library-manifest.json') if path('library') else library.build(card, staged, **kwargs)
         args = (card, package, staged) + (() if name == 'NES' else (platform,))
-        result = installer.plan(*args)
+        installed = safe_path(card, 'Cores/pocketlab.'+PROFILES[name][0]+'/core.json').is_file()
+        result = installer.plan(*args, refresh=installed)
         result['summary'] = {key: manifest[key] for key in ('unique_games', 'pages', 'covers', 'excluded', 'warnings')}
         result['summary']['cheat_matched_versions'] = len(manifest.get('cheats', []))
+        result['summary']['operation'] = result.get('operation', 'first_addition')
         return result
 
 

@@ -2,6 +2,7 @@
 import hashlib,importlib.util,json,tempfile,unittest
 from pathlib import Path
 import library
+import delivery
 from controller import PROFILES
 from test_library import snapshot,profile
 
@@ -24,7 +25,7 @@ class Install(unittest.TestCase):
         metadata=dict(platform_ids=[ns,platform],shortname=short,author='pocketlab',description='Synthetic installer fixture',url='https://example.org',version='test',date_release='2026-11-02')
         contents={'core':{'core':{'magic':'APF_VER_1','metadata':metadata,'framework':{'sleep_supported':False,'hardware':{'cartridge_adapter':-1}},'cores':[{'filename':platform+'.rbf_r'}]}},
             'data':{'data':{'magic':'APF_VER_1','data_slots':[{'id':100},{'id':slot,'address':hex(address)},{'id':2,'size_maximum':'0x8000'},{'id':3}]}},
-            'video':{'video':{'magic':'APF_VER_1','scaler_modes':[{}]*4+[{'width':320,'height':288},{'width':256,'height':240}]}},
+            'video':{'video':{'magic':'APF_VER_1','scaler_modes':[{'width':160,'height':144}]*4+[{'width':320,'height':288},{'width':256,'height':240}]}},
             'audio':{'audio':{'magic':'APF_VER_1'}},'input':{'input':{'magic':'APF_VER_1'}},'interact':{'interact':{'magic':'APF_VER_1'}},
             'variants':{'variants':{'magic':'APF_VER_1','variant_list':[]}}}
         for key,value in contents.items():(core/(key+'.json')).write_text(json.dumps(value))
@@ -34,6 +35,32 @@ class Install(unittest.TestCase):
         receipt={'core':'pocketlab.'+short,'platform':platform,'namespace':ns,'version':'test','menu_format':'GBAF2/Sega','minimum_slack_ns':1,'timing_records':72}
         self.refresh(package,receipt)
         return card,package,stage,root
+
+    def test_batch_refresh_for_all_native_profiles_preserves_display_and_played_saves(self):
+        for platform in PROFILES:
+            with self.subTest(platform=platform):
+                card,package,stage,root=self.fixture(platform,with_cheat=platform=='gg')
+                installer.apply(card,package,stage,root/'first-backup',platform)
+                ns=PROFILES[platform][0];short=installer.SHORT[platform]
+                save=next((card/f'Saves/{ns}/common').glob('*.sav'))
+                played=bytearray(save.read_bytes());played[:4]=b'PLAY';save.write_bytes(played)
+                core=card/('Cores/pocketlab.'+short)
+                video=delivery.read(core/'video.json');video['video']['defaults']={'sharpness':3};delivery.write(core/'video.json',video)
+                protected={p.relative_to(card).as_posix():p.read_bytes() for p in core.iterdir()}
+                name=next((card/f'Assets/{platform}/common/RPG').iterdir()).relative_to(card).as_posix()
+                aliases=root/'names.json';delivery.write(aliases,{name:'刷新后的中文名'})
+                fresh=root/'fresh';library.build(card,fresh,platform,titles=aliases,cheats=root/'cheats.json' if platform=='gg' else None)
+                config=root/'config/delivery.json';delivery.write(config,{'components':[{'id':short,'package':str(package),'library':str(fresh)}]})
+                before=snapshot(card);staging=root/'refresh';backup=root/'refresh-backup'
+                result=delivery.prepare(card,config,staging)
+                self.assertEqual(result['components'][short]['operation'],'library_refresh_same_bitstream')
+                self.assertFalse(any(c['path'].startswith(('Cores/','Platforms/','Saves/')) for c in result['changes']))
+                self.assertEqual(before,snapshot(card))
+                delivery.apply(card,staging,backup)
+                for rel,data in protected.items():self.assertEqual((card/rel).read_bytes(),data)
+                self.assertEqual(save.read_bytes(),played)
+                delivery.rollback(card,backup,execute=True)
+                self.assertEqual(before,snapshot(card))
 
     def test_variants_must_be_in_the_install_manifest(self):
         card,package,stage,root=self.fixture();path=package/'build-receipt.json';receipt=json.loads(path.read_text())

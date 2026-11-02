@@ -6,7 +6,7 @@ from datetime import datetime,timezone
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[2]
 sys.path.insert(0,str(ROOT/'tools'))
-from install import safe_path,identity,publish
+from install import safe_path,identity,publish,refresh_library_plan
 from build_library import sha
 from apf_metadata import REQUIRED_JSON,check_core
 CORE='Cores/pocketlab.NES/'
@@ -35,7 +35,7 @@ def verify_roms(card,refs):
     return by_name
 
 
-def plan(card,package,library,offline_source=False):
+def plan(card,package,library,offline_source=False,refresh=False):
     card,package,library=map(lambda p:Path(p).resolve(),(card,package,library))
     if any(p.is_relative_to(card) or card.is_relative_to(p) for p in (package,library)):raise ValueError('Staging must be outside card')
     ident={'root':str(card),'scope':'read-only offline archive; actual card identity required before writes'} if offline_source else identity(card)
@@ -48,7 +48,7 @@ def plan(card,package,library,offline_source=False):
             rel=item['path'];path=allowed(root,rel);target=allowed(card,rel)
             if rel.casefold() in seen:raise ValueError('Overlapping staged files')
             seen.add(rel.casefold())
-            if target.exists():raise ValueError('First-install tool refuses existing file: '+rel)
+            if target.exists() and not refresh:raise ValueError('First-install tool refuses existing file: '+rel)
             if path.stat().st_size!=item['bytes'] or sha(path)!=item['sha256']:raise ValueError('Staged file changed')
             changes.append({**item,'source':str(root)})
     required={CORE.lower()+name for name in REQUIRED_JSON}|{CORE.lower()+'nes.rbf_r',(ASSETS+'menu.bin').lower()}
@@ -80,8 +80,10 @@ def plan(card,package,library,offline_source=False):
                 if not path.is_file() or path.stat().st_size!=262144:raise ValueError('Seeded progress missing')
         if not raw[64+(count-1)*1024+4]:raise ValueError('Missing parent entry')
     changes.sort(key=lambda c:(c['path']==CORE+'core.json',c['path']=='Platforms/neslab.json',c['path']))
-    return {'identity':ident,'changes':changes,'source_refs':lib['source_refs'],'core_version':build['version'],
+    result={'identity':ident,'changes':changes,'source_refs':lib['source_refs'],'core_version':build['version'],
         'status':'offline_validation_only' if offline_source else 'plan_only','source_writes':0,'firmware_writes':0,'original_save_writes':0,'hardware_acceptance':'pending'}
+    if refresh:result.update(refresh_library_plan(card,package/'core',changes,CORE))
+    return result
 
 
 def apply(card,package,library,backup):

@@ -28,7 +28,7 @@ PCE、MD、WonderSwan 本批保留原入口：加载／暂停／存档／视频�
 
 ## 辅助工具
 
-[Pocket Sync](https://github.com/neil-morrison44/pocket-sync) 用于核心、资源与备份管理；首次连接会写 `pocket_sync.json`，开发时先使用电脑副本。社区 [openFPGA Validator](https://github.com/neil-morrison44/openfpga-validator) 固定版本 `0.7.0` 用于校验打包格式。两者不能替代本项目的原生绘制、游戏加载或硬件验证。
+[Pocket Sync](https://github.com/neil-morrison44/pocket-sync) 的 v7.2.0 官方说明及下载包身份已核对，支持桌面中文及备份管理；首次连接会写 `pocket_sync.json`，开发时先使用电脑副本。[使用边界](POCKET-SYNC.md)说明了为何 core-only ZIP 不能替代本项目的 F1→F2 更新。社区 [openFPGA Validator](https://github.com/neil-morrison44/openfpga-validator) 固定版本 `0.7.0` 用于校验打包格式。两者不能替代本项目的原生绘制、游戏加载或硬件验证。
 
 私人游戏目录、版本匹配、工具下载和交付状态保存在游戏实验室 `AnaloguePocket/2026-11-02-complete-frontends/`，不进入公开仓库。公开证据只包含合成用例、源码、编译与已明确范围的设备报告。
 
