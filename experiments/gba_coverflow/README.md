@@ -15,7 +15,7 @@
 
 上游请求的内存／视频时钟为 100.663296／8.388608 MHz；TimeQuest 量化报告约 100.69／8.39 MHz，完整时序检查使用其实际生成时钟。光栅仿真使用上游标称值及相同的 12:1 比例。
 
-CellRAM 为行为模型，主机和文件为合成数据，普通存档检查不认证真实卡的保存耐久性。首次菜单检查默认验证按键启动实际动画；逐姿态绘制由独立差分用例验证。`probe_boot.py --full-animation` 可另外运行八帧完整动画，耗时更长；默认检查不冒充这一项通过。
+CellRAM 为行为模型，主机和文件为合成数据，普通存档检查不认证真实卡的保存耐久性。首次菜单检查默认验证按键启动实际动画；逐姿态绘制由独立差分用例验证。另一次 `+full_animation` 运行已完成连续八姿态、共十一帧完整光栅，所有输入先核对为相同字节，选择／姿态／光栅／错误断言通过；收据在同一证据文件。`probe_boot.py --full-animation` 可执行这一耗时检查，默认模式只检查动画启动。
 
 ## 资源与更新
 
@@ -40,4 +40,4 @@ The same GB/GBC CoverFlow geometry/compositor now uses otherwise idle CRAM1 at t
 
 The upstream requested clocks are 100.663296/8.388608 MHz; TimeQuest reports approximately 100.69/8.39 MHz after PLL quantization. Timing uses the generated clocks; raster simulation uses the nominal pair with the same 12:1 ratio.
 
-Four complete GBA-clock frames pass 448,800 golden pixel comparisons, including concurrent atlas upload. A production-wiring boot probe joins the actual APF engine, upstream loader, Intel FIFO/RAM and a modeled CellRAM bus while game VS is held at zero, checking complete cover transfers and an actual key starting animation. It also rejects redundant uploads. Default boot scope does not claim eight sequential animation frames; `--full-animation` runs that additional slow case. Separate controller checks cover launch/save/RTC/error recovery, and separate geometry/raster checks cover poses. Full compilation and all 104 timing records pass: 17,305 ALMs, 284 M10Ks, 48 DSPs, minimum +0.090 ns, zero TNS and no critical warnings. These models do not establish physical compatibility, gameplay or save durability. ROMs, BIOS, progress, private catalogs and licensed simulation models are excluded.
+Four complete GBA-clock frames pass 448,800 golden pixel comparisons, including concurrent atlas upload. A production-wiring boot probe joins the actual APF engine, upstream loader, Intel FIFO/RAM and a modeled CellRAM bus while game VS is held at zero, checking complete cover transfers and an actual key starting animation. It also rejects redundant uploads. A separate rerun of the source-checked compiled probe completes all eight sequential key-driven poses and eleven full raster frames, with selection/pose/raster/fault assertions passing. Default boot mode only checks animation startup; `--full-animation` runs the additional slow case. Separate controller checks cover launch/save/RTC/error recovery, and separate geometry/raster checks cover poses. Full compilation and all 104 timing records pass: 17,305 ALMs, 284 M10Ks, 48 DSPs, minimum +0.090 ns, zero TNS and no critical warnings. These models do not establish physical compatibility, gameplay or save durability. ROMs, BIOS, progress, private catalogs and licensed simulation models are excluded.

@@ -40,6 +40,19 @@
     "duplicate_cover_reads": 0,
     "scope": "Visible first native-rate raster and key starts actual animation; default probe does not complete eight sequential animation frames"
   },
+  "sequential_animation": {
+    "result": "passed",
+    "key_driven_poses": 8,
+    "pose_mask": "0xFF",
+    "complete_raster_frames": 11,
+    "APF_operations": 11,
+    "physical_halfword_reads": 333261,
+    "physical_halfword_writes": 45568,
+    "compiled_simulator_sha256": "22bb0e5993b8afaaa75239e325c28c5b86b1e9c4e76f6c4a8437d65e005148cf",
+    "probe_source_sha256": "3ff9468b5c9445b000430296f10f543a9f08e1cb362e7ce5066059a80aeeb6fb",
+    "bench_source_sha256": "ac5bff914799bf62cda12dd7e87acc7383aa0d4da07e1e86a31740ca42c53b96",
+    "scope": "Previously compiled production-wiring probe rerun with +full_animation; 17 available source inputs rechecked byte-for-byte. Actual APF/Intel FIFO/RAM plus synthetic host and CellRAM; no game CPU or physical device. All eight poses, bounded raster, selection and fault assertions passed."
+  },
   "lifecycle": "Synthetic controller checks cover A/B/wrap, three launches, ordinary saves, RTC, pause, failed-flush state retention, unsafe paths and stale completion",
   "device_playtest": "pending",
   "firmware_writes": 0,
