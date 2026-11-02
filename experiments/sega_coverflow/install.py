@@ -11,6 +11,7 @@ primitives=importlib.util.module_from_spec(spec);spec.loader.exec_module(primiti
 safe_path,identity,publish=primitives.safe_path,primitives.identity,primitives.publish
 from build_library import sha
 from apf_metadata import check_core
+import menu_bindings
 SHORT={'gg':'GG','sms':'SMS','sg1000':'SG1000'}
 
 
@@ -64,7 +65,7 @@ def plan(card,package,library,platform,offline_source=False,refresh=False):
     if [s['id'] for s in slots]!=[100,slot,2,3] or int(slots[1]['address'],16)!=address or int(slots[2]['size_maximum'],16)!=32768:raise ValueError('Native APF datatable binding differs')
     video=json.loads((package/'core'/core/'video.json').read_text())['video']['scaler_modes']
     if len(video)!=6 or [(m['width'],m['height']) for m in video[4:]]!=[(320,288),(256,240)]:raise ValueError('CoverFlow/pause scaler binding differs')
-    pages={c['path'] for c in changes if c['path'].startswith(f'Assets/{ns}/common/')}
+    pages={c['path'] for c in changes if c['path'].startswith(f'Assets/{ns}/common/')};bindings={}
     for rel in pages:
         raw=allowed(library,rel,platform).read_bytes()
         if len(raw)<64:raise ValueError('Truncated menu')
@@ -82,6 +83,8 @@ def plan(card,package,library,platform,offline_source=False,refresh=False):
             source=refs.get(values[0][1:])
             if source is None or rom_bytes!=source['bytes']:raise ValueError('Menu ROM identity missing')
             tag=source['sha256'][:20]
+            if tag in bindings and bindings[tag]!=cheat_bytes:raise ValueError('Conflicting cheat bindings for the same ROM')
+            bindings[tag]=cheat_bytes
             if values[1:]!=[f'/Saves/{ns}/common/{tag}.sav',f'/Assets/{ns}/cheat/{tag}.cht']:raise ValueError('Foreign progress/cheat identity')
             save=values[1][1:];path=allowed(library,save,platform) if save.casefold() in seen else allowed(card,save,platform)
             if not path.is_file() or path.stat().st_size!=32768:raise ValueError('Seeded progress missing')
@@ -92,7 +95,10 @@ def plan(card,package,library,platform,offline_source=False,refresh=False):
     changes.sort(key=lambda c:(c['path']==core+'core.json',c['path']==f'Platforms/{ns}.json',c['path']))
     result={'identity':ident,'platform':platform,'changes':changes,'source_refs':lib['source_refs'],'core_version':build['version'],
         'status':'offline_validation_only' if offline_source else 'plan_only','source_writes':0,'firmware_writes':0,'original_save_writes':0,'hardware_acceptance':'pending'}
-    if refresh:result.update(primitives.refresh_library_plan(card,package/'core',changes,core))
+    if refresh:
+        guards=menu_bindings.existing(card,SHORT[platform],bindings,refs=lib['source_refs'])
+        result.update(primitives.refresh_library_plan(card,package/'core',changes,core))
+        result['guards']+=guards
     return result
 
 

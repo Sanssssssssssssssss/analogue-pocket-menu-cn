@@ -12,6 +12,7 @@ sys.path.insert(0, str(ROOT/'tools'))
 import build_library
 import build_release
 import delivery
+import apf_metadata
 
 
 def put(path, raw):
@@ -128,6 +129,58 @@ class Delivery(unittest.TestCase):
         before = snapshot(self.card)
         with self.assertRaisesRegex(ValueError, 'backup identity'):
             delivery.rollback(self.card, self.backup, execute=True)
+        self.assertEqual(snapshot(self.card), before)
+
+    def test_old_plans_remain_usable_and_new_directory_scope_is_checked_before_backup(self):
+        result = self.stage()
+        self.assertEqual(result['format'], 'POCKET-DELIVERY-2')
+        result['directories'] = ['System']
+        delivery.write(self.staging/'delivery-plan.json', result)
+        before = snapshot(self.card)
+        with self.assertRaisesRegex(ValueError, 'Save-directory plan'):
+            delivery.apply(self.card, self.staging, self.backup)
+        self.assertFalse(self.backup.exists())
+        self.assertEqual(before, snapshot(self.card))
+        result.pop('directories')
+        result['format'] = 'POCKET-DELIVERY-1'
+        delivery.write(self.staging/'delivery-plan.json', result)
+        delivery.apply(self.card, self.staging, self.backup)
+        delivery.rollback(self.card, self.backup, execute=True)
+        self.assertTrue(all((self.card/r).read_bytes() == data for r, data in before.items()))
+
+    def bitstream_part(self, original=None):
+        relative = 'Cores/pocketlab.GBA/gba.rbf_r'
+        if original is not None:
+            put(self.card/relative, original)
+        parts = self.parts()
+        path = self.inputs/'GBA'/relative
+        put(path, b'new synthetic bitstream')
+        parts[0][1]['changes'].append({**delivery.snapshot(path, relative), 'source': str(self.inputs/'GBA'),
+                                       'previous_sha256': delivery.digest(self.card/relative)})
+        self.staging.mkdir()
+        return delivery.seal(self.card, self.staging, parts), relative
+
+    def test_legacy_plan_cannot_install_a_candidate_rejected_after_preparation(self):
+        result, relative = self.bitstream_part()
+        result['format'] = 'POCKET-DELIVERY-1'
+        result.pop('directories')
+        delivery.write(self.staging/'delivery-plan.json', result)
+        rejected = delivery.sha(self.staging/'payload'/relative)
+        before = snapshot(self.card)
+        with patch.dict(apf_metadata.REJECTED_CANDIDATES, {rejected: 'synthetic later device failure'}):
+            with self.assertRaisesRegex(ValueError, 'Device-rejected'):
+                delivery.apply(self.card, self.staging, self.backup)
+        self.assertEqual(snapshot(self.card), before)
+        self.assertFalse(self.backup.exists())
+
+    def test_rollback_does_not_restore_a_previous_image_rejected_after_backup(self):
+        _, relative = self.bitstream_part(b'old synthetic image')
+        delivery.apply(self.card, self.staging, self.backup)
+        rejected = delivery.sha(self.backup/'previous'/relative)
+        before = snapshot(self.card)
+        with patch.dict(apf_metadata.REJECTED_CANDIDATES, {rejected: 'synthetic later device failure'}):
+            with self.assertRaisesRegex(ValueError, 'Device-rejected'):
+                delivery.rollback(self.card, self.backup, execute=True)
         self.assertEqual(snapshot(self.card), before)
 
     def test_later_component_failure_keeps_card_untouched_and_no_delivery_plan(self):

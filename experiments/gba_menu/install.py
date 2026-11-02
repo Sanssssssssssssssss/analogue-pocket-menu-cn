@@ -14,6 +14,7 @@ sys.path.insert(0,str(ROOT/'tools'))
 # Import generic path/publication primitives without changing the GB/GBC allowlist.
 import importlib.util
 from apf_metadata import REQUIRED_JSON,check_core,check_candidate_bitstream
+import menu_bindings
 spec=importlib.util.spec_from_file_location('gb_install',ROOT/'tools/install.py')
 base=importlib.util.module_from_spec(spec);spec.loader.exec_module(base)
 sha,safe_path,identity,publish=base.sha,base.safe_path,base.identity,base.publish
@@ -29,7 +30,7 @@ def allowed(root,rel):
     return safe_path(root,rel)
 
 
-def plan(card,package,library,saves=None):
+def plan(card,package,library,saves=None,refresh=False):
     card,package,library=map(lambda x:Path(x).resolve(),(card,package,library))
     ident=identity(card)
     receipt=json.loads((package/'build-receipt.json').read_text(encoding='utf-8'))
@@ -38,6 +39,7 @@ def plan(card,package,library,saves=None):
     menu_format=receipt.get('menu_format','GBAF1')
     if menu_format not in ('GBAF1','GBAF2') or lib.get('format')!=menu_format:
         raise ValueError('Core and menu format differ; install matching GBAF1/GBAF2 components')
+    if refresh and (menu_format!='GBAF2' or saves):raise ValueError('Refresh requires GBAF2 and no save imports')
     components=[(package/'core',receipt),(library,lib)]
     if saves:components.append((Path(saves).resolve(),json.loads((Path(saves)/'save-manifest.json').read_text(encoding='utf-8'))))
     changes=[];seen=set()
@@ -47,17 +49,27 @@ def plan(card,package,library,saves=None):
             rel=item['path'];p=allowed(source,rel);target=allowed(card,rel)
             if rel.casefold() in seen:raise ValueError('Overlapping staging paths')
             seen.add(rel.casefold())
-            if target.exists():raise ValueError('First-install tool refuses existing destination: '+rel)
+            if target.exists() and not refresh:raise ValueError('First-install tool refuses existing destination: '+rel)
             if p.stat().st_size!=item['bytes'] or sha(p)!=item['sha256']:raise ValueError('Staging differs: '+rel)
             changes.append({**item,'source':str(source)})
     required={'cores/pocketlab.gba/'+name for name in REQUIRED_JSON}|{'cores/pocketlab.gba/gba.rbf_r','assets/gbalab/common/menu.bin'}
     if not required.issubset(seen):raise ValueError('Incomplete package: required APF definitions missing')
     meta=check_core(package/'core/Cores/pocketlab.GBA')
+    if meta['metadata']['version']!=receipt['version']:raise ValueError('Core version differs from build receipt')
     check_candidate_bitstream(package/'core/Cores/pocketlab.GBA/gba.rbf_r')
     if meta['metadata']['platform_ids']!=['gbalab','gba'] or meta['framework']['sleep_supported']:
         raise ValueError('Unexpected core platform/sleep settings')
     slots=json.loads((package/'core/Cores/pocketlab.GBA/data.json').read_text())['data']['data_slots']
     if [s['id'] for s in slots]!=[100,4,1,10,11]:raise ValueError('Slot order disagrees with hardware datatable')
+    number=lambda v:int(v,0) if isinstance(v,str) else int(v)
+    bios_slot=slots[1]
+    if (bios_slot.get('filename')!='gba_bios.bin' or number(bios_slot.get('parameters',0))!=0x1000008
+            or number(bios_slot.get('address',0))!=0x30000000 or number(bios_slot.get('size_exact',0))!=16384):
+        raise ValueError('BIOS slot must read the existing gba/common asset through platform index 1')
+    if menu_format=='GBAF2':
+        modes=json.loads((package/'core/Cores/pocketlab.GBA/video.json').read_text())['video']['scaler_modes']
+        if len(modes)<2 or any(modes[1].get(k)!=v for k,v in dict(width=320,height=288,aspect_w=10,aspect_h=9).items()):
+            raise ValueError('GBAF2 requires menu scaler slot 1 at 320x288, aspect 10:9')
     bios=safe_path(card,'Assets/gba/common/gba_bios.bin')
     if bios.stat().st_size!=16384:raise ValueError('Provide your own 16384-byte BIOS in existing GBA assets')
     # Full read-only ROM verification immediately before the installation.
@@ -65,14 +77,22 @@ def plan(card,package,library,saves=None):
         if not row['path'].startswith('Assets/gba/common/'):raise ValueError('ROM outside original GBA assets')
         p=safe_path(card,row['path'])
         if p.stat().st_size!=row['bytes'] or sha(p)!=row['sha256']:raise ValueError('ROM changed: '+row['path'])
+    menu_bindings.validate(library,lib,'GBA',menu_format)
     for _,m in components:
         for row in m.get('imports',[]):
             if not row['source'].startswith('Saves/gba/common/') or sha(safe_path(card,row['source']))!=row['source_sha256']:
                 raise ValueError('Original save changed since staging')
     changes.sort(key=lambda x:(x['path']=='Cores/pocketlab.GBA/core.json',x['path']=='Platforms/gbalab.json',x['path']))
-    return {'identity':ident,'changes':changes,'roms':len(lib['roms']),'pages':len(lib['files']),
+    bios_guard={'path':'Assets/gba/common/gba_bios.bin','bytes':bios.stat().st_size,'sha256':sha(bios)}
+    result={'identity':ident,'changes':changes,'roms':len(lib['roms']),'pages':len(lib['files']),
+            'source_refs':lib['roms'],'guards':[bios_guard],'operation':'first_addition','core_version':receipt['version'],
             'ordinary_save_imports':sum(len(m.get('imports',[])) for _,m in components),
             'original_save_writes':0,'firmware_writes':0,'hardware_playtest':'pending'}
+    if refresh:
+        previous=menu_bindings.existing(card,'GBA',refs=lib['roms'])
+        result.update(base.refresh_library_plan(card,package/'core',changes,'Cores/pocketlab.GBA/'))
+        result['guards']+=previous+[bios_guard]
+    return result
 
 
 def protect(card,backup):

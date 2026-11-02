@@ -29,11 +29,15 @@ def discover(card):
     return found
 
 
-def build(card,out,systems=None,titles=None,covers=None,bios=None,skip_invalid=False):
+def build(card,out,systems=None,titles=None,covers=None,bios=None,skip_invalid=False,cheats=None):
     card,out=Path(card).resolve(),Path(out).resolve()
     delivery.separate(card,out)
     if not card.is_dir() or out.exists():raise ValueError('Existing input and fresh local output required')
     covers=Path(covers).resolve() if covers else None
+    cheats=Path(cheats).resolve() if cheats else None
+    if cheats:
+        delivery.separate(cheats,out)
+        if not cheats.is_file():raise ValueError('Cheat identity index missing')
     if covers:
         delivery.separate(covers,out)
         if not covers.is_dir():raise ValueError('Cover directory missing')
@@ -66,13 +70,16 @@ def build(card,out,systems=None,titles=None,covers=None,bios=None,skip_invalid=F
             else:
                 family='nes_coverflow' if system=='NES' else 'sega_coverflow'
                 lib=delivery.module(f'experiments/{family}/library.py')
-                args={} if system=='NES' else {'platform':SYSTEMS[system][0][0]}
+                args={} if system=='NES' else {'platform':SYSTEMS[system][0][0],'cheats':cheats}
                 manifest=lib.build(card,dest,titles=alias_file,covers=covers,offline_source=offline,**args)
             result[system]={'format':manifest['format'],'library':str(dest.relative_to(out)),
                 'source_files_discovered':len(found[system]),'manifest':'library-manifest.json',
                 'warnings':len(manifest.get('warnings',[])),
+                'cheat_matched_versions':len(manifest.get('cheats',[])),
                 'excluded':len(manifest.get('excluded',manifest.get('skipped',[])))}
-    receipt={'systems':result,'source_writes':0,'ROM_copies':0,'existing_save_writes':0,'firmware_writes':0,
+    delivery.write(out/'delivery.json',{'components':[{'id':system,'package':'packages/'+system,
+        'library':row['library']} for system,row in result.items()]})
+    receipt={'systems':result,'delivery_config':'delivery.json','source_writes':0,'ROM_copies':0,'existing_save_writes':0,'firmware_writes':0,
         'caption_policy':'ROM filename without extension by default; optional per-path aliases override it',
         'scope':'Read-only local library generation; install/refresh requires compatible native core and verified backup',
         'hardware_acceptance':'New native candidates pending; stable public binary remains GB/GBC'}
@@ -84,11 +91,11 @@ def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--card',required=True);parser.add_argument('--out',required=True)
     parser.add_argument('--systems',nargs='+',choices=SYSTEMS)
-    for key in ('titles','covers','bios'):parser.add_argument('--'+key)
+    for key in ('titles','covers','bios','cheats'):parser.add_argument('--'+key)
     parser.add_argument('--skip-invalid',action='store_true',help='GBA only: record and exclude invalid headers, never modify ROM bytes')
     args=parser.parse_args()
     try:
-        result=build(args.card,args.out,args.systems,args.titles,args.covers,args.bios,args.skip_invalid)
+        result=build(args.card,args.out,args.systems,args.titles,args.covers,args.bios,args.skip_invalid,args.cheats)
         print(json.dumps(result,ensure_ascii=True,indent=2))
     except (OSError,ValueError,KeyError,TypeError) as error:parser.exit(2,str(error)+'\n')
 

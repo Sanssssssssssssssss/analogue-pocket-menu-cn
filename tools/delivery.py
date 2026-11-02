@@ -14,12 +14,14 @@ import sys
 
 from build_library import sha
 from install import identity, publish, safe_path
+from apf_metadata import check_candidate_bitstream
 
 ROOT = Path(__file__).resolve().parents[1]
 PROFILES = {'GB-GBC': ('CoverFlow', 'gbclab', 'gbc'), 'GBA': ('GBA', 'gbalab', 'gba'),
             'NES': ('NES', 'neslab', 'nes'), 'GG': ('GG', 'ggclab', 'gg'),
             'SMS': ('SMS', 'smslab', 'sms'), 'SG1000': ('SG1000', 'sgclab', 'sg1000')}
-FORMAT = 'POCKET-DELIVERY-1'
+FORMAT = 'POCKET-DELIVERY-2'
+LEGACY_FORMAT = 'POCKET-DELIVERY-1'
 
 
 def read(path):
@@ -79,6 +81,30 @@ def check_record(root, row, component=None):
 
 def snapshot(path, rel):
     return {'path': rel, 'bytes': path.stat().st_size, 'sha256': sha(path)}
+
+
+def save_directories(components):
+    components = set(components)
+    paths = {'Saves/' + PROFILES[name][1] + '/common' for name in components}
+    if 'GB-GBC' in components:
+        paths.update(('Saves/gbclab/common/meta', 'Saves/gbclab/common/folders'))
+    return sorted(paths)
+
+
+def checked_directories(card, result):
+    if result['format'] == LEGACY_FORMAT:
+        if 'directories' in result:
+            raise ValueError('Legacy plans cannot declare save directories')
+        paths = save_directories(['GB-GBC']) if 'GB-GBC' in result['components'] else []
+    else:
+        paths = save_directories(result['components'])
+        if result.get('directories') != paths:
+            raise ValueError('Save-directory plan differs from the selected native components')
+    for relative in paths:
+        path = safe_path(card, relative)
+        if path.exists() and not path.is_dir():
+            raise ValueError('Expected ordinary-save directory: ' + relative)
+    return paths
 
 
 @contextmanager
@@ -157,6 +183,43 @@ def gb_stage(card, package, out, mapping):
     return result
 
 
+def gb_filename_plan(card, package, library, installed):
+    from build_release import RBF_SHA
+    import install
+    import menu_bindings
+    if library is None:
+        raise ValueError('GB/GBC first install requires a filename-built library and your own BIOS')
+    release = read(package/'core/release-manifest.json')
+    if release['bitstream_sha256'] != RBF_SHA or sha(package/'core/Cores/pocketlab.CoverFlow/gbc.rbf_r') != RBF_SHA:
+        raise ValueError('Filename menus require the retained accepted GB/GBC bitstream')
+    lib = read(library/'library-manifest.json')
+    if lib.get('format') != 9:
+        raise ValueError('Filename menus require a v9 GB/GBC library')
+    result = install.plan(card, package/'core', library)
+    menu_bindings.validate(library, lib, 'GB-GBC')
+    bios = 'Assets/gbclab/common/gbc_bios.bin'
+    guards = []
+    if installed:
+        if sha(safe_path(card, bios)) != sha(safe_path(library, bios)):
+            raise ValueError('Library refresh requires the existing GBC BIOS')
+        guards = menu_bindings.existing(card, 'GB-GBC', refs=lib['source_refs'])
+        result.update(install.refresh_library_plan(card, package/'core', result['changes'], 'Cores/pocketlab.CoverFlow/'))
+    else:
+        for row in release['files'] + lib['files']:
+            path = safe_path(card, row['path'])
+            if not path.exists():
+                continue
+            if row['path'] != bios or not path.is_file() or sha(path) != row['sha256']:
+                raise ValueError('First GB/GBC install refuses an existing destination: ' + row['path'])
+            guards.append(snapshot(path, row['path']))
+        result['operation'] = 'first_addition'
+    result['source_refs'] = lib['source_refs']
+    result['guards'] = result.get('guards', []) + guards
+    result['summary'] = {'operation': result['operation'], 'pages': lib['pack_count'],
+                         'unique_games': len({r['sha256'] for r in lib['source_refs']}), 'warnings': lib.get('warnings', [])}
+    return result
+
+
 def component_plan(card, config, base, out):
     name = config['id']
     def path(key):
@@ -170,6 +233,11 @@ def component_plan(card, config, base, out):
             separate(path(key), out)
     with imports():
         if name == 'GB-GBC':
+            installed = safe_path(card, 'Cores/pocketlab.CoverFlow/core.json').is_file()
+            if path('library') or not installed:
+                if path('mapping'):
+                    raise ValueError('Choose a GB/GBC filename library or an existing-menu display mapping')
+                return gb_filename_plan(card, package, path('library'), installed)
             mapping = read(path('mapping')) if path('mapping') else {}
             # Artwork paths in portable configurations are relative to that mapping file.
             for patch in mapping.values():
@@ -177,9 +245,23 @@ def component_plan(card, config, base, out):
                     patch['cover'] = str((path('mapping').parent/patch['cover']).resolve())
             return gb_stage(card, package, out, mapping)
         if name == 'GBA':
+            library = path('library')
+            if library is None:
+                raise ValueError('GBA requires a matching library')
+            installed = safe_path(card, 'Cores/pocketlab.GBA/core.json').is_file()
+            refresh = False
+            if installed:
+                with safe_path(card, 'Assets/gbalab/common/menu.bin').open('rb') as source:
+                    f2 = source.read(8) == b'GBAF\x02\0\0\0'
+                refresh = f2 and sha(safe_path(card, 'Cores/pocketlab.GBA/gba.rbf_r')) == sha(package/'core/Cores/pocketlab.GBA/gba.rbf_r')
+            if not installed or refresh:
+                installer = module('experiments/gba_menu/install.py')
+                result = installer.plan(card, package, library, refresh=refresh)
+                result['summary'] = {k: result[k] for k in ('roms', 'pages', 'core_version', 'operation')}
+                return result
             update = module('experiments/gba_coverflow/update.py')
             staging = out/'update'
-            result = update.stage(card, package, path('library'), staging)
+            result = update.stage(card, package, library, staging)
             video = staging/'Cores/pocketlab.GBA/video.json'
             write(video, append_styles(read(video), 'gba'))
             # Recompute after the append-only optional display registration.
@@ -193,6 +275,7 @@ def component_plan(card, config, base, out):
             result['guards'] = [snapshot(p, p.relative_to(card).as_posix()) for p in
                                 (card/'Cores/pocketlab.GBA').iterdir() if p.is_file()]
             result['summary'] = {k: result[k] for k in ('roms_verified', 'pages_checked', 'core_version')}
+            result['summary']['operation'] = 'format_upgrade'
             return result
         folder = 'nes_coverflow' if name == 'NES' else 'sega_coverflow'
         library = module(f'experiments/{folder}/library.py')
@@ -243,6 +326,8 @@ def seal(card, out, parts):
                 raise ValueError('Existing progress must never be staged or overwritten')
             source = allowed(Path(row['source']), rel, name)
             check_record(Path(row['source']), row, name)
+            if rel.endswith('.rbf_r'):
+                check_candidate_bitstream(source)
             dest = allowed(out/'payload', rel, name)
             dest.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(source, dest)
@@ -251,9 +336,11 @@ def seal(card, out, parts):
     # New data and pages precede binaries; core/platform entry metadata is last.
     changes.sort(key=lambda c: (c['path'].startswith('Platforms/'), c['path'].endswith('/core.json'), c['path'].endswith('.rbf_r'), c['path']))
     result = {'format': FORMAT, 'identity': ident, 'changes': changes, 'source_refs': list(refs.values()),
+              'directories': save_directories(name for name, _ in parts),
               'guards': list(guards.values()), 'components': {name: part.get('summary', {}) for name, part in parts},
               'status': 'prepared_only', 'created_utc': datetime.now(timezone.utc).isoformat(),
               'firmware_writes': 0, 'original_save_writes': 0, 'hardware_acceptance': 'pending'}
+    checked_directories(card, result)
     write(out/'delivery-plan.json', result)
     return result
 
@@ -278,8 +365,9 @@ def prepare(card, config, out):
 
 def load_plan(card, staging):
     result = read(staging/'delivery-plan.json')
-    if result['format'] != FORMAT or identity(card) != result['identity']:
+    if result['format'] not in (FORMAT, LEGACY_FORMAT) or identity(card) != result['identity']:
         raise ValueError('Different card or unsupported plan')
+    checked_directories(card, result)
     seen = set()
     for row in result['changes']:
         rel, component = row['path'], row['component']
@@ -292,6 +380,8 @@ def load_plan(card, staging):
         if digest(target) != row['previous_sha256']:
             raise ValueError('Destination changed after preparation: ' + rel)
         check_record(staging/'payload', row, component)
+        if rel.endswith('.rbf_r'):
+            check_candidate_bitstream(allowed(staging/'payload', rel, component))
     for row in result['guards'] + result['source_refs']:
         check_record(card, row)
     return result
@@ -350,6 +440,10 @@ def apply(card, staging, backup):
     for row in protected:
         check_record(card, row)
     try:
+        for relative in checked_directories(card, result):
+            if identity(card) != result['identity']:
+                raise ValueError('Card identity changed during directory creation')
+            safe_path(card, relative).mkdir(parents=True, exist_ok=True)
         with (backup/'journal.jsonl').open('x', encoding='utf8') as journal:
             for row in result['changes']:
                 if identity(card) != result['identity']:
@@ -361,10 +455,6 @@ def apply(card, staging, backup):
                 journal.flush()
                 os.fsync(journal.fileno())
                 publish(allowed(staging/'payload', row['path'], row['component']), target, row['sha256'])
-        # Retain GB/GBC metadata save directories used by the accepted core.
-        if 'GB-GBC' in result['components']:
-            for suffix in ('', 'meta', 'folders'):
-                safe_path(card, 'Saves/gbclab/common/' + suffix).mkdir(parents=True, exist_ok=True)
         for row in protected:
             check_record(card, row)
     except (OSError, ValueError) as error:
@@ -386,7 +476,7 @@ def rollback(card, backup, execute=False):
     card, backup = Path(card).resolve(), Path(backup).resolve()
     separate(card, backup)
     result = read(backup/'delivery-receipt.json')
-    if result['format'] != FORMAT or identity(card) != result['identity']:
+    if result['format'] not in (FORMAT, LEGACY_FORMAT) or identity(card) != result['identity']:
         raise ValueError('Rollback card identity differs')
     changes = []
     for row in result['changes']:
@@ -400,6 +490,8 @@ def rollback(card, backup, execute=False):
             raise ValueError('Changed file; preserve it for review: ' + row['path'])
         if row['previous_sha256'] is not None and sha(allowed(backup/'previous', row['path'], row['component'])) != row['previous_sha256']:
             raise ValueError('Rollback backup identity differs')
+        if row['previous_sha256'] is not None and row['path'].endswith('.rbf_r'):
+            check_candidate_bitstream(allowed(backup/'previous', row['path'], row['component']))
         changes.append(row)
     if execute:
         for row in reversed(changes):

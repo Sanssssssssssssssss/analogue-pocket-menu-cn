@@ -9,6 +9,7 @@ sys.path.insert(0,str(ROOT/'tools'))
 from install import safe_path,identity,publish,refresh_library_plan
 from build_library import sha
 from apf_metadata import REQUIRED_JSON,check_core
+import menu_bindings
 CORE='Cores/pocketlab.NES/'
 ASSETS='Assets/neslab/common/'
 SAVES='Saves/neslab/common/'
@@ -80,9 +81,13 @@ def plan(card,package,library,offline_source=False,refresh=False):
                 if not path.is_file() or path.stat().st_size!=262144:raise ValueError('Seeded progress missing')
         if not raw[64+(count-1)*1024+4]:raise ValueError('Missing parent entry')
     changes.sort(key=lambda c:(c['path']==CORE+'core.json',c['path']=='Platforms/neslab.json',c['path']))
+    menu_bindings.validate(library,lib,'NES','GBAF2')
     result={'identity':ident,'changes':changes,'source_refs':lib['source_refs'],'core_version':build['version'],
         'status':'offline_validation_only' if offline_source else 'plan_only','source_writes':0,'firmware_writes':0,'original_save_writes':0,'hardware_acceptance':'pending'}
-    if refresh:result.update(refresh_library_plan(card,package/'core',changes,CORE))
+    if refresh:
+        guards=menu_bindings.existing(card,'NES',refs=lib['source_refs'])
+        result.update(refresh_library_plan(card,package/'core',changes,CORE))
+        result['guards']+=guards
     return result
 
 
