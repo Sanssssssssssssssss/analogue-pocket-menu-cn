@@ -9,7 +9,9 @@ REQUIRED_JSON=('core.json','audio.json','data.json','input.json','interact.json'
 # Device-reported failures must not be republished just because fit/tests passed.
 REJECTED_CANDIDATES={
     '5f8f36f9414f7efc056d8c9aedf59fe1eced262ef50a37eb1315b79c7c15fb84':
-        'GBA CoverFlow .5 returned operation failed on hardware; accepted .3 was restored'
+        'GBA CoverFlow .5 returned operation failed on hardware; accepted .3 was restored',
+    '67b91aab041bdab26443bed34e856124fdaf50ec4f689afe5765aceaf3cf6a4d':
+        'GBA CoverFlow .6 freezes after opening a child page on hardware; covers missing and input unresponsive'
 }
 
 

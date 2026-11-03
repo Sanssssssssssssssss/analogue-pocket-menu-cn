@@ -48,23 +48,36 @@ module tb_coverflow_boot;
         .target_buffer_param_struct(32'hF3000000),.target_buffer_resp_struct(32'd0),
         .datatable_addr(10'd0),.datatable_wren(1'b0),.datatable_data(32'd0));
     integer physical_reads,physical_writes;
-    sim_cellram physical_memory(.a(cram1_a),.dq(cram1_dq),.clk(cram1_clk),.adv_n(cram1_adv_n),.cre(cram1_cre),
+    sim_cellram #(.SLOTS(13)) physical_memory(.a(cram1_a),.dq(cram1_dq),.clk(cram1_clk),.adv_n(cram1_adv_n),.cre(cram1_cre),
         .ce0_n(cram1_ce0_n),.ce1_n(cram1_ce1_n),.oe_n(cram1_oe_n),.we_n(cram1_we_n),.ub_n(cram1_ub_n),.lb_n(cram1_lb_n),
         .reads(physical_reads),.writes(physical_writes));
-    reg [7:0] page[0:1000000];
-    initial $readmemh("page.hex",page);
+    reg [7:0] page[0:1000000],child_page[0:1000000];
+    integer menu_page=0,folder_opens=0;
+    localparam CHILD_COUNT=CHILD_MENU_COUNT,CHILD_COVERS=CHILD_PREFETCH_COVERS;
+    initial begin $readmemh("page.hex",page);$readmemh("child.hex",child_page);end
+    function [7:0] file_byte(input integer offset);
+        file_byte=menu_page==0 ? page[offset]:child_page[offset];
+    endfunction
     task write_word(input [31:0] at,input [31:0] value);
         begin
             @(negedge clk_74a);bridge_addr=at;bridge_wr_data=value;bridge_wr=1;
             @(negedge clk_74a);bridge_wr=0;repeat(74)@(negedge clk_74a);
         end
     endtask
+    task read_parameter(input [31:0] at,output [31:0] value);
+        begin
+            @(negedge clk_74a);bridge_addr=at;bridge_rd=1;
+            repeat(5)@(negedge clk_74a);value=ui_param_data;bridge_rd=0;
+            repeat(74)@(negedge clk_74a);
+        end
+    endtask
     task host_command(input [15:0] code);
         begin write_word(32'hF8000000,{16'h434d,code});wait(commands.host_0[31:16]==16'h4f4b);
             if(commands.host_0[15:0]!=0)$fatal(1,"host command failed %h",code);end
     endtask
-    integer offset,size,at,operations=0,art_chunks=0,text_words=0;
-    reg [31:0] destination,word;
+    integer offset,size,at,operations=0,art_chunks=0,text_words=0,path_word,path_byte;
+    reg [31:0] destination,word,param_value;
+    reg [2047:0] opened_path;
     initial begin
         commands.tstate=0;commands.hstate=0;commands.target_0=0;commands.host_0=0;commands.host_cmd_start=0;
         commands.status_setup_done_1=0;
@@ -76,17 +89,39 @@ module tb_coverflow_boot;
         host_command(16'h11);
         forever begin
             wait(commands.target_0[31:16]==16'h636d);
-            if(commands.target_0[15:0]!=16'h180 || commands.target_20!=100)
+            if(commands.target_20!=100)
                 $fatal(1,"unexpected menu command %h",commands.target_0);
-            offset=commands.target_24;destination=commands.target_28;size=commands.target_2C;
-            if(size>16384 || size<4 || size%4)$fatal(1,"unbounded read");
-            if(destination[31:28]==4)art_chunks=art_chunks+1;
-            else if(destination==32'h71000000)text_words=text_words+size/4;
-            else if(destination[31:28]!=6 && destination[31:28]!=7)$fatal(1,"cover traffic reached game/save bus");
-            write_word(32'hf8001000,32'h62750180);
-            for(at=0;at<size;at=at+4)begin
-                word={page[offset+at],page[offset+at+1],page[offset+at+2],page[offset+at+3]};
-                write_word(destination+at,word);
+            if(commands.target_0[15:0]==16'h192 && $test$plusargs("hierarchy"))begin
+                if(commands.target_24!=32'hF3000000)$fatal(1,"wrong folder parameter pointer");
+                write_word(32'hf8001000,32'h62750192);
+                opened_path=0;
+                for(path_word=0;path_word<64;path_word=path_word+1)begin
+                    read_parameter(32'hF3000000+path_word*4,param_value);
+                    for(path_byte=0;path_byte<4;path_byte=path_byte+1)
+                        if(param_value[31-path_byte*8-:8]!=0)
+                            opened_path={opened_path[2039:0],param_value[31-path_byte*8-:8]};
+                end
+                read_parameter(32'hF3000100,param_value);
+                if(param_value!=0)$fatal(1,"folder open flags must be read-only");
+                read_parameter(32'hF3000104,param_value);
+                if(param_value!=0)$fatal(1,"folder open must not resize a file");
+                if(opened_path=="/Assets/gbalab/common/menu.bin")menu_page=0;
+                else if(opened_path=="CHILD_MENU_PATH")menu_page=1;
+                else $fatal(1,"unexpected folder path '%0s'",opened_path);
+                folder_opens=folder_opens+1;
+            end else if(commands.target_0[15:0]==16'h180)begin
+                offset=commands.target_24;destination=commands.target_28;size=commands.target_2C;
+                if(size>16384 || size<4 || size%4)$fatal(1,"unbounded read");
+                if(destination[31:28]==4)art_chunks=art_chunks+1;
+                else if(destination==32'h71000000)text_words=text_words+size/4;
+                else if(destination[31:28]!=6 && destination[31:28]!=7)$fatal(1,"cover traffic reached game/save bus");
+                write_word(32'hf8001000,32'h62750180);
+                for(at=0;at<size;at=at+4)begin
+                    word={file_byte(offset+at),file_byte(offset+at+1),file_byte(offset+at+2),file_byte(offset+at+3)};
+                    write_word(destination+at,word);
+                end
+            end else begin
+                $fatal(1,"unexpected operation %h",commands.target_0);
             end
             write_word(32'hf8001000,32'h6f6b0000);operations=operations+1;
             repeat(100)@(negedge clk_74a);
@@ -120,6 +155,22 @@ module tb_coverflow_boot;
         wait(cf_tick);wait(!cf_tick);wait(cf_tick);
         if(!ui_reset || ui_bound || !ui_owned || art_chunks!=6 || text_words!=512 || physical_reads<1000)
             $fatal(1,"cold boot did not exercise full F2/CellRAM/menu path");
+        if($test$plusargs("hierarchy"))begin
+            // Open the real child through APF, fill its prefetch working set, then
+            // return through its Back record and reload the root's two covers.
+            @(negedge clk_74a);cont1_key=32'h10;
+            repeat(4)@(negedge clk_74a);cont1_key=0;
+            wait(menu_page==1);
+            wait(ui_state==13 && ui_selected==0 && cf_level!=0 && physical_writes==(2+CHILD_COVERS)*22784);
+            if(cf_count!=CHILD_COUNT || art_chunks!=(2+CHILD_COVERS)*3 || text_words!=1024)
+                $fatal(1,"child menu did not complete its own art/text load");
+            @(negedge clk_74a);cont1_key=32'h20;
+            repeat(4)@(negedge clk_74a);cont1_key=0;
+            wait(menu_page==0);
+            wait(ui_state==13 && ui_selected==0 && cf_level!=0 && physical_writes==(4+CHILD_COVERS)*22784);
+            if(folder_opens!=2 || cf_count!=2 || art_chunks!=(4+CHILD_COVERS)*3 || text_words!=1536)
+                $fatal(1,"root reload did not complete after B");
+        end
         @(negedge clk_74a);cont1_key=32'h2;
         repeat(4)@(negedge clk_74a);cont1_key=0;
         wait(cf_anim);
@@ -130,6 +181,7 @@ module tb_coverflow_boot;
         if(ui_selected!=1 || !ui_reset || ui_bound || frames<2)
             $fatal(1,"key-driven CoverFlow animation did not start selection=%d frames=%d",ui_selected,frames);
         $display("PASS: real APF cold boot, two complete CellRAM covers without duplicate reads, Intel FIFO/RAM, held-reset game VS=0, full GBA-clock raster and key-triggered CoverFlow; operations=%d reads=%d writes=%d",operations,physical_reads,physical_writes);
+        if($test$plusargs("hierarchy"))$display("PASS: A opens %0d-entry child, %0d complete prefetched covers/text load, B returns, both root covers reload, subsequent direction input responds; native-rate renderer and actual APF/FIFO/RAM remain connected",CHILD_COUNT,CHILD_COVERS);
         $finish;
     end
     initial begin #600000000;$fatal(1,"cold boot watchdog state=%d first=%h level=%d target=%h",ui_state,ui_first_fault_code,cf_level,commands.target_0);end

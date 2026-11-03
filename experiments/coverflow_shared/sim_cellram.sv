@@ -2,27 +2,30 @@
 // Synthetic asynchronous CellRAM pin model. Timing bounds follow the pinned
 // driver's defaults (70 ns access/write, 45 ns WE, 20 ns data setup). This is
 // not a vendor device model and does not certify the physical board.
-module sim_cellram (
+module sim_cellram #(parameter SLOTS=6)(
     input wire [21:16] a,
     inout wire [15:0] dq,
     input wire clk,adv_n,cre,ce0_n,ce1_n,oe_n,we_n,ub_n,lb_n,
     output integer reads=0,writes=0
 );
-    // A sparse but nonaliasing model for the six slots used by these tests.
-    reg [15:0] words[0:196607];
-    reg written[0:196607];
+    // Keep slot 127 available without allocating every unused physical slot.
+    reg [15:0] words[0:SLOTS*32768-1];
+    reg written[0:SLOTS*32768-1];
     reg [21:0] address=0;
     reg active=0,writing=0,valid=0;
     reg [15:0] value=0,last_write_data=0;
     realtime started=0,last_data_time=0,adv_ended=0;
     integer i,index;
-    initial for(i=0;i<196608;i=i+1)written[i]=0;
+    initial begin
+        if(SLOTS<2 || SLOTS>128)$fatal(1,"invalid CellRAM model size");
+        for(i=0;i<SLOTS*32768;i=i+1)written[i]=0;
+    end
     function integer packed_address(input [21:0] raw);
         integer slot;
         begin
             slot=raw[21:15];
-            if(slot==127)slot=5;
-            else if(slot>4)$fatal(1,"test model unsupported physical slot %d",slot);
+            if(slot==127)slot=SLOTS-1;
+            else if(slot>=SLOTS-1)$fatal(1,"test model unsupported physical slot %d",slot);
             packed_address=slot*32768+raw[14:0];
         end
     endfunction

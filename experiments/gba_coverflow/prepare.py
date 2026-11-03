@@ -138,7 +138,10 @@ def controller(text,exit_paths=1,cellram=False):
         text=replace(text,"32'h12800000+({25'd0,cf_art_game[6:0]}<<16)+cf_chunk_offset,",
             "32'h42000000+({25'd0,cf_art_game[6:0]}<<16)+cf_chunk_offset,")
         text=replace(text,'CF_ART_DRAIN:if(timer>=SETTLE_CYCLES && io_idle)begin',
-            'CF_ART_DRAIN:if(timer>=SETTLE_CYCLES && io_idle && cf_upload_ready)begin')
+            "CF_ART_DRAIN:if(cf_fetch_fault)fail(8'h74);\n                else if(timer>=SETTLE_CYCLES && io_idle && cf_upload_ready)begin")
+        # A cover drain must not inherit the much longer full-ROM watchdog.
+        text=replace(text,"else if(timer>=TIMEOUT)fail(8'h71);",
+            "else if(timer>=(FRAME_TIMEOUT<TIMEOUT ? FRAME_TIMEOUT:TIMEOUT))fail(8'h71);")
         text=replace(text,'cf_loaded_game<=cf_art_game;cf_commit<=1;state<=MENU;',
             'cf_loaded_game<=cf_art_game;cf_commit<=1;state<=53;')
         # Let need_clr invalidate the published cache miss before requesting

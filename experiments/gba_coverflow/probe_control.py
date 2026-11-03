@@ -17,7 +17,7 @@ spec=importlib.util.spec_from_file_location('gba_base',OLD/'prepare_build.py')
 base=importlib.util.module_from_spec(spec);spec.loader.exec_module(base)
 replace=base.replace
 
-def bench():
+def bench(fault_recovery=False):
     s=(OLD/'tb_menu.sv').read_text(encoding='utf8')
     s=replace(s,'reg [31:0] capacity=65536;','''reg [31:0] capacity=65536;
     wire cf_menu,cf_go,cf_direction,cf_invalidate,cf_commit;
@@ -70,9 +70,29 @@ def bench():
             $display("menu ready page=%0d selection=%0d",page,selection);end''')
     s=replace(s,'watchdog state=%0d code=%h page=%0d selected=%0d",state,code,page,selected',
         'watchdog state=%0d code=%h page=%0d selected=%0d cfmenu=%b level=%d target=%d art=%0d want=%b pending=%h",state,code,page,selected,cf_menu,cf_level,cf_target,art_chunks,cf_want,dut.cf_pending')
+    if fault_recovery:
+        s=replace(s,".SETTLE_CYCLES(20'd16)",".SETTLE_CYCLES(20'd16),.FRAME_TIMEOUT(34'd256)")
+        s=replace(s,'reg cf_want=0;','reg cf_want=0,cf_fault=0,cf_uploaded=1;')
+        s=replace(s,".cf_fetch_fault(1'b0),.cf_upload_ready(1'b1)",
+            '.cf_fetch_fault(cf_fault),.cf_upload_ready(cf_uploaded)')
+        s=replace(s,'cf_want=1;wait(cf_commit);cf_want=0;repeat(4)@(negedge clk);', '''
+        cf_uploaded=0;cf_want=1;wait(state==51);cf_want=0;cf_fault=1;
+        repeat(8)@(negedge clk);
+        if(!fault || code!=8'h74)$fatal(1,"cover backend fault was hidden in the upload drain");
+        cf_fault=0;cf_uploaded=1;press(5);menu(0);
+        art_chunks=0;art_bytes=0;cf_uploaded=0;
+        cf_want=1;wait(state==51);cf_want=0;
+        repeat(320)@(negedge clk);
+        if(!fault || code!=8'h71)$fatal(1,"incomplete cover ignored the frame watchdog");
+        cf_uploaded=1;press(5);menu(0);
+        // Establish a fresh Run before the independent save-error assertions.
+        ready=0;repeat(8)@(negedge clk);ready=1;menu(0);
+        art_chunks=0;art_bytes=0;
+        cf_want=1;wait(cf_commit);cf_want=0;repeat(4)@(negedge clk);
+        $display("PASS: backend fault and incomplete-cover timeout both allow B to return to root before a fresh Run");''')
     return s
 
-def run(build,out):
+def run(build,out,fault_recovery=False):
     build,out=Path(build).resolve(),Path(out).resolve()
     if out.exists() or not out.is_relative_to(ROOT/'.work'):raise ValueError('Fresh .work output required')
     out.mkdir(parents=True)
@@ -87,7 +107,7 @@ def run(build,out):
             if raw[64+i*1024+32:64+(i+1)*1024]!=previous[64+i*1024+32:64+(i+1)*1024]:raise AssertionError('Progress/path identity changed')
         (out/(name+'.hex')).write_text(''.join(f'{b:02x}\n' for b in raw))
     (out/'paths.vh').write_bytes((f1/'paths.vh').read_bytes())
-    tb=out/'tb_menu.sv';tb.write_text(bench(),encoding='utf8')
+    tb=out/'tb_menu.sv';tb.write_text(bench(fault_recovery),encoding='utf8')
     controller=build/'src/fpga/core/gba_menu.sv'
     command=['iverilog','-g2012','-I',str(out),'-s','tb_menu','-o',str(out/'control.sim'),str(controller),str(tb)]
     r=subprocess.run(command,capture_output=True,text=True,timeout=60)
@@ -96,8 +116,11 @@ def run(build,out):
     (out/'simulation.log').write_text(r.stdout+r.stderr);print('\n'.join((r.stdout+r.stderr).splitlines()[-24:]));r.check_returncode()
     if 'PASS:' not in r.stdout:raise ValueError('No lifecycle pass marker')
     (out/'receipt.json').write_text(json.dumps({'result':'passed','scope':'Controller + simulated APF host and video state; synthetic ROM header bytes, no game CPU/card/hardware/save durability',
+        'cover_fault_recovery':fault_recovery,
         'inputs':{str(p.relative_to(ROOT)):hashlib.sha256(p.read_bytes()).hexdigest() for p in [controller,tb,Path(__file__),Path(__file__).with_name('library.py')]},
         'f2_path_identity':'byte-exact compared to F1 records'},indent=2)+'\n')
 
 if __name__=='__main__':
-    p=argparse.ArgumentParser(description=__doc__);p.add_argument('--build',required=True);p.add_argument('--out',required=True);a=p.parse_args();run(a.build,a.out)
+    p=argparse.ArgumentParser(description=__doc__);p.add_argument('--build',required=True);p.add_argument('--out',required=True)
+    p.add_argument('--fault-recovery',action='store_true',help='Inject a backend fault while an upload drain is incomplete, then recover with B')
+    a=p.parse_args();run(a.build,a.out,a.fault_recovery)

@@ -1,5 +1,11 @@
 # 单机反馈与打包修正
 
+后续 `.6` 实机反馈：GBA 主机首屏正常，进入下一级后文字出现、封面未加载、按键无响应。已只恢复此前可用的 `.3` 核心与 81 页配套 F1 菜单，84 文件回读一致，54 份当时的 GBA 进度先备份、更新后校验不变。GB/GBC、NES、GG 保留当前版本；系统固件未修改。`.6` 的 SHA256 已加入拒绝安装列表。具体原因尚待复现，不能将“卡在封面加载附近”写成已确认的根因。
+
+此前真实 APF／Intel FIFO／CellRAM 的完整连线仿真只运行首屏和左右动画；子目录测试使用了替代的绘制状态，没有覆盖完整的重新载入链路。此覆盖缺口已记录，用户无需再读诊断值。
+
+离线另复现了封面排空状态忽略后台错误的问题，修正后的错误／超时返回及加载／保存控制回归通过；尚未生成新 bitstream。这是独立确认的代码缺陷，不能据此断言实机故障根因，见[控制回归证据](../experiments/gba_coverflow/evidence/drain-fault-guard.json)。
+
 2026-11-03，使用者在自己的 Pocket 上确认：FC/NES 与 GG 的菜单、CoverFlow 动画及基本启动正常。FC 仍有较多缺图和未翻译名称。GBA 已恢复 `.3`，菜单与游戏可进入，当前待改的是动画。这是使用者报告，未逐款验证全库、保存耐久性或多台设备兼容性。
 
 此前 GBA `.5` 出现“操作失败”，首次诊断码未取得，不能断言原因。工具现拒绝安装或重新打包该设备失败版本。历史编译通过记录仅作离线证据，不能作为继续发布该版本的依据。
@@ -9,6 +15,8 @@ NES/GG 首次出现 variants / core setup 错误。已确认打包器遗漏官�
 [官方定义文件清单](https://www.analogue.co/developer/docs/openfpga/core-definition-files)要求 `variants.json`，没有变体时仍需提供定义。
 
 ## English
+
+Later `.6` device feedback: the GBA console landing page works, but opening a child page shows captions without covers and input becomes unresponsive. Only the previously accepted `.3` and its 81 matching F1 pages were restored: 84 files read back correctly, with 54 current GBA progress files backed up and verified unchanged. GB/GBC, NES and GG stayed on their existing versions. The `.6` digest is now blocked from installation. The root cause remains unconfirmed. The earlier full-wiring APF/FIFO/CellRAM probe covered startup and horizontal animation; child-page controller tests used substituted rendering state and did not establish the complete reload path.
 
 One user reports working NES/GG menus, CoverFlow animation and basic game launch after the missing upstream variants definitions were restored. NES captions/artwork remain incomplete. GBA is back on the previously accepted `.3`, with menu and game launch working; animation remains the requested change. This does not certify every game, save durability or other devices.
 

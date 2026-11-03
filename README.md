@@ -6,7 +6,7 @@
 
 2026-11-03：[完整交付工作](docs/COMPLETE-DELIVERY.md)复用原版 GB/GBC CoverFlow。FC/NES、GG 在补齐必需的 `variants.json` 后，已有单机用户报告菜单、动画及游戏启动正常；FC 名称与封面仍需补齐。GBA `.5` 上机失败，已恢复可启动的 `.3`；GBA CoverFlow 继续离线适配，拒绝重新安装已失败的 bitstream。[设备反馈](docs/DEVICE-FEEDBACK-2026-11-03.md)记录了范围。公开稳定版仍限 GB/GBC，不修改系统固件。
 
-GBA 新 `.6` 使用同一套 CoverFlow 和独立 CRAM1 封面通道，已通过 448,800 次像素比较、实际 APF／Intel FIFO 的合成首次菜单流程、完整编译及 104 条时序检查（最小 +0.090 ns）。[检查记录](experiments/gba_coverflow/evidence/cellram-gba.6.json)区分离线结果和仍待确认的实机效果。
+GBA `.6` 实机进入子目录后出现封面未加载、按键无响应，已恢复可用的 `.3`，并拒绝重新安装 `.6`。此前像素、首屏和时序检查保留为[离线证据](experiments/gba_coverflow/evidence/cellram-gba.6.json)；首屏通过没有覆盖完整的子目录加载链路，修复继续离线进行。
 
 ![本项目原生 RTL 输出的中文菜单预览](docs/images/menu-preview.png)
 

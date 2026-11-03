@@ -1,6 +1,8 @@
 # GBA 共用 CoverFlow 适配
 
-当前 `.6` 已通过下列离线检查，尚无实机验收。使用者确认可进入菜单、游戏的版本仍为 [GBA `.3`](../gba_menu/README.md)。历史 `.5` 上机出现“操作失败”，已回退并拒绝重新打包／安装；其首次故障原因未确认，见[设备反馈](../../docs/DEVICE-FEEDBACK-2026-11-03.md)。
+`.6` 实机首屏正常，进入子目录后文字出现、封面未加载、按键无响应，已恢复 [GBA `.3`](../gba_menu/README.md)。`.5` 与 `.6` 均拒绝重新打包／安装；以下通过记录仅为此前离线检查，不能作为继续安装的依据。具体原因尚待复现，见[设备反馈](../../docs/DEVICE-FEEDBACK-2026-11-03.md)。
+
+后续源码已修正一个单独复现的错误处理缺口：`CF_ART_DRAIN` 遇到后台错误立即进入可返回的错误页，未完成上传的排空等待使用较短的画面 watchdog。旧 `.6` 在注入错误的用例中失败，修正后错误／超时、B 返回及原有加载／保存控制回归通过，见[收据](evidence/drain-fault-guard.json)。这不等于已确认实机根因；修正未生成或安装新 bitstream。
 
 `.6` 复用 [GB/GBC CoverFlow 的几何、逐张移动／缩放、倒影及文字绘制](../coverflow_shared/README.md)。GBA 保留原生游戏核心，封面改放原先空闲的 CRAM1；CRAM0、ROM／EWRAM／普通存档和 RTC 通道继续使用原接口。封面存储使用原生内存时钟（上游标称 100.663296 MHz）及原上游 CellRAM 时序状态机，跨时钟上传／失效事件和状态经过同步。
 
@@ -28,13 +30,17 @@ python experiments/gba_coverflow/prepare.py --sources .work/multi-system/sources
 python experiments/coverflow_shared/probe_psram_raster.py --gba --gba-source .work/multi-system/sources/gba --out .work/gba-raster
 python experiments/gba_coverflow/probe_boot.py --build .work/gba-menu/coverflow-build --out .work/gba-boot --intel-model /licensed/altera_mf.v
 python experiments/gba_coverflow/probe_control.py --build .work/gba-menu/coverflow-build --out .work/gba-control
+python experiments/gba_coverflow/probe_control.py --build .work/gba-menu/coverflow-build --out .work/gba-fault-control --fault-recovery
+python experiments/gba_coverflow/probe_boot.py --build .work/gba-menu/coverflow-build --out .work/gba-hierarchy --intel-model /licensed/altera_mf.v --hierarchy
 ```
 
 原生 GBA 来源和许可见[原实验](../gba_menu/README.md)。Intel 模型由本机合法 Quartus 安装提供，不随仓库分发。私人标题／封面库、BIOS、ROM、存档不入仓库。没有公共合并 GBA 二进制发行。
 
 ## English
 
-Candidate `.6` passes the offline checks below and has no device acceptance. The previously accepted `.3` remains the working menu/game-launch version; `.5` failed on hardware and is blocked from repackaging/installation, with its original fault cause unconfirmed.
+Candidate `.6` shows its landing page on hardware but freezes after opening a child page: captions appear, artwork stays unloaded and input is unresponsive. The previously accepted `.3` has been restored. Both `.5` and `.6` are blocked from repackaging/installation. The results below are historical offline checks, not device acceptance; the root cause remains unconfirmed.
+
+The source now fixes a separately reproduced error-handling defect: an upload-drain backend error reports promptly, and an incomplete drain uses the shorter frame watchdog. The old `.6` controller fails fault injection; the corrected controller passes error/timeout, B-return and inherited launch/save regressions. [Evidence](evidence/drain-fault-guard.json) does not establish the original physical cause. No corrected bitstream has been built or installed. `--hierarchy` adds a 12-entry child page, its 11-cover prefetch set, B-return/root reload and subsequent input to the full-wiring boot probe.
 
 The same GB/GBC CoverFlow geometry/compositor now uses otherwise idle CRAM1 at the native memory clock (nominally 100.663296 MHz), retaining the upstream CellRAM pin timing state machine. Native GBA ROM, EWRAM, save/RTC and CRAM0 interfaces remain independent. Menu output is 320×288 at 4/5 of the native video clock; game scaler 0 stays 240×160 with inherited settings.
 
