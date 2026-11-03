@@ -8,6 +8,8 @@
 
 GBA `.6` 实机进入子目录后出现封面未加载、按键无响应，已恢复可用的 `.3`，并拒绝重新安装 `.6`。此前像素、首屏和时序检查保留为[离线证据](experiments/gba_coverflow/evidence/cellram-gba.6.json)；首屏通过没有覆盖完整的子目录加载链路，修复继续离线进行。
 
+新的 [GBA `.7` 动画候选](experiments/gba_coverflow/README.md)使用独立 SRAM 缓存及共用 RGB 混合，通过完整进出分类／连续切换仿真和 104 项时序检查（最小 +0.076 ns）。原生游戏时钟、启动与普通存档路径沿用此前实现，本版实机使用仍待验收。
+
 ![本项目原生 RTL 输出的中文菜单预览](docs/images/menu-preview.png)
 
 开发分支提供[整批预检／更新／回退](docs/BATCH-UPDATE.md)：统一准备六个组件，保留已有画面默认值与新旧进度。实际卡核对与新候选实机验收仍待完成。

@@ -13,21 +13,29 @@ spec=importlib.util.spec_from_file_location('gba_prepare',ROOT/'experiments/gba_
 base=importlib.util.module_from_spec(spec);spec.loader.exec_module(base)
 replace=base.replace
 
-CRAM1_SDC='''
-# CoverFlow's independent asynchronous CellRAM1, on the native sys clock.
-# Same external latch/setup/hold budgets as CRAM0; native constraints remain.
-# These FPGA-side budgets do not replace a vendor/board timing model.
-set cf_cram1_clock [get_clocks {ic|mp1|mf_pllbase_inst|sys_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk}]
-set cf_cram1_period [get_clock_info -period $cf_cram1_clock]
-set_max_delay [expr {$cf_cram1_period * 2 - 5.0}] -from $cf_cram1_clock -to [get_ports {cram1_a[*] cram1_dq[*]}]
-set_max_delay [expr {$cf_cram1_period * 2 - 7.0}] -from $cf_cram1_clock -to [get_ports {cram1_ce0_n cram1_ce1_n cram1_clk cram1_cre cram1_lb_n cram1_oe_n cram1_ub_n cram1_we_n}]
-set_max_delay [expr {$cf_cram1_period - 2.0}] -from $cf_cram1_clock -to [get_ports {cram1_adv_n}]
-set_min_delay 0.000 -from $cf_cram1_clock -to [get_ports {cram1_a[*] cram1_dq[*] cram1_ce0_n cram1_ce1_n cram1_clk cram1_cre cram1_lb_n cram1_oe_n cram1_ub_n cram1_we_n cram1_adv_n}]
-set_max_delay $cf_cram1_period -from [get_ports {cram1_dq[*] cram1_wait}] -to $cf_cram1_clock
-set_min_delay 0.000 -from [get_ports {cram1_dq[*] cram1_wait}] -to $cf_cram1_clock
+SRAM_SDC='''
+# Dedicated cover SRAM: AS6C2016-55BIN, 55 ns address/byte access,
+# 45 ns WE pulse, 25 ns data setup, 20 ns output disable.
+# Counter waits supply the external cycle. The packager separately requires
+# every fitted I/O DATA path <= 4.25 ns at all corners (excluding clock insertion).
+# Eight sys cycles with the input register give seven physical settling cycles:
+# 7 * 9.930 - 4.25 - 55 - 4.25 = 6.01 ns remaining for board/skew margin.
+# https://www.alliancememory.com/as6c2016/
+# Clock endpoints keep these limits scoped to the asynchronous SRAM pins.
+# The independent post-fit data-path check covers every SRAM pin.
+set cf_sram_clock [get_clocks {ic|mp1|mf_pllbase_inst|sys_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk}]
+set cf_sram_ports [get_ports {sram_a[*] sram_dq[*] sram_oe_n sram_we_n sram_ub_n sram_lb_n}]
+if {[get_collection_size $cf_sram_clock] != 1 || [get_collection_size $cf_sram_ports] != 37} {
+    error "CoverFlow SRAM clock/pins are missing"
+}
+set_max_delay 10.000 -from $cf_sram_clock -to $cf_sram_ports
+set_min_delay 0.000 -from $cf_sram_clock -to $cf_sram_ports
+set_max_delay 10.000 -from [get_ports {sram_dq[*]}] -to $cf_sram_clock
+set_min_delay -10.000 -from [get_ports {sram_dq[*]}] -to $cf_sram_clock
 '''
 
-def controller(text,exit_paths=1,cellram=False):
+def controller(text,exit_paths=1,cellram=False,associative=False):
+    if associative and not cellram:raise ValueError('Physical upload fence required for associative GBA cache')
     text=replace(text,'// GBAF1 page reader and GBA launch/save lifecycle, clocked by the APF bridge.',
         '// GBAF2 CoverFlow adapter; inherited GBA launch, ordinary save and RTC lifecycle.')
     text=replace(text,'input wire [31:0] save_capacity,','''input wire [31:0] save_capacity,
@@ -148,49 +156,85 @@ def controller(text,exit_paths=1,cellram=False):
         # another atlas. Otherwise the just-committed cover is read twice.
         text=replace(text,'            CF_EXIT:if(cf_level==0',
             '            53:state<=MENU;\n            CF_EXIT:if(cf_level==0')
+    if associative:
+        text=replace(text,'input wire [10:0] cf_wanted_game,',
+            'input wire [10:0] cf_wanted_game,\n    input wire [2:0] cf_wanted_slot,')
+        text=replace(text,'output reg [10:0] cf_loaded_game=0,',
+            'output reg [10:0] cf_loaded_game=0,\n    output reg [2:0] cf_loaded_slot=0,')
+        text=replace(text,'cf_art_game<=cf_wanted_game;cf_chunk<=0;state<=CF_ART_REQ;',
+            'cf_art_game<=cf_wanted_game;cf_loaded_slot<=cf_wanted_slot;cf_chunk<=0;state<=CF_ART_REQ;')
+        text=replace(text,"32'h42000000+({25'd0,cf_art_game[6:0]}<<16)+cf_chunk_offset,",
+            "32'h42000000+({29'd0,cf_loaded_slot}<<16)+cf_chunk_offset,")
     return text
+
+def share_color_blend(text):
+    a=text.index('reg [23:0] h_out;');z=text.index('always @(posedge clk_vid) begin\n    hr_hs<=0;',a)
+    return text[:a]+'''// Share the three final blend products across mutually exclusive layers.
+// Selection priority and the original integer truncation stay unchanged.
+reg [23:0] h_foreground;
+reg [4:0] h_weight;
+wire [23:0] h_out={mix(s2_br,h_foreground[23:16],h_weight),
+    mix(s2_bg,h_foreground[15:8],h_weight),mix(s2_bb,h_foreground[7:0],h_weight)};
+always @* begin
+    h_foreground={s2_br,s2_bg,s2_bb};h_weight=0;
+    if(s2_dbg)begin h_foreground=s2_dbv ? 24'h20E040:24'h601010;h_weight=16;end
+    else if(s2_c && !s2_cut)begin h_foreground={cr2,cg2,cb2};h_weight=hwc;end
+    else if(s2_t1)begin h_foreground={8'd246,8'd246,8'd250};h_weight=twc;end
+    else if(s2_t2)begin h_foreground={8'd128,8'd140,8'd168};h_weight=twc;end
+    else if(s2_dc)begin h_foreground={8'd232,8'd236,8'd244};h_weight=hlvl;end
+    else if(s2_dd)begin h_foreground={8'd74,8'd82,8'd104};h_weight=hlvl;end
+end
+'''+text[z:]
+
 
 def prepare(source,out):
     out=base.prepare(source,out,True)
     core=out/'src/fpga/core';top=core/'core_top.sv'
-    (core/'gba_menu.sv').write_text(controller((core/'gba_menu.sv').read_text(encoding='utf8'),cellram=True),encoding='utf8',newline='\n')
+    (core/'gba_menu.sv').write_text(controller((core/'gba_menu.sv').read_text(encoding='utf8'),cellram=True,associative=True),encoding='utf8',newline='\n')
     sys.path.insert(0,str(ROOT/'experiments/coverflow_shared'))
-    from prepare_psram import build as shared_prepare
-    shared=shared_prepare(ROOT/'.work/coverflow-delivery'/('shared-'+out.name),source,
-        fast_response=True,clock_speed=100.663296)
-    files=['coverflow_geometry.sv','coverflow_psram_view.sv','coverflow_line_fetch16.sv',
-        'coverflow_psram.sv','coverflow_psram_cache.sv','coverflow_dpram_ce.v','picker_dpram.v']
+    from prepare_assoc import build as shared_prepare
+    shared=shared_prepare(ROOT/'.work/coverflow-delivery'/('assoc-'+out.name))
+    files=['coverflow_geometry.sv','coverflow_assoc_view.sv','coverflow_assoc_cache.sv',
+        'coverflow_line_fetch.sv','coverflow_dpram_ce.v','picker_dpram.v']
     for name in files:
         shutil.copy2(shared/name,core/name)
+    # Keep menu pixel products in DSPs; the pixel arithmetic is unchanged.
+    view=core/'coverflow_assoc_view.sv'
+    view.write_text(share_color_blend(replace(view.read_text(encoding='utf8'),'module coverflow_assoc_view #',
+        '(* multstyle = "dsp" *) module coverflow_assoc_view #')),encoding='utf8',newline='\n')
+    shutil.copy2(HERE/'sram_cache.sv',core/'coverflow_sram_cache.sv')
+    files.append('coverflow_sram_cache.sv')
     shutil.copy2(shared/'font_cn.hex',out/'src/fpga/build/font_cn.hex')
     s=top.read_text(encoding='utf8')
-    s=replace(s,'gba_menu menu (',(HERE/'top_insert.sv').read_text(encoding='utf8')+'\ngba_menu menu (')
+    s=replace(s,'gba_menu menu (',(HERE/'top_sram.sv').read_text(encoding='utf8')+'\ngba_menu menu (')
     s=replace(s,'.frame_ack(ui_frame_ack_b)', '''.cf_want_art(cf_want),.cf_wanted_game(cf_wanted),.cf_anim(cf_anim),.cf_frame_tick(cf_tick),
     .cf_mem_idle(cf_mem_idle),.cf_fetch_fault(cf_fetch_fault),.cf_upload_ready(cf_uploaded),.cf_level(cf_level),.cf_title_level(cf_title_level),
+    .cf_wanted_slot(cf_wanted_slot),.cf_loaded_slot(cf_loaded_slot),
     .cf_menu(cf_menu),.cf_go(cf_go),.cf_direction(cf_direction),.cf_invalidate(cf_invalidate),.cf_commit(cf_commit),
     .cf_generation(cf_generation),.cf_loaded_game(cf_loaded),.cf_count(cf_count),
     .cf_level_target(cf_target),.cf_title_target(cf_title_target),.cf_title_width(cf_width),.cf_subtitle_width(cf_subwidth),
     .frame_ack(ui_frame_ack_b)''')
     s=replace(s,'.visible(ui_visible_bridge)', '.visible(cf_menu ? cf_level!=0 : ui_visible_bridge)')
-    # CRAM0 belongs to the native GBA/save path; only the unused CRAM1 pins
-    # change ownership. No CoverFlow requests enter the game's SDRAM loader.
-    idle_cram1="assign cram1_a = 'h0;\nassign cram1_dq = {16{1'bZ}};\n"+''.join(
-        f'assign cram1_{name} = {value};\n' for name,value in [
-            ('clk',0),('adv_n',1),('cre',0),('ce0_n',1),('ce1_n',1),
-            ('oe_n',1),('we_n',1),('ub_n',1),('lb_n',1)])
-    s=replace(s,idle_cram1,'// CRAM1 is owned exclusively by the CoverFlow cache.\n')
+    # The five-cover cache fits in unused SRAM. Native CRAM0/SDRAM and the
+    # original inactive CRAM1 assignments retain their accepted ownership.
+    idle_sram="assign sram_a = 'h0;\nassign sram_dq = {16{1'bZ}};\n"+''.join(
+        f'assign sram_{name}  = 1;\n' for name in ('oe_n','we_n','ub_n','lb_n'))
+    s=replace(s,idle_sram,'// SRAM is owned exclusively by the CoverFlow cache.\n')
     for signal in ['rgb','de','vs','hs','skip']:
         s=replace(s,f'.video_{signal}  ( video_{signal} )' if signal=='rgb' else f'.video_{signal}   ( video_{signal} )' if signal in ['de','vs','hs'] else '.video_skip ( video_skip )',
             f'.video_{signal} ( cf_game_{signal} )')
     s=replace(s,'video_adapter video_out (',(HERE/'video_mux.sv').read_text(encoding='utf8')+'\nvideo_adapter video_out (')
     top.write_text(s,encoding='utf8',newline='\n')
-    with (core/'core_constraints.sdc').open('a',encoding='utf8',newline='\n') as f:f.write(CRAM1_SDC)
+    with (core/'core_constraints.sdc').open('a',encoding='utf8',newline='\n') as f:f.write(SRAM_SDC)
     with (out/'src/fpga/build/ap_core.qsf').open('a') as f:
         for name in files:
             f.write('set_global_assignment -name '+('SYSTEMVERILOG_FILE' if name.endswith('.sv') else 'VERILOG_FILE')+' ../core/'+name+'\n')
-    settings=out/'src/fpga/build/ap_core.qsf'
-    settings.write_text(replace(settings.read_text(encoding='utf8'),
-        'set_global_assignment -name SEED 4','set_global_assignment -name SEED 5'),encoding='utf8',newline='\n')
+        for port in ('sram_a[*]','sram_dq[*]','sram_oe_n','sram_we_n','sram_ub_n','sram_lb_n'):
+            f.write('set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to '+port+'\n')
+        f.write('set_instance_assignment -name FAST_INPUT_REGISTER ON -to sram_dq[*]\n')
+        f.write('set_instance_assignment -name FAST_OUTPUT_ENABLE_REGISTER ON -to sram_dq[*]\n')
+    qsf=out/'src/fpga/build/ap_core.qsf'
+    qsf.write_text(replace(qsf.read_text(encoding='utf8'),'set_global_assignment -name SEED 4','set_global_assignment -name SEED 5'),encoding='utf8',newline='\n')
     return out
 
 if __name__=='__main__':

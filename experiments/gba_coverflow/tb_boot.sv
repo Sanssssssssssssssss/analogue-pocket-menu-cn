@@ -5,7 +5,7 @@ module tb_coverflow_boot;
     reg clk_74a=0,clk_vid=0,clk_sys=0;
     always #6.734 clk_74a=~clk_74a;
     always #59.604644775390625 clk_vid=~clk_vid;
-    always #4.967053731282552 clk_sys=~clk_sys;
+    always #4.965 clk_sys=~clk_sys;
     reg booted=0,bridge_wr=0,bridge_rd=0;
     reg [31:0] bridge_addr=0,bridge_wr_data=0,cont1_key=0;
     wire bridge_endian_little=1'b0,pll_core_locked_s=1'b1;
@@ -53,7 +53,7 @@ module tb_coverflow_boot;
         .reads(physical_reads),.writes(physical_writes));
     reg [7:0] page[0:1000000],child_page[0:1000000];
     integer menu_page=0,folder_opens=0;
-    localparam CHILD_COUNT=CHILD_MENU_COUNT,CHILD_COVERS=CHILD_PREFETCH_COVERS;
+    localparam CHILD_COUNT=CHILD_MENU_COUNT,CHILD_COVERS=CHILD_PREFETCH_COVERS,NAV_STEPS=0;
     initial begin $readmemh("page.hex",page);$readmemh("child.hex",child_page);end
     function [7:0] file_byte(input integer offset);
         file_byte=menu_page==0 ? page[offset]:child_page[offset];
@@ -127,7 +127,7 @@ module tb_coverflow_boot;
             repeat(100)@(negedge clk_74a);
         end
     end
-    integer frame_pixels=0,frames=0,poses=0;
+    integer frame_pixels=0,frames=0,poses=0,art_commits=0,nav=0,expected_selection=0,before_return=0;
     reg previous_vs=0,previous_hs=0,previous_de=0;
     always @(posedge clk_vid)begin
         #0.1;
@@ -138,6 +138,7 @@ module tb_coverflow_boot;
             if(frames>0 && frame_pixels!=92160)$fatal(1,"incomplete raster %d",frame_pixels);
             frame_pixels=0;frames=frames+1;
             $display("frame=%d level=%d state=%d uploaded_halfwords=%d",frames,cf_level,ui_state,physical_writes);
+            $fflush();
         end
         previous_vs=cf_vs;previous_hs=cf_hs;previous_de=cf_de;
     end
@@ -148,6 +149,7 @@ module tb_coverflow_boot;
         // raster read after the controller observed its synchronized value.
         if(cf_commit && (cf_images.received!=22784 || cf_images.uploading || cf_images.used!=0 || physical_writes%22784!=0))
             $fatal(1,"unwritten cover published");
+        if(cf_commit)art_commits=art_commits+1;
         if(cf_tick && cf_anim)poses=poses | (1<<cf_view.af);
     end
     initial begin
@@ -164,14 +166,26 @@ module tb_coverflow_boot;
             wait(ui_state==13 && ui_selected==0 && cf_level!=0 && physical_writes==(2+CHILD_COVERS)*22784);
             if(cf_count!=CHILD_COUNT || art_chunks!=(2+CHILD_COVERS)*3 || text_words!=1024)
                 $fatal(1,"child menu did not complete its own art/text load");
+            for(nav=1;nav<=NAV_STEPS;nav=nav+1)begin
+                expected_selection=nav<=CHILD_COUNT ? nav%CHILD_COUNT:(2*CHILD_COUNT-nav)%CHILD_COUNT;
+                @(negedge clk_74a);cont1_key=nav<=CHILD_COUNT ? 32'h8:32'h4;
+                repeat(4)@(negedge clk_74a);cont1_key=0;
+                wait(cf_anim);
+                wait(ui_state==13 && ui_selected==expected_selection && !cf_anim && cf_title_level==8 && !cf_want);
+                repeat(64)@(negedge clk_74a);
+                if(cf_want || art_chunks!=art_commits*3 || physical_writes!=art_commits*22784)
+                    $fatal(1,"navigation did not complete its cache/text work");
+                $display("navigation %0d selection=%0d commits=%0d",nav,ui_selected,art_commits);$fflush();
+            end
+            before_return=physical_writes;
             @(negedge clk_74a);cont1_key=32'h20;
             repeat(4)@(negedge clk_74a);cont1_key=0;
             wait(menu_page==0);
-            wait(ui_state==13 && ui_selected==0 && cf_level!=0 && physical_writes==(4+CHILD_COVERS)*22784);
-            if(folder_opens!=2 || cf_count!=2 || art_chunks!=(4+CHILD_COVERS)*3 || text_words!=1536)
+            wait(ui_state==13 && ui_selected==0 && cf_level!=0 && physical_writes==before_return+45568);
+            if(folder_opens!=2 || cf_count!=2 || art_chunks!=art_commits*3 || text_words!=(3+NAV_STEPS)*512)
                 $fatal(1,"root reload did not complete after B");
         end
-        @(negedge clk_74a);cont1_key=32'h2;
+        @(negedge clk_74a);poses=0;cont1_key=32'h2;
         repeat(4)@(negedge clk_74a);cont1_key=0;
         wait(cf_anim);
         if($test$plusargs("full_animation"))begin

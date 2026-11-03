@@ -36,10 +36,24 @@ def stage(build,out,sources,motion=False,coverflow=False):
     slack=[float(v) for v in re.findall(r'Slack\s*:\s*(-?[\d.]+)',timing)]
     tns=[float(v) for v in re.findall(r'TNS\s*:\s*(-?[\d.]+)',timing)]
     if len(slack)<40 or min(slack)<0 or not tns or any(tns):raise ValueError('Incomplete or failing multi-corner timing')
+    sram_timing=None
+    if coverflow:
+        spec=importlib.util.spec_from_file_location('sram_timing',ROOT/'experiments/gba_coverflow/probe_timing.py')
+        io=importlib.util.module_from_spec(spec);spec.loader.exec_module(io)
+        sram_timing=io.read(build)
     bios=(build/'src/fpga/gba/gba_bios.vhd').read_text(encoding='utf-8')
     if "signal rom : t_rom := (others => (others => '0'));" not in bios:
         raise ValueError('Embedded BIOS has not been removed')
     raw=(files/'ap_core.rbf').read_bytes()
+    annotations=None
+    if (build/'constraint-annotations.json').is_file():
+        annotations=json.loads((build/'constraint-annotations.json').read_text())
+        original=build/'compiled-core-constraints.sdc'
+        documented=build/'src/fpga/core/core_constraints.sdc'
+        def commands(path):
+            return [s for s in path.read_text().splitlines() if s.strip() and not s.lstrip().startswith('#')]
+        if sha(original)!=annotations['original_sdc_sha256'] or sha(documented)!=annotations['documented_sdc_sha256'] or commands(original)!=commands(documented) or hashlib.sha256(raw).hexdigest()!=annotations['raw_bitstream_sha256']:
+            raise ValueError('Post-fit annotation changed executable constraints or bitstream')
     # Cyclone V RBF size varies with fitted memory/configuration contents.
     if not 1024**2<=len(raw)<=3*1024**2 or len(raw)%4:
         raise ValueError('Unexpected GBA Pocket bitstream size')
@@ -75,7 +89,7 @@ def stage(build,out,sources,motion=False,coverflow=False):
     for name in ('audio.json','input.json','interact.json','variants.json','video.json'):
         shutil.copy2(upstream/name,dst/name)
     meta=json.loads((upstream/'core.json').read_text())['core']
-    version='0.2.0-gba.6' if coverflow else '0.2.0-gba.4' if motion else '0.2.0-gba.3'
+    version='0.2.0-gba.7' if coverflow else '0.2.0-gba.4' if motion else '0.2.0-gba.3'
     meta['metadata'].update(platform_ids=['gbalab','gba'],shortname='GBA',
         description='Chinese GBA menu. L+R+Select: pause, save and return.',
         author='pocketlab',url='https://github.com/Sanssssssssssssssss/analogue-pocket-menu-cn',
@@ -129,6 +143,8 @@ def stage(build,out,sources,motion=False,coverflow=False):
              'source_commit':subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip(),
              'source_files':sources,'fit':fit,'timing':timing,
              'files':[{'path':p.relative_to(pkg).as_posix(),'sha256':sha(p),'bytes':p.stat().st_size} for p in sorted(pkg.rglob('*')) if p.is_file()]}
+    if sram_timing is not None:receipt['sram_io_timing']=sram_timing
+    if annotations is not None:receipt['constraint_annotations']=annotations
     (out/'build-receipt.json').write_text(json.dumps(receipt,indent=2)+'\n')
     return receipt
 

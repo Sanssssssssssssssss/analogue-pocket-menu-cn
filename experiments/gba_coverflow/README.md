@@ -1,49 +1,55 @@
-# GBA 共用 CoverFlow 适配
+# GBA CoverFlow 动画
 
-`.6` 实机首屏正常，进入子目录后文字出现、封面未加载、按键无响应，已恢复 [GBA `.3`](../gba_menu/README.md)。`.5` 与 `.6` 均拒绝重新打包／安装；以下通过记录仅为此前离线检查，不能作为继续安装的依据。具体原因尚待复现，见[设备反馈](../../docs/DEVICE-FEEDBACK-2026-11-03.md)。
+`.7` 候选沿用 GB/GBC 的封面移动、缩放、亮度、倒影及中文文字绘制，使用五张封面的关联缓存。GBA 游戏由原生核心运行。完整编译通过 104 项时序检查，最小余量 +0.076 ns，TNS 为零；本版实机动画与游戏／存档验收仍待完成。此前可用的 `.3` 保留为回退版本。
 
-后续源码已修正一个单独复现的错误处理缺口：`CF_ART_DRAIN` 遇到后台错误立即进入可返回的错误页，未完成上传的排空等待使用较短的画面 watchdog。旧 `.6` 在注入错误的用例中失败，修正后错误／超时、B 返回及原有加载／保存控制回归通过，见[收据](evidence/drain-fault-guard.json)。这不等于已确认实机根因；修正未生成或安装新 bitstream。
+封面放入 Pocket 的 256 KB SRAM，占用 227,840 字节。八项 RAM 队列接收上传；完成标志在绘制读取期间保持有效，发布标签前确认整张图片已写完。各图层共用最后一步 RGB 混合，保留整数截断与显示优先级。错误和上传超时可返回菜单。ROM、EWRAM、CRAM0、存档及 RTC 的原有源码与 `.3` 一致。
 
-`.6` 复用 [GB/GBC CoverFlow 的几何、逐张移动／缩放、倒影及文字绘制](../coverflow_shared/README.md)。GBA 保留原生游戏核心，封面改放原先空闲的 CRAM1；CRAM0、ROM／EWRAM／普通存档和 RTC 通道继续使用原接口。封面存储使用原生内存时钟（上游标称 100.663296 MHz）及原上游 CellRAM 时序状态机，跨时钟上传／失效事件和状态经过同步。
+菜单输出 320×288，使用 GBA 视频时钟的 4/5 像素使能。游戏使用原有 240×160 scaler 0；菜单使用新增 scaler 1。游戏画面仍为原比例、无外框，GBA 默认无 LCD 网格。APF Memories／休眠在此实验中仍禁用。
 
-菜单为 320×288，采用原生视频时钟（上游标称 8.388608 MHz）的 4/5 像素使能；GBA 游戏继续使用 240×160、3:2 的 scaler 0。新增的 scaler 1 用于菜单。已有游戏显示设置保留，默认不增加 LCD 网格。APF Memories／休眠在此实验中仍禁用。
+## 已完成的离线检查
 
-## 检查范围
+- 五个完整 SRAM 图集、113,920 次物理半字写入、并发上传／读取、4,850 次 DWORD 校验、上传完成保持、非法地址和失效恢复通过。
+- 18 帧、2,019,600 次像素比较，与 GB/GBC 参考绘制一致；左右各八个连续姿态、合成中文标题及同时上传第五张封面通过。参考副本只含已记录的负裁切坐标修正；冻结的 GB/GBC 输入未修改。
+- 真实 APF 命令引擎、上游 loader、实际 Intel FIFO 和校准后的便携 RAM 模型连接完整 UI，在 GBA 标称时钟下完成 149 帧：A 进入 12 项子目录、五张完整封面预读、16 次切换（含环绕和反向）、B 返回和后续按键。共 121 次 APF 操作、569,600 次物理半字写入。
+- 独立控制仿真通过三次 ROM 加载、64K／128K 普通存档、RTC、暂停／恢复、保存失败保留现场、非法路径及旧完成信号拒绝；封面错误／超时与 B 返回通过。
+- 从冻结上游重新生成 `.3` 基线后，93 个既有输入逐字节一致，其中 45 个为原生 GBA 源码；生成的错误画面 HEX 只有换行格式不同，数值相同。另重新生成并核对了 106 个最终输入，GB/GBC 的 135 个冻结输入一致。
 
-- GBA 实际时钟下，四帧共 448,800 次像素比较与 GB/GBC 参考绘制相符，包含双向姿态及同时上传另一完整封面。参考副本只含已记录的负裁切坐标修正；冻结源码不变。
-- 真实 APF 命令引擎、上游 loader、Intel FIFO／RAM 与 CellRAM 引脚模型完成首次进入菜单、两张完整封面和按键触发动画。GBA 游戏保持 reset，VS 为零，菜单自行产生帧节奏。发布缓存标签后多等一个时钟，避免重复读取刚完成的封面。
-- 独立控制仿真覆盖 A/B、环绕、三次游戏加载、64K／128K 普通存档、RTC、暂停、保存失败保留现场及非法路径／旧完成信号拒绝。上游 loader 另检查两种字节序、完整 16 位字形列及头部隔离。
-- [完整编译和全部 104 条时序检查通过](evidence/cellram-gba.6.json)：17,305 ALM、284 M10K、48 DSP，最小余量 +0.090 ns，所有 TNS 为零，无 Critical Warning。仅 fit 成功或界面仿真成功均不允许生成候选。
+这些是合成主机、文件及 SRAM 引脚模型的检查。游戏 CPU、实卡保存耐久性和本次动画手感仍需实机确认。便携 RAM 先与实际 Intel 模型核对；SRAM 模型按器件时序编写，不能代替板上验收。完整收据见[本版验证](evidence/sram-gba.7.json)。
 
-上游请求的内存／视频时钟为 100.663296／8.388608 MHz；TimeQuest 量化报告约 100.69／8.39 MHz，完整时序检查使用其实际生成时钟。光栅仿真使用上游标称值及相同的 12:1 比例。
+![RTL 仿真的封面动画慢放，使用自绘图标与合成中文条目](evidence/gba7-preview.gif)
 
-CellRAM 为行为模型，主机和文件为合成数据，普通存档检查不认证真实卡的保存耐久性。首次菜单检查默认验证按键启动实际动画；逐姿态绘制由独立差分用例验证。另一次 `+full_animation` 运行已完成连续八姿态、共十一帧完整光栅，所有输入先核对为相同字节，选择／姿态／光栅／错误断言通过；收据在同一证据文件。`probe_boot.py --full-animation` 可执行这一耗时检查，默认模式只检查动画启动。
+上图每姿态慢放至 100 ms；核心的八帧移动按菜单帧率执行。它是 RTL 仿真画面，不是掌机录像。
 
-## 资源与更新
-
-`library.py` 将已核对的本地 GBAF1 菜单转为 GBAF2，每项保留 64 KiB 封面／中文字形块。每页最多 128 项（含返回），大目录须分页。ROM、SAV、RTC 的路径／身份字段逐字节保留，转换不复制游戏或进度。
-
-`update.py` 提供当前卡与核心／菜单格式预检、逐 ROM 核对、局部备份、文件回读及回退。回退保留后来玩的进度，已有游戏视频设置沿用。实际卡更新须重新识别设备，不能复用历史盘符和哈希作为当前认证。
+## 编译与复现
 
 ```sh
-python experiments/gba_coverflow/prepare.py --sources .work/multi-system/sources/gba --out .work/gba-menu/coverflow-build
-python experiments/coverflow_shared/probe_psram_raster.py --gba --gba-source .work/multi-system/sources/gba --out .work/gba-raster
-python experiments/gba_coverflow/probe_boot.py --build .work/gba-menu/coverflow-build --out .work/gba-boot --intel-model /licensed/altera_mf.v
-python experiments/gba_coverflow/probe_control.py --build .work/gba-menu/coverflow-build --out .work/gba-control
-python experiments/gba_coverflow/probe_control.py --build .work/gba-menu/coverflow-build --out .work/gba-fault-control --fault-recovery
-python experiments/gba_coverflow/probe_boot.py --build .work/gba-menu/coverflow-build --out .work/gba-hierarchy --intel-model /licensed/altera_mf.v --hierarchy
+python experiments/gba_coverflow/prepare.py --sources .work/multi-system/sources/gba --out .work/gba-coverflow
+python experiments/gba_coverflow/probe_control.py --build .work/gba-coverflow --out .work/gba-control --fault-recovery
+python experiments/gba_coverflow/probe_boot.py --build .work/gba-coverflow --out .work/gba-boot --intel-model /licensed/altera_mf.v --hierarchy --full-animation --simulator verilator
+python experiments/gba_coverflow/probe_sram_raster.py --build .work/gba-coverflow --out .work/gba-raster --intel-model /licensed/altera_mf.v
+# 在 .work/gba-coverflow/src/fpga/build 中运行完整 Quartus compile。
+python experiments/gba_coverflow/probe_timing.py --build .work/gba-coverflow --quartus-sta /path/to/quartus_sta
+python experiments/gba_menu/package.py --build .work/gba-coverflow --sources .work/multi-system/sources/gba --out .work/gba-package --coverflow
 ```
 
-原生 GBA 来源和许可见[原实验](../gba_menu/README.md)。Intel 模型由本机合法 Quartus 安装提供，不随仓库分发。私人标题／封面库、BIOS、ROM、存档不入仓库。没有公共合并 GBA 二进制发行。
+时序验收要求完整 fit、全部多角时序余量非负且 TNS 为零。另逐条检查四个器件角下的 37 个输出及 16 个输入端点，数据路径不得超过模型的 4.25 ns 预算，公共时钟插入延迟另计。打包器要求匹配 RBF、SDC、QSF、模型和检查脚本哈希的收据，缺失或超预算即拒绝打包。
+
+初始 4 ns 模型拒绝了本版一条 4.053 ns 的地址输出路径；实测输入路径最大 2.870 ns。模型随后按 4.25 ns 双向预算、9.930 ns 保守周期和 25 ns 字节输出关闭延迟重新验证。依据 [AS6C2016-55 数据表](https://www.alliancememory.com/wp-content/uploads/AllianceMemory_2M_LPSRAM_AS6C201620May202021_v1.1_May2021.pdf)，读访问保留 `7 × 9.930 − 4.25 − 55 − 4.25 = 6.01 ns` 板级／偏斜余量。原生 CPU 时钟及所有可执行时序约束未改变。
+
+编译树保留原样；交付副本只修正 SDC 注释中的预算说明。收据记录前后哈希，并核对每条可执行 SDC 行及 RBF 相同。打包器再次验证这些注释变更。
+
+`tb_sram_cache.sv` 可与 `sim_sram.sv` 和生成的 `coverflow_sram_cache.sv` 直接用 Icarus 运行。`probe_boot.py` 保留旧 CellRAM 构建的复现能力；默认生成器现在只生成 `.7` SRAM 方案。
+
+## 此前失败版本
+
+`.5` 和 `.6` 已被实机反馈否决并禁止安装。`.6` 在进入子目录后封面未加载、按键无响应；此前离线仿真未复现这个硬件故障，不能声称根因已确认。独立发现的排空错误处理缺口已修复，见[错误注入收据](evidence/drain-fault-guard.json)；此前编译数据保留在[历史记录](evidence/cellram-gba.6.json)。卡的旧菜单与最新进度通过有版本的局部备份保护。
 
 ## English
 
-Candidate `.6` shows its landing page on hardware but freezes after opening a child page: captions appear, artwork stays unloaded and input is unresponsive. The previously accepted `.3` has been restored. Both `.5` and `.6` are blocked from repackaging/installation. The results below are historical offline checks, not device acceptance; the root cause remains unconfirmed.
+Candidate `.7` reuses the accepted GB/GBC CoverFlow geometry and compositor with five associative SRAM cover slots (227,840 bytes), an eight-entry RAM upload queue and one shared final RGB blender. The GBA CPU remains native. Full compilation passes 104 timing records with +0.076 ns minimum slack and zero TNS. Hardware animation and game/save acceptance remain pending; `.3` is the previously accepted fallback.
 
-The source now fixes a separately reproduced error-handling defect: an upload-drain backend error reports promptly, and an incomplete drain uses the shorter frame watchdog. The old `.6` controller fails fault injection; the corrected controller passes error/timeout, B-return and inherited launch/save regressions. [Evidence](evidence/drain-fault-guard.json) does not establish the original physical cause. No corrected bitstream has been built or installed. `--hierarchy` adds a 12-entry child page, its 11-cover prefetch set, B-return/root reload and subsequent input to the full-wiring boot probe.
+Offline checks pass all 113,920 SRAM writes, 4,850 DWORD samples and 18 complete raster frames / 2,019,600 golden pixel comparisons. The APF/loader/vendor-FIFO wiring runs 149 frames through a 12-entry child, 16 moves including wrap/reversal, B return and subsequent input. Portable RAM is crosschecked against Intel first. The datasheet SRAM model uses 4.25 ns I/O delays, a conservative 9.930 ns period and worst-case byte-output disable. Separate lifecycle/error tests pass. Against `.3`, 93 inherited files (45 native GBA files) are byte-exact; generated error HEX differs only in line endings. All 106 final inputs and 135 frozen GB/GBC inputs are checked.
 
-The same GB/GBC CoverFlow geometry/compositor now uses otherwise idle CRAM1 at the native memory clock (nominally 100.663296 MHz), retaining the upstream CellRAM pin timing state machine. Native GBA ROM, EWRAM, save/RTC and CRAM0 interfaces remain independent. Menu output is 320×288 at 4/5 of the native video clock; game scaler 0 stays 240×160 with inherited settings.
+Packaging requires full fit, all timing/TNS checks and four-corner SRAM routes within the 4.25 ns modeled budget. Measured maxima are 4.053 ns out / 2.870 ns in; the original 4 ns estimate correctly blocked packaging before the model was rerun at its revised bound. The conservative read margin is 6.01 ns. Native clock requirements and executable constraints are unchanged. Only budget comments were updated in a delivery copy, with both SDC versions and the identical RBF bound in the receipt. Hardware behavior remains pending.
 
-The upstream requested clocks are 100.663296/8.388608 MHz; TimeQuest reports approximately 100.69/8.39 MHz after PLL quantization. Timing uses the generated clocks; raster simulation uses the nominal pair with the same 12:1 ratio.
-
-Four complete GBA-clock frames pass 448,800 golden pixel comparisons, including concurrent atlas upload. A production-wiring boot probe joins the actual APF engine, upstream loader, Intel FIFO/RAM and a modeled CellRAM bus while game VS is held at zero, checking complete cover transfers and an actual key starting animation. It also rejects redundant uploads. A separate rerun of the source-checked compiled probe completes all eight sequential key-driven poses and eleven full raster frames, with selection/pose/raster/fault assertions passing. Default boot mode only checks animation startup; `--full-animation` runs the additional slow case. Separate controller checks cover launch/save/RTC/error recovery, and separate geometry/raster checks cover poses. Full compilation and all 104 timing records pass: 17,305 ALMs, 284 M10Ks, 48 DSPs, minimum +0.090 ns, zero TNS and no critical warnings. These models do not establish physical compatibility, gameplay or save durability. ROMs, BIOS, progress, private catalogs and licensed simulation models are excluded.
+Both `.5` and `.6` are device-rejected and blocked. Prior simulation passes did not reproduce `.6`'s physical child-page freeze; its root cause remains unconfirmed. Historical receipts are retained. No ROMs, BIOS, personal progress, private catalogs or licensed simulation models are included.

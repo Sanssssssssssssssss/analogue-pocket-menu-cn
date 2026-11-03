@@ -107,8 +107,11 @@ def run(build,out,fault_recovery=False):
             if raw[64+i*1024+32:64+(i+1)*1024]!=previous[64+i*1024+32:64+(i+1)*1024]:raise AssertionError('Progress/path identity changed')
         (out/(name+'.hex')).write_text(''.join(f'{b:02x}\n' for b in raw))
     (out/'paths.vh').write_bytes((f1/'paths.vh').read_bytes())
-    tb=out/'tb_menu.sv';tb.write_text(bench(fault_recovery),encoding='utf8')
     controller=build/'src/fpga/core/gba_menu.sv'
+    text=bench(fault_recovery)
+    if 'cf_wanted_slot' in controller.read_text(encoding='utf8'):
+        text=replace(text,'.cf_wanted_game(11\'d0),',".cf_wanted_game(11'd0),.cf_wanted_slot(3'd0),")
+    tb=out/'tb_menu.sv';tb.write_text(text,encoding='utf8')
     command=['iverilog','-g2012','-I',str(out),'-s','tb_menu','-o',str(out/'control.sim'),str(controller),str(tb)]
     r=subprocess.run(command,capture_output=True,text=True,timeout=60)
     (out/'build.log').write_text(r.stdout+r.stderr);r.check_returncode()
