@@ -24,9 +24,13 @@ This image is output from the actual menu RTL simulation, using synthetic entrie
 
 - Chinese menu text and independent Unicode display titles, without renaming ROMs.
 - Folder navigation: A opens, B returns, including at the root.
-- Optional cover art, favorites controls and a Chinese pause menu.
-- Local v9 library generation, installation plan, verified backup, file readback and rollback.
+- Optional GB/GBC cover art, favorites controls and a Chinese pause menu.
+- Local v9 library generation, installation plan, verified backup, file readback and rollback. The Windows assistant prepares locally and writes after **Backup and install**; the GB/GBC reference CLI uses `--apply`.
 - Hardware acceptance covers the reported GB/GBC menu, folder navigation and game launch. The native previews require separate gameplay and save verification. Occasional flash and loading delay can occur at game handoff.
+
+Historical records: the [GBA / NES / SNES interface experiments](experiments/multi_system/README.md) and [early standalone GBA integration](experiments/gba_menu/README.md) document earlier development. GBA `0.2.0-gba.3` received single-device menu and game-launch confirmation; that report does not certify the current preview candidates. The installable 18-group Windows preview is linked below. Ordinary saves, RTC, save-and-return and game compatibility require separate per-core acceptance.
+
+Since 2026-11-01, the project has used [independent menus for each native core](docs/PER-SYSTEM-MENUS.md), retaining the official openFPGA system list and Change Core. Analogue OS home/settings translation and an automatic cross-core launcher are outside the current implementation.
 
 ## Install
 
@@ -37,6 +41,8 @@ For Windows, download `PocketLab-Windows-2026-11-16-preview.zip` from the [18-co
 3. Use **Backup and install**, then safely eject and insert the card into a powered-off Pocket. Open **openFPGA → CN Menu**; enable **Group openFPGA** in system settings if needed. Rebuild and update menus after adding, removing or renaming ROMs.
 
 Supply your own games, external BIOS files and personal progress. Firmware is outside the update scope. See [supported platforms and save boundaries](docs/COMPLETE-DELIVERY.md).
+
+The Windows assistant can import supported ordinary-save formats by ROM identity and create initial saves where required by a core. Existing target progress is preserved; conflicting sources require a choice. Instant states and suspend sessions are not converted across cores. File verification does not establish device acceptance of in-game saving, RTC or resume.
 
 The commands below are for the **v0.1.2-public.1 GB/GBC reference release** and its `-core.zip`, separately from the Windows development preview above.
 
@@ -57,9 +63,9 @@ The installer defaults to a read-only plan. Back up `Saves` and `Memories` separ
 python tools/install.py --card X:/ --package dist/core --library .work/library --backup .work/backups/first-install --apply
 ```
 
-Safely eject the card and insert it into the powered-off Pocket. Open **openFPGA → Pocket Lab GB-GBC → CoverFlow (pocketlab)**. Installation is confined to the menu's core/assets/platform files. Save files and firmware are never written by the installer.
+Safely eject the card and insert it into the powered-off Pocket. Open **openFPGA → Pocket Lab GB-GBC → CoverFlow (pocketlab)**. This **GB/GBC reference `tools/install.py` workflow** updates only its core/assets/platform files and does not write save files or firmware.
 
-New game progress lives in `Saves/gbclab/common`; existing saves are not imported. To add display names, pass `--titles titles.json`, a UTF-8 object mapping a card-relative ROM path (such as `Assets/gbc/common/Example.gbc`) to its display title. For cover art use `--covers my-covers`, with matching card-relative paths and `.png` extensions. Neither changes original ROM names or content.
+In that reference workflow, new game progress lives in `Saves/gbclab/common` and old saves are not imported automatically; the Windows preview's ordinary-save handling is described above. To add display names, pass `--titles titles.json`, a UTF-8 object mapping a card-relative ROM path (such as `Assets/gbc/common/Example.gbc`) to its display title. For cover art use `--covers my-covers`, with matching card-relative paths and `.png` extensions. Neither changes original ROM names or content.
 
 Rollback first previews, then applies:
 
@@ -72,7 +78,7 @@ Rollback restores backed-up menu files and removes only unchanged files created 
 
 ## Controls and development
 
-Left/right browse; A confirms; B goes up; X opens game actions; Select toggles favorites. In a game, L opens the Chinese pause overlay, B/L resumes. Saving and suspend/resume need additional hardware testing; use expendable progress first. The inherited “Enable GBA” option does not enable GBA ROM support.
+These are the GB/GBC reference controls; consult the [per-core documentation](docs/COMPLETE-DELIVERY.md) for other preview cores. Left/right browse; A confirms; B goes up; X opens game actions; Select toggles favorites. In a game, L opens the Chinese pause overlay, B/L resumes. Saving and suspend/resume need additional hardware testing; use expendable progress first. The inherited “Enable GBA” option does not enable GBA ROM support.
 
 Run `python -m unittest discover -s tests -v` and `python tools/check_repository.py`. Hardware changes require RTL regression, complete Quartus timing review and scoped device reports. See [Contributing](CONTRIBUTING.md), [Changelog](CHANGELOG.md), [Roadmap](docs/ROADMAP.md) and [License/credits](LICENSE.md).
 
