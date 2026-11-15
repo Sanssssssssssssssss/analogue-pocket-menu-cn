@@ -1,0 +1,11 @@
+{
+  "result": "passed",
+  "scope": "Actual prepared NES controller, synthetic APF files and video/fade state; no game CPU/device/save durability",
+  "cases": "F2 atlas physical mapping, Unicode widths, A/B/wrap, three native launches and seeded save reads, pause/resume, save/flush, failed-flush live-state retention, unsafe path and stale completion rejection, Stop/Run",
+  "inputs": {
+    ".work/nes-menu/coverflow-integration-3/target/pocket/nes_menu.sv": "2250ff98377e673c1563e5923a1e993e18ad977814535f5597c9473589f2b1c8",
+    ".work/coverflow-delivery/nes-control-1/tb_menu.sv": "aaacb1aded1fa55d29540c55a8b027a41139653140189bbe886607989426de31",
+    "experiments/nes_coverflow/probe_control.py": "d1bcca93fcd969eb8634a50161777f421235c685e9c7e3fad608bf79f8505f3f",
+    "experiments/nes_coverflow/library.py": "f334a54e78b61784cd64ff7cfa830899cbc0fc60509dc0f127d938eab9a44261"
+  }
+}

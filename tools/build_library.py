@@ -7,10 +7,13 @@ import hashlib
 import importlib.util
 import json
 from pathlib import Path, PurePosixPath
+import re
 import shutil
 import struct
 import zlib
+from functools import lru_cache
 from PIL import Image, ImageDraw
+from menu_icons import LABELS, cover_bytes, kind, folder_label
 
 ROOT = Path(__file__).resolve().parents[1]
 FONT_SHA = 'e66385c79a0b8b24a466f3129930e08a966a935b4bf3b28c6bb17a9df9bf791d'
@@ -31,6 +34,7 @@ def sha(path):
 def contained(path, root):
     return path.resolve().is_relative_to(root.resolve())
 
+@lru_cache(maxsize=1)
 def font():
     path = ROOT/'assets/fonts/unifont-18.0.01.hex.gz'
     if sha(path) != FONT_SHA:
@@ -61,30 +65,55 @@ def path_bytes(value):
     parts = PurePosixPath(value).parts
     if not value.startswith('/') or '\\' in value or '..' in parts or '\0' in value or len(value.encode()) >= 256:
         raise ValueError(f'Invalid APF path: {value}')
-    if len(parts) < 5 or parts[1] not in ('Assets', 'Saves') or parts[2] not in ('gb', 'gbc', 'gbclab') or parts[3] != 'common':
+    common = len(parts) >= 5 and parts[1] in ('Assets', 'Saves') and parts[2] in ('gb', 'gbc', 'gbclab') and parts[3] == 'common'
+    if not common and not re.fullmatch(r'/Assets/gbclab/cheat/[0-9a-f]{20}\.cht', value):
         raise ValueError(f'Undeclared APF platform path: {value}')
     return value.encode().ljust(256, b'\0')
 
-def picture(path, folder=False):
+def picture(path, folder=False, icon='folder'):
+    if folder and not path:
+        return cover_bytes(icon)
     if path:
         with Image.open(path) as image:
             image = image.convert('RGB')
     else:
         image = Image.new('RGB', (256, 256), '#171d27')
         draw = ImageDraw.Draw(image)
-        if folder:
-            draw.rounded_rectangle((38,65,218,197),radius=10,fill='#b5a46a')
-            draw.rounded_rectangle((38,49,117,90),radius=7,fill='#b5a46a')
-        else:
-            draw.rounded_rectangle((60,33,196,219),radius=10,outline='#8fa8be',width=4)
-            draw.rectangle((80,55,176,135),fill='#354351')
-            draw.line((91,182,165,182),fill='#b5a46a',width=5)
+        draw.rounded_rectangle((60,33,196,219),radius=10,outline='#8fa8be',width=4)
+        draw.rectangle((80,55,176,135),fill='#354351')
+        draw.line((91,182,165,182),fill='#b5a46a',width=5)
     raw = bytearray()
     for size in (128,80):
         thumb = base.fit(image,size)
         for r,g,b in thumb.get_flattened_data():
             raw.extend(struct.pack('<H', ((r>>3)<<11)|((g>>2)<<5)|(b>>3)))
     return bytes(raw)
+
+def title_card(title, platform, strict=True):
+    """Identify games without external artwork using the existing GB card style."""
+    image=Image.new('RGB',(256,256),'black');draw=ImageDraw.Draw(image)
+    draw.rounded_rectangle((15,10,240,245),radius=12,outline='#718d84',width=3)
+    lines=[platform.upper(),'文字封面','']
+    for char in title:
+        if columns(lines[-1]+char,font())[0]>200:
+            if len(lines)==8:
+                lines[-1]=lines[-1][:-2]+'…';break
+            lines.append(char)
+        else:lines[-1]+=char
+    for i,line in enumerate(lines):
+        if not line:continue
+        width,raw,_,missing=columns(line,font())
+        if missing and strict:raise ValueError('Unavailable cover glyphs: '+''.join(missing))
+        bits=struct.unpack('<512H',raw)
+        for x in range(width):
+            for y in range(16):
+                if bits[x]&(1<<y):draw.point(((256-width)//2+x,24+i*27+y),fill='#e8e6dd')
+    raw=bytearray()
+    for size in (128,80):
+        for r,g,b in base.fit(image,size).get_flattened_data():
+            raw.extend(struct.pack('<H',((r>>3)<<11)|((g>>2)<<5)|(b>>3)))
+    return bytes(raw)
+
 
 def pack(entries, glyphs, log_id, warnings):
     if not 1 <= len(entries) <= MAX_ENTRIES:
@@ -100,13 +129,14 @@ def pack(entries, glyphs, log_id, warnings):
         table[:40] = title.encode('ascii','replace')[:39].ljust(40,b'\0')
         struct.pack_into('<B3xIIH',table,40,flags,entry.get('size',0),entry['crc'],width)
         tables.append(table)
-        art.append(picture(entry.get('cover'),entry.get('folder',False))+text+bytes(65536-45568-1024))
+        image=picture(entry.get('cover'),entry.get('folder',False),entry.get('icon','folder')) if entry.get('cover') or entry.get('folder') else title_card(title,'gb' if entry.get('gb_only') else 'gbc',strict=False)
+        art.append(image+text+bytes(65536-45568-1024))
         for path in (entry['rom'],f'{SAVES}/{entry["save_id"]}.sav',f'{SAVES}/{entry["save_id"]}.sus'):
             paths.append(path_bytes(path))
     return (struct.pack('<4sHHHH4x',b'GBCV',9,len(entries),128,80)+base.index_block([e.get('sort_title',e['title']) for e in entries])+
             b''.join(tables+art+paths)+path_bytes(f'{SAVES}/meta/{log_id}.log')+path_bytes(f'{SAVES}/meta/{log_id}.cfg'))
 
-def build(card, out, titles=None, covers=None, bios=None):
+def build(card, out, titles=None, covers=None, bios=None, *, skip_invalid=False):
     card, out = Path(card).resolve(), Path(out).resolve()
     if out.exists() or contained(out,card) or contained(card,out):
         raise ValueError('Output must be a new folder outside the input card/copy')
@@ -119,6 +149,7 @@ def build(card, out, titles=None, covers=None, bios=None):
         raise ValueError('Covers directory does not exist')
     nodes = {'': {'title':'游戏库','children':set(),'games':[]}}
     inventory = []
+    excluded = []
     warnings = []
     def add_node(key, title):
         if key in nodes:
@@ -142,13 +173,19 @@ def build(card, out, titles=None, covers=None, bios=None):
             path_bytes('/'+relative)
             raw = file.read_bytes()
             if not 0x150 <= len(raw) <= 8*1024*1024:
+                if skip_invalid:
+                    excluded.append({'path':relative, 'bytes':len(raw),
+                                     'sha256':hashlib.sha256(raw).hexdigest(),
+                                     'reason':'ROM size outside supported 336..8388608 bytes'})
+                    continue
                 raise ValueError(f'Unsupported ROM size: {relative}')
             digest = hashlib.sha256(raw).hexdigest()
             key = platform+'/'+file.relative_to(base_dir).parent.as_posix()
             key = key.removesuffix('/.')
             for n in range(1,len(PurePosixPath(key).parts)+1):
                 sub = '/'.join(PurePosixPath(key).parts[:n])
-                add_node(sub,sub.upper()+' 游戏库' if sub in ('gb','gbc') else PurePosixPath(sub).name)
+                leaf=PurePosixPath(sub).name
+                add_node(sub,folder_label(leaf))
             cover = covers/Path(relative).with_suffix('.png') if covers else None
             if cover and (not cover.is_file()): cover=None
             if cover and not contained(cover,covers): raise ValueError('Cover resolves outside cover root')
@@ -158,13 +195,14 @@ def build(card, out, titles=None, covers=None, bios=None):
             inventory.append({'path':relative,'sha256':digest,'bytes':len(raw),'save':f'{SAVES}/{digest[:20]}.sav'})
     if not inventory:
         raise ValueError('No GB/GBC ROMs under Assets/gb/common or Assets/gbc/common')
-    unknown = set(titles)-{i['path'] for i in inventory}
+    unknown = set(titles)-{i['path'] for i in inventory+excluded}
     if unknown:
         raise ValueError(f'Title mapping references missing ROMs: {sorted(unknown)}')
     def node_id(key): return 'root' if not key else hashlib.sha256(key.encode()).hexdigest()[:16]
     def node_path(key): return f'/{ASSETS}/'+('covers.bin' if not key else f'libs/{node_id(key)}.bin')
     def folder(key, title=None):
-        return {'title':title or nodes[key]['title'],'rom':node_path(key),'crc':zlib.crc32(key.encode()),'folder':True,'save_id':'folders/'+node_id(key)}
+        display=title or nodes[key]['title']
+        return {'title':display,'rom':node_path(key),'crc':zlib.crc32(key.encode()),'folder':True,'save_id':'folders/'+node_id(key),'icon':kind(display)}
     outputs = {}
     # Validate and render before creating any output or copying a BIOS.
     for key,node in sorted(nodes.items()):
@@ -191,7 +229,7 @@ def build(card, out, titles=None, covers=None, bios=None):
     if bios: shutil.copy2(bios,out/ASSETS/'gbc_bios.bin')
     for rel in ('','meta','folders'): (out/SAVES.lstrip('/')/rel).mkdir(parents=True,exist_ok=True)
     receipt={'format':9,'rom_count':len(inventory),'pack_count':len(outputs),'rom_copies':0,'source_writes':0,
-             'source_refs':inventory,'warnings':warnings,'bios_included':bool(bios),
+             'source_refs':inventory,'excluded':excluded,'warnings':warnings,'bios_included':bool(bios),
              'files':[{'path':p.relative_to(out).as_posix(),'sha256':sha(p),'bytes':p.stat().st_size} for p in sorted(out.rglob('*')) if p.is_file()]}
     (out/'library-manifest.json').write_text(json.dumps(receipt,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
     return receipt
@@ -203,9 +241,10 @@ def main():
     p.add_argument('--titles',help='UTF-8 JSON mapping relative ROM paths to display titles')
     p.add_argument('--covers',help='Optional PNG tree matching ROM paths relative to card')
     p.add_argument('--bios',help='Your own 2304-byte GBC BIOS (optional; required before play)')
+    p.add_argument('--skip-invalid',action='store_true',help='Record and exclude unsupported ROM sizes; never modify input files')
     args=p.parse_args()
     try:
-        result=build(args.card,args.out,args.titles,args.covers,args.bios)
+        result=build(args.card,args.out,args.titles,args.covers,args.bios,skip_invalid=args.skip_invalid)
     except (OSError,ValueError) as error:
         p.exit(2,str(error)+'\n')
     print(json.dumps({k:result[k] for k in ('rom_count','pack_count','rom_copies','source_writes','bios_included')},ensure_ascii=False))

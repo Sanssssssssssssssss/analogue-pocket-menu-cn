@@ -1,0 +1,94 @@
+{
+  "date": "2026-11-01",
+  "scope": "Buffered filename read candidate; compiled and staged offline only. No SD access or hardware acceptance.",
+  "programs": [
+    {
+      "program": "A",
+      "compile": "successful",
+      "timing_records": 44,
+      "minimum_reported_slack_ns": 0.127,
+      "all_tns_zero": true,
+      "board_io_scope": "APF protocol I/O explicitly excepted, following existing GBA constraints; no external setup/hold signoff",
+      "rbf_sha256": "43f5dbb54d7be428e83bdee74b866b539670eb3419c83aea2c89c6ed9ff32234",
+      "source_sha256": {
+        "core/core_top.v": "2be920ec8468cfb64574748cb387e4fa51383deecbfc16bc0780b77588b6a199",
+        "core/route_probe.sv": "c539c3bc767118a7e034dd29f88fd9fd7eb0b5f0eae16c6946feef14b081ba0a",
+        "core/core_constraints.sdc": "41f82740164b7aef9e684d6cfb488911cee7d9c471f2f253c71bf41d2bbd61bc",
+        "core/runtime_request.sv": "e9f94eaff2fe229236cbeeae45c282dc20c4b1a9e141da9542f0706547663cba",
+        "core/core_bridge_cmd.v": "f22034f2d309b4172288f1a5ef18afe4f22a803dbb4418e49842fbc7b6fd1687",
+        "apf/common.v": "c1615e2c6c12b111537f6ca11e826e5061eb91f405e349bdc649a17b48e24d4e",
+        "apf/io_bridge_peripheral.v": "fb9c13e0311ac6b01019898d0ca7786f370228380356fe618fc2b473f2add17d",
+        "ap_core.qsf": "0eca202d76290a775ce7bab8e2e205937dce6d12769682900a9bfed667550573",
+        "core/runtime_param_buffer.sv": "43d0f0a104e9acd10c541be43c75232efdc9bdab524ce011336819e668a18174"
+      },
+      "reports_sha256": {
+        "ap_core.flow.rpt": "a583f866acbd90524f9b71638f4acde03764c0a5477d954a511bd9b3d2342cfb",
+        "ap_core.fit.summary": "f14c0300299f22b35f58d852563fa9289e26e5da30f2f74d3fa05b4db816df39",
+        "ap_core.sta.summary": "845643d3d9c2ecfff296784cab9485fb5ef3363608614da452bd1a5756a3856d"
+      },
+      "resources": {
+        "ALMs": 744,
+        "RAM_blocks": 2,
+        "DSP_blocks": 0
+      },
+      "warnings": {
+        "critical": 0,
+        "total": 167,
+        "scope": "Same ordinary warning code/count groups as the prior runtime build; inherited disabled or unused I/O, clock routing, assignments, build-ID padding and unused template signals. No latch or decode-overlap warning."
+      }
+    },
+    {
+      "program": "B",
+      "compile": "successful",
+      "timing_records": 44,
+      "minimum_reported_slack_ns": 0.115,
+      "all_tns_zero": true,
+      "board_io_scope": "APF protocol I/O explicitly excepted, following existing GBA constraints; no external setup/hold signoff",
+      "rbf_sha256": "b8445d527816adec1617b0acb88981fb89ca9acbfd6aa792fa1cdd130c531207",
+      "source_sha256": {
+        "core/core_top.v": "4a4697a86395665bed80120202e17471e6833794ceb8a13370d9d6506669cc68",
+        "core/route_probe.sv": "c539c3bc767118a7e034dd29f88fd9fd7eb0b5f0eae16c6946feef14b081ba0a",
+        "core/core_constraints.sdc": "41f82740164b7aef9e684d6cfb488911cee7d9c471f2f253c71bf41d2bbd61bc",
+        "core/runtime_request.sv": "e9f94eaff2fe229236cbeeae45c282dc20c4b1a9e141da9542f0706547663cba",
+        "core/core_bridge_cmd.v": "f22034f2d309b4172288f1a5ef18afe4f22a803dbb4418e49842fbc7b6fd1687",
+        "apf/common.v": "c1615e2c6c12b111537f6ca11e826e5061eb91f405e349bdc649a17b48e24d4e",
+        "apf/io_bridge_peripheral.v": "fb9c13e0311ac6b01019898d0ca7786f370228380356fe618fc2b473f2add17d",
+        "ap_core.qsf": "0eca202d76290a775ce7bab8e2e205937dce6d12769682900a9bfed667550573",
+        "core/runtime_param_buffer.sv": "43d0f0a104e9acd10c541be43c75232efdc9bdab524ce011336819e668a18174"
+      },
+      "reports_sha256": {
+        "ap_core.flow.rpt": "b46ff818714586995810babbcfa1d999524874db2139c459e5d9adc59a0e9838",
+        "ap_core.fit.summary": "934affa8cf14603e1606879a1527c45a4ea8d78c8fc9fb38d43ad6b6e6ccaa1f",
+        "ap_core.sta.summary": "72302c7564b0bf0a84a9e1e5b0f0d08029e88f5a1387d2bce3848c5159a78e21"
+      },
+      "resources": {
+        "ALMs": 867,
+        "RAM_blocks": 2,
+        "DSP_blocks": 0
+      },
+      "warnings": {
+        "critical": 0,
+        "total": 167,
+        "scope": "Same ordinary warning code/count groups as the prior runtime build; inherited disabled or unused I/O, clock routing, assignments, build-ID padding and unused template signals. No latch or decode-overlap warning."
+      }
+    }
+  ],
+  "package_files": 13,
+  "package_bytes": 1774351,
+  "validation": {
+    "runtime_command_RTL": "passed",
+    "actual_serial_bridge_with_modeled_host": "old failure and buffered success reproduced",
+    "modeled_loader_cases": 5,
+    "packaging_tests_passed": 24,
+    "packaging_tests_skipped": 1
+  },
+  "zero_save_slots": true,
+  "firmware_files": 0,
+  "target_write_enabled": false,
+  "candidate_installed": false,
+  "limitations": [
+    "Actual firmware serial trace not captured; buffered read mismatch is a candidate cause of Route14 error 4",
+    "Open success and automatic VM re-entry remain separate hardware observations",
+    "APF I/O exceptions do not certify external board timing"
+  ]
+}

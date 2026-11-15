@@ -1,0 +1,34 @@
+{
+  "date": "2026-11-01",
+  "source": "User reported blue screen, M=C1, S=1000F and N=1 in response to the Route13 runtime B test",
+  "package_source_commit": "0d192273efcb2ecc8b23e23c6e45612d92d825b5",
+  "entry": "pocketlab.Route13",
+  "procedure_requested": "Cold boot, Run, release all keys, fresh B during normal blue-screen runtime, wait about three seconds and observe before any manual Reload test",
+  "observed": {
+    "screen": "Blue",
+    "M": "0x000000C1",
+    "S": "0x0001000F",
+    "N": "0x00000001"
+  },
+  "decoded_S": {
+    "mode": 1,
+    "armed": true,
+    "request_issued": true,
+    "ack_seen": true,
+    "new_done_seen": true,
+    "result_code": 0
+  },
+  "accepted_scope": [
+    "One runtime Target 0180 read request was issued and reported successful completion",
+    "The final image remained blue and M stayed at the cold-start C1 marker",
+    "No automatic VM re-entry or native switch was observed in this test"
+  ],
+  "not_established": [
+    "Exact elapsed time was not independently measured",
+    "ID, D and C were not requested or reported in the blue-screen branch",
+    "The ignored synthetic payload was not checked for content integrity",
+    "This result does not establish a universal lack of runtime re-entry interfaces",
+    "Target 0192 open behavior remains a separate pending Route14 test"
+  ],
+  "next_action": "Do not repeat unchanged Route13. Test the already installed Route14 existing-file open; keep the accepted OS-mediated Route12 control."
+}

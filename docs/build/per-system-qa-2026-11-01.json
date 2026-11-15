@@ -1,0 +1,69 @@
+{
+  "date": "2026-11-01",
+  "source_commit": "0dc6eca939fec802b63a8cf008a8b6730775c886",
+  "scope": "One Pocket card cleanup and menu artwork update, plus local software/RTL checks. New physical playtest feedback is pending.",
+  "cleanup": {
+    "entries_removed": "pocketlab.Route0 through pocketlab.Route15",
+    "removed_files": 201,
+    "removed_bytes": 25685031,
+    "local_backup_verified": true,
+    "protected_files_unchanged": 4420,
+    "preserved": "Playable cores, ordinary saves, suspend files, settings and system files in the protection manifest. Historical probe sources and receipts remain archived."
+  },
+  "menu_audit_before_art_update": {
+    "gb_gbc": {
+      "reachable_pages": 33,
+      "unique_game_paths": 4111,
+      "game_occurrences": 4182,
+      "pages_matching_retained_snapshot": 33,
+      "broken_file_links": 0,
+      "game_paths_with_matched_cover_provenance": 3228,
+      "game_paths_without_matched_cover_provenance": 883
+    },
+    "gba": {
+      "reachable_pages": 81,
+      "unique_game_paths": 499,
+      "pages_matching_retained_snapshot": 81,
+      "broken_file_links": 0,
+      "matched_cover_assets": 459,
+      "placeholder_covers": 40
+    },
+    "limitations": "File existence and retained page hashes do not establish game compatibility. Cover provenance does not certify a translation or hack version. Unmatched sources can include existing text or placeholder artwork."
+  },
+  "gba_art_update": {
+    "updated_pages": 5,
+    "updated_bytes": 18045248,
+    "new_covers": 9,
+    "matched_cover_assets_after": 468,
+    "placeholder_covers_after": 31,
+    "caption_corrections": 1,
+    "caption_note": "AT7P / TITEUF, ZE G identifies Tootuff - The Gag Machine; the previous Tintin alias was corrected to a Chinese display alias. This is not an official localization claim.",
+    "source": "https://github.com/libretro-thumbnails/Nintendo_-_Game_Boy_Advance",
+    "download_checks": "Nine PNGs matched retained Git blob SHA1 values; originals and normalized copies retained locally; artwork visually inspected.",
+    "launch_save_rtc_records_preserved_byte_for_byte": true,
+    "all_81_page_hashes_verified_after_update": true,
+    "protected_files_unchanged": 4420,
+    "status": "installed_sha256_verified"
+  },
+  "computer_checks": {
+    "public_tool_tests": {"passed": 24, "skipped": 1, "skip_reason": "Windows host cannot create symlinks"},
+    "gba_tool_tests": {"passed": 9},
+    "offline_gba_nes_snes_contract_tests": {"passed": 18, "scope": "Containers and save identities; no NES/SNES game execution"},
+    "gb_gbc_native_navigation": {
+      "result": "passed",
+      "inputs": "Five actual menu pages from the connected card, frozen cover_picker RTL, APF/SDRAM models",
+      "checks": "Machine entries, classics/series nesting, B returns, no modeled game/save payload operations"
+    },
+    "gba_control": {"result": "passed", "suites": 3, "checks": "Menu lifecycle, APF open/read/write/flush, reload FIFO/fences, save-failure handling"},
+    "gba_boot": {"result": "passed", "cases": ["complete", "retained-game-ownership", "missing-tail"]},
+    "gba_pixels": {"result": "passed", "compared_pixels": 38400, "checks": "FIFO/raster colors, incomplete/out-of-order uploads, retry and game handoff"},
+    "offline_fade_candidate": {"result": "passed", "gain_channel_patterns": 2304, "game_bypass_pixels": 38400, "installed": false},
+    "limitations": "No physical game CPU, memory timing, SD endurance, sound or power-loss test. Models do not replace device save/RTC/return acceptance. No RTL or new bitstream was installed."
+  },
+  "save_writes": 0,
+  "rom_writes": 0,
+  "core_binary_writes": 0,
+  "firmware_writes": 0,
+  "animation_update_installed": false,
+  "physical_playtest": "pending GB, GBC and GBA menu navigation, covers and game launch; GBA ordinary save/RTC/save-return still pending"
+}

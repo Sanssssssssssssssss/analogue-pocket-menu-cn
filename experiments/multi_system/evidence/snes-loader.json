@@ -1,0 +1,111 @@
+{
+  "scope": "Actual upstream Chip32 bytecode, synthetic files; host and FPGA operations are VM stubs",
+  "hardware_validated": false,
+  "game_execution_validated": false,
+  "loader_sha256": "3effec579e2ed9de03f4150c0e35a4d1f189016e545e21139be6f0816e039fe9",
+  "cases": [
+    {
+      "case": "lorom",
+      "selected_core": 0,
+      "expected_core": 0,
+      "chip_type": 0,
+      "copier_bytes": 0,
+      "loaded_slots": [
+        0,
+        10
+      ],
+      "exit": 0,
+      "passed": true
+    },
+    {
+      "case": "hirom",
+      "selected_core": 0,
+      "expected_core": 0,
+      "chip_type": 1,
+      "copier_bytes": 0,
+      "loaded_slots": [
+        0,
+        10
+      ],
+      "exit": 0,
+      "passed": true
+    },
+    {
+      "case": "exhirom",
+      "selected_core": 0,
+      "expected_core": 0,
+      "chip_type": 2,
+      "copier_bytes": 0,
+      "loaded_slots": [
+        0,
+        10
+      ],
+      "exit": 0,
+      "passed": true
+    },
+    {
+      "case": "pal",
+      "selected_core": 2,
+      "expected_core": 2,
+      "chip_type": 0,
+      "copier_bytes": 0,
+      "loaded_slots": [
+        0,
+        10
+      ],
+      "exit": 0,
+      "passed": true
+    },
+    {
+      "case": "sdd1",
+      "selected_core": 1,
+      "expected_core": 1,
+      "chip_type": 80,
+      "copier_bytes": 0,
+      "loaded_slots": [
+        0,
+        10
+      ],
+      "exit": 0,
+      "passed": true
+    },
+    {
+      "case": "spc7110",
+      "selected_core": 1,
+      "expected_core": 1,
+      "chip_type": 216,
+      "copier_bytes": 0,
+      "loaded_slots": [
+        0,
+        10
+      ],
+      "exit": 0,
+      "passed": true
+    },
+    {
+      "case": "copier-header",
+      "selected_core": 0,
+      "expected_core": 0,
+      "chip_type": 0,
+      "copier_bytes": 512,
+      "loaded_slots": [
+        0,
+        10
+      ],
+      "exit": 0,
+      "passed": true
+    }
+  ],
+  "boundary_observations": [
+    {
+      "case": "64k-end-of-file",
+      "result": "VM refused file before core selection",
+      "hardware_behavior": "not tested"
+    },
+    {
+      "case": "truncated",
+      "result": "VM refused file before core selection",
+      "hardware_behavior": "not tested"
+    }
+  ]
+}

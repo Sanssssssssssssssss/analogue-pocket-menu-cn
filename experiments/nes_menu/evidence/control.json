@@ -1,0 +1,18 @@
+{
+  "scope": "Adapted menu lifecycle with host/frame-ready/loader models; no NES CPU, physical RAM or SD",
+  "result": "passed",
+  "checks": [
+    "three launches",
+    "seeded isolated saves",
+    "save/flush failure retains live game",
+    "no RTC operations",
+    "A/B return",
+    "path rejection",
+    "stale completion timeout",
+    "Stop/Run reset"
+  ],
+  "inputs": {
+    "nes_menu.sv": "fc61fa37560a9ed60fd8bffcf31b254b2d06918d8274ff0f85cca82ef3dc3b85",
+    "tb_menu.sv": "869973d37d46a762c1320f864902d83a5fd1478a6a33305953b9939bd2f19ec9"
+  }
+}

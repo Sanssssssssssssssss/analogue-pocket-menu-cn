@@ -1,0 +1,165 @@
+{
+  "version": "0.2.0-gba.7",
+  "status": "offline_checks_passed_hardware_playtest_pending",
+  "implementation": "Native GBA with accepted GB/GBC CoverFlow geometry/compositor, five associative SRAM cover slots, an eight-entry RAM upload FIFO and one shared final RGB layer blend.",
+  "upstream": "a61eaf2e8d50631f5dd32bda5c84229a0c54ab78",
+  "compile": {
+    "tool": "Quartus 22.1std.2 Build 922 SC Lite",
+    "device": "5CEBA4F23C8",
+    "full_flow": "successful",
+    "ALMs": 18048,
+    "ALM_capacity": 18480,
+    "M10Ks": 282,
+    "DSPs": 38,
+    "timing_records": 104,
+    "minimum_slack_ns": 0.076,
+    "TNS_nonzero": 0,
+    "raw_rbf_sha256": "54fea141a78e2b5cb4032321b7cd0d9a51fcd8409604e56c725c9ea889b1ddb9",
+    "apf_rbf_sha256": "d1d17a0c19216bf549cb07708e93bc5a7730c897e1d7df34ccd7427b2a8b13dc"
+  },
+  "sram_io": {
+    "scope": "Post-fit data paths for all 37 output and 16 input endpoints at all four device corners; 4.25ns maximum excluding clock insertion",
+    "budget_ns": 4.25,
+    "model_sha256": "27d39a3c333ed5e208c766e389d33c6572c658994fdfa2860713c7ab060a38e6",
+    "inputs": {
+      "src/fpga/build/output_files/ap_core.rbf": "54fea141a78e2b5cb4032321b7cd0d9a51fcd8409604e56c725c9ea889b1ddb9",
+      "src/fpga/build/ap_core.qsf": "1105540e8ceade9bb0df7d083e05dc5a0c316ea68b75506d7a4cda8358513862",
+      "src/fpga/core/core_constraints.sdc": "7da0194fa6cf9878562e9e211ead54459d58172bea71b95894a4347a1a1551b5"
+    },
+    "checker_sha256": "848dbda32a1403a7fa926c68d357e731f24de27366d92454707947c493c0aa9c",
+    "report_sha256": "267855670ce1e94b6ce7d94b7568c8dbc259961a472fdc23cd2bbe9ebc9db472",
+    "summary": [
+      {
+        "corner": "8_slow_1100mv_0c",
+        "direction": "in",
+        "endpoints": 16,
+        "paths": 16,
+        "maximum_data_ns": 2.87
+      },
+      {
+        "corner": "8_slow_1100mv_0c",
+        "direction": "out",
+        "endpoints": 37,
+        "paths": 53,
+        "maximum_data_ns": 3.736
+      },
+      {
+        "corner": "8_slow_1100mv_85c",
+        "direction": "in",
+        "endpoints": 16,
+        "paths": 16,
+        "maximum_data_ns": 2.842
+      },
+      {
+        "corner": "8_slow_1100mv_85c",
+        "direction": "out",
+        "endpoints": 37,
+        "paths": 53,
+        "maximum_data_ns": 4.053
+      },
+      {
+        "corner": "MIN_fast_1100mv_0c",
+        "direction": "in",
+        "endpoints": 16,
+        "paths": 16,
+        "maximum_data_ns": 1.584
+      },
+      {
+        "corner": "MIN_fast_1100mv_0c",
+        "direction": "out",
+        "endpoints": 37,
+        "paths": 53,
+        "maximum_data_ns": 2.153
+      },
+      {
+        "corner": "MIN_fast_1100mv_85c",
+        "direction": "in",
+        "endpoints": 16,
+        "paths": 16,
+        "maximum_data_ns": 1.609
+      },
+      {
+        "corner": "MIN_fast_1100mv_85c",
+        "direction": "out",
+        "endpoints": 37,
+        "paths": 53,
+        "maximum_data_ns": 2.432
+      }
+    ]
+  },
+  "constraint_annotations": {
+    "scope": "Only comments changed after the full compile; every executable SDC line, native clock requirement and the RBF are unchanged. Revalidate the fitted routes against the measured 4.25ns model; retain the original design independently.",
+    "original_tree": ".work/gba-menu/coverflow-sram-20",
+    "original_sdc_sha256": "b9f2364b2616b4739b80fafe399809da781acf3a0cd5ee06e5e15cd111522b1a",
+    "documented_sdc_sha256": "7da0194fa6cf9878562e9e211ead54459d58172bea71b95894a4347a1a1551b5",
+    "active_sdc_lines_sha256": "57c8dd7a8af0e12430e2a886eda8bedc5d85fa6868f459892d612f838a823522",
+    "raw_bitstream_sha256": "54fea141a78e2b5cb4032321b7cd0d9a51fcd8409604e56c725c9ea889b1ddb9",
+    "route_observed_output_ns": 4.053,
+    "route_observed_input_ns": 2.87,
+    "simulation_IO_budget_ns": 4.25,
+    "conservative_sys_period_ns": 9.93,
+    "read_board_skew_margin_ns": 6.01,
+    "datasheet": "https://www.alliancememory.com/wp-content/uploads/AllianceMemory_2M_LPSRAM_AS6C201620May202021_v1.1_May2021.pdf"
+  },
+  "synthetic_validation": {
+    "SRAM": "All 113920 halfword writes and 4850 DWORD samples with concurrent upload, 4.25ns launch/return, conservative 9.930ns sys period and worst-case byte output disable, invalidation and fault recovery",
+    "raster": "18 full GBA-clock frames / 2,019,600 golden comparisons, five physical SRAM atlases, concurrent upload, all eight poses both directions, synthetic Chinese text and original placeholder art",
+    "hierarchy": "A opens child, its full art/text reload, B returns and root reloads before subsequent input",
+    "frames": 149,
+    "navigation_steps": 16,
+    "APF_operations": 121,
+    "physical_halfword_writes": 569600,
+    "clock_period_ns": 9.93,
+    "io_delay_each_direction_ns": 4.25,
+    "byte_output_disable_ns": 25,
+    "controller": "Three ROM launches, 64K/128K saves, RTC, pause/resume, save-failure preservation, malformed paths, stale completions, cover faults/timeouts and B recovery; synthetic host and no game CPU.",
+    "reference_exception": "Documented signed-clipping correction in a test-only copy; frozen GB/GBC source unchanged",
+    "model_limits": "Datasheet SRAM model; portable RAM crosschecked against Intel before each run and actual vendor FIFO. No physical board, game CPU, card persistence or save durability is simulated."
+  },
+  "source_checks": {
+    "fresh_generated_inputs": 106,
+    "byte_exact_existing_inputs": 93,
+    "line_ending_only_generated_hex": [
+      "fpga/build/gba_menu_error.hex"
+    ],
+    "unchanged_native_gba_inputs": 45,
+    "unchanged_accepted_GB_GBC_inputs": 135,
+    "timing_records": 104,
+    "minimum_slack_ns": 0.076,
+    "TNS_nonzero": 0,
+    "constraint_annotations": {
+      "scope": "Only comments changed after the full compile; every executable SDC line, native clock requirement and the RBF are unchanged. Revalidate the fitted routes against the measured 4.25ns model; retain the original design independently.",
+      "original_tree": ".work/gba-menu/coverflow-sram-20",
+      "original_sdc_sha256": "b9f2364b2616b4739b80fafe399809da781acf3a0cd5ee06e5e15cd111522b1a",
+      "documented_sdc_sha256": "7da0194fa6cf9878562e9e211ead54459d58172bea71b95894a4347a1a1551b5",
+      "active_sdc_lines_sha256": "57c8dd7a8af0e12430e2a886eda8bedc5d85fa6868f459892d612f838a823522",
+      "raw_bitstream_sha256": "54fea141a78e2b5cb4032321b7cd0d9a51fcd8409604e56c725c9ea889b1ddb9",
+      "route_observed_output_ns": 4.053,
+      "route_observed_input_ns": 2.87,
+      "simulation_IO_budget_ns": 4.25,
+      "conservative_sys_period_ns": 9.93,
+      "read_board_skew_margin_ns": 6.01,
+      "datasheet": "https://www.alliancememory.com/wp-content/uploads/AllianceMemory_2M_LPSRAM_AS6C201620May202021_v1.1_May2021.pdf"
+    }
+  },
+  "software_checks": {
+    "Windows_project_cases": 112,
+    "Windows_skipped": [
+      "Symlink test unavailable on this host"
+    ],
+    "other_project_cases": "passed",
+    "Linux_CI": "pending"
+  },
+  "proof_inputs": {
+    "sim_sram.sv": "27d39a3c333ed5e208c766e389d33c6572c658994fdfa2860713c7ab060a38e6",
+    "tb_boot.sv": "7e93d7cac370261814f1a7f869075d580d5216a6bbaae62fa5a675ca909569c7",
+    "tb_sram_cache.sv": "e2475c1f3661dca649f92184e938716b15e4750f4f9bfe2347b47668033fa297",
+    "probe_sram_raster.py": "4c8dbebd475b892b062e0c873f3e455d8380b0a3d0798f7451789f63bd91daf5"
+  },
+  "unaccepted": [
+    "Physical animation and scaler transitions",
+    "Game execution, ordinary save/RTC and return with this bitstream",
+    "Multi-device behavior"
+  ],
+  "public_contents": "No ROMs, BIOS, private libraries, personal progress or licensed Intel model source."
+}

@@ -1,0 +1,24 @@
+{
+  "result": "passed",
+  "scope": "Behavioral CellRAM pin model; not vendor or board signoff",
+  "full_atlases": 2,
+  "physical_slots": [
+    0,
+    127
+  ],
+  "overlapped_reads": 3321,
+  "APF_write_cadence": "Two halfwords separated by 4 clocks, 75 clocks per DWORD",
+  "checks": [
+    "full atlas integrity",
+    "concurrent upload/read",
+    "queue capacity",
+    "cancel/late response",
+    "pin timing bounds"
+  ],
+  "log_sha256": "872d9c9ca110d05b19be36eeb7631e82a5fb14af70d99a91b9414918217a8f8f",
+  "inputs": {
+    "psram_cache.sv": "342be83a2bb27c7724273d8d1463e58aa5bb22f4a09391c22976ec4614416c6f",
+    "sim_cellram.sv": "42c090a3743b7543696314c60ad4cf0f1d68902b41e0a465a229ce40657608bc",
+    "tb_psram_cache.sv": "a00f64418e33a0c78dcecf59b1e7d6c4cdecb9b81b26c0ac49a1eac850504223"
+  }
+}

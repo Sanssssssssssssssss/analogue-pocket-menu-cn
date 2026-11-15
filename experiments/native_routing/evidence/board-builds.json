@@ -1,0 +1,75 @@
+{
+  "date": "2026-11-01",
+  "scope": "Full board builds from official APF template with two no-game identity probes; not an installable or timing-qualified release",
+  "compiler": "Quartus Prime Lite 22.1std.2 Build 922",
+  "device": "5CEBA4F23C8",
+  "original_template_commit": "da3a021b1eaf742604d86d8dc9b33a6666263e6a",
+  "card_access": false,
+  "device_writes": 0,
+  "hardware_acceptance": "not_performed",
+  "packaging": "not_performed",
+  "programs": [
+    {
+      "program": "A",
+      "compile": "successful",
+      "alms": 503,
+      "m10k": 2,
+      "dsp": 0,
+      "virtual_pins": 0,
+      "timing_summary_records": 44,
+      "reported_timing_all_tns_zero": true,
+      "minimum_setup_slack_ns": 5.845,
+      "minimum_hold_slack_ns": 0.164,
+      "unconstrained": {
+        "clocks": 2,
+        "input_ports": 4,
+        "output_ports": 22
+      },
+      "timing_qualification": "incomplete: template has unconstrained board I/O and generated audio clocks",
+      "source_sha256": {
+        "core\\core_top.v": "4454a2e9f463a7faf31921221190d0a2ac3857267d8f8e72c65d7198dcc50742",
+        "core\\route_probe.sv": "f454eab3beb4371d4142b7f261e21bc966ea1e0ed27228fcefd114034d513337",
+        "core\\core_constraints.sdc": "c0ffbe130cfcdd588a2ab32fe1a891ce2fa12ef1723a39d4ed1062b57acf90d7",
+        "apf\\apf_constraints.sdc": "18b72957181178b046c2f27711190cb426482edcd7b58fcda9cfea27e855dd2e"
+      },
+      "rbf_bytes": 790908,
+      "rbf_sha256": "80e9dcefe471ef5832f1aaa60dc988553dc9054f0fe2fbc85f4364b60fdb71af",
+      "reports_sha256": {
+        "ap_core.fit.summary": "d1592b1c6a70e23019b9612966239df2b8395144b43dd6d331ca1cd97d6f46bc",
+        "ap_core.sta.summary": "4577dd8eb704f27f8a514f46b884952dc9958964407623586e18bc8f4fbc66d3",
+        "ap_core.flow.rpt": "a36f0c122a08bb6abb7f77dd48371a3578598f1591d981a6c51b0f8d8cfc11c8"
+      }
+    },
+    {
+      "program": "B",
+      "compile": "successful",
+      "alms": 495,
+      "m10k": 2,
+      "dsp": 0,
+      "virtual_pins": 0,
+      "timing_summary_records": 44,
+      "reported_timing_all_tns_zero": true,
+      "minimum_setup_slack_ns": 6.04,
+      "minimum_hold_slack_ns": 0.169,
+      "unconstrained": {
+        "clocks": 2,
+        "input_ports": 4,
+        "output_ports": 22
+      },
+      "timing_qualification": "incomplete: template has unconstrained board I/O and generated audio clocks",
+      "source_sha256": {
+        "core\\core_top.v": "1a0416b166632f73106a3b3943f9856c752a447b4f41cd52f872088c6f68ac76",
+        "core\\route_probe.sv": "f454eab3beb4371d4142b7f261e21bc966ea1e0ed27228fcefd114034d513337",
+        "core\\core_constraints.sdc": "c0ffbe130cfcdd588a2ab32fe1a891ce2fa12ef1723a39d4ed1062b57acf90d7",
+        "apf\\apf_constraints.sdc": "18b72957181178b046c2f27711190cb426482edcd7b58fcda9cfea27e855dd2e"
+      },
+      "rbf_bytes": 789356,
+      "rbf_sha256": "b313520f818b2caf49f9609b5a0ae359dc9f794beb6b38e623b443852b876f07",
+      "reports_sha256": {
+        "ap_core.fit.summary": "171058394207839a2a26adcc24dac6b89b30c8fd32320e68f7dd8d7e5027136c",
+        "ap_core.sta.summary": "8722e1d89b7fa8a8d83d3e9ed2784c4316e1f0c99d61d45fd3cd8546feae2e56",
+        "ap_core.flow.rpt": "0070bac75efa9e2cd63552637aa0687e8ff2d49f006cf6e08edfb150bb670c4d"
+      }
+    }
+  ]
+}

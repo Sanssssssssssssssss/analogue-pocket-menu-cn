@@ -1,0 +1,304 @@
+{
+  "date": "2026-11-02",
+  "builds": [
+    {
+      "platform": "gg",
+      "version": "0.4.0-gg.1",
+      "scope": "Offline full fit/timing; game/physical CellRAM/card/save/cheat acceptance pending",
+      "resources": {
+        "alm": 13808,
+        "m10k": 222,
+        "dsp": 32
+      },
+      "timing_records": 72,
+      "minimum_slack_ns": 0.1,
+      "all_tns_zero": true,
+      "reviewed_powerup_warnings": [
+        {
+          "register": "display_on",
+          "powerup": "Low"
+        },
+        {
+          "register": "irq_line_en",
+          "powerup": "High"
+        },
+        {
+          "register": "reset_flags",
+          "powerup": "High"
+        },
+        {
+          "register": "spr_address[6]",
+          "powerup": "High"
+        },
+        {
+          "register": "spr_address[0]",
+          "powerup": "High"
+        },
+        {
+          "register": "spr_address[1]",
+          "powerup": "High"
+        },
+        {
+          "register": "spr_address[2]",
+          "powerup": "High"
+        },
+        {
+          "register": "spr_address[3]",
+          "powerup": "High"
+        },
+        {
+          "register": "spr_address[4]",
+          "powerup": "High"
+        },
+        {
+          "register": "spr_address[5]",
+          "powerup": "High"
+        },
+        {
+          "register": "jang_bank2[0]",
+          "powerup": "High"
+        },
+        {
+          "register": "jang_bank4[0]",
+          "powerup": "High"
+        },
+        {
+          "register": "bg_address[3]",
+          "powerup": "High"
+        },
+        {
+          "register": "bg_address[1]",
+          "powerup": "High"
+        },
+        {
+          "register": "bg_address[2]",
+          "powerup": "High"
+        },
+        {
+          "register": "mask_column0",
+          "powerup": "High"
+        },
+        {
+          "register": "gg_pdr[0]",
+          "powerup": "High"
+        },
+        {
+          "register": "gg_pdr[1]",
+          "powerup": "High"
+        },
+        {
+          "register": "gg_pdr[2]",
+          "powerup": "High"
+        },
+        {
+          "register": "gg_pdr[3]",
+          "powerup": "High"
+        },
+        {
+          "register": "gg_pdr[4]",
+          "powerup": "High"
+        },
+        {
+          "register": "gg_pdr[5]",
+          "powerup": "High"
+        },
+        {
+          "register": "gg_pdr[6]",
+          "powerup": "High"
+        }
+      ],
+      "generated_build_metadata": {},
+      "upstream_commit": "8acc19dcc399950afced528c8ce311174e4f83af",
+      "upstream_archive_sha256": "903445e97ba4cd5c52d69fb87f1cfb2f23a53da3d7b341955a2152f833f93bed",
+      "raw_rbf_sha256": "50cad69680195be8a9500e7e46275026c0a684dd6b812dc255b871c5e1d54b3f",
+      "reversed_rbf_sha256": "d06fdd5e86281adfb4bba7638476f65daa833b4173d0e75901cf917ae62c08a2",
+      "controller_sha256": "b494ae07e34c131824b471567ea77af4ad97857a02d6a9eb404ddce5355f4938",
+      "bridge_sha256": "f19f90030d39d32d3acc241efed287079764c86171f8da8cb0493921fffd526e",
+      "target_adapter_sha256": "ab60668de7a57c8446b57532714c3ead211ba0c44530cbe5b6ad9754d895fdb1",
+      "game_logic": "Original native GG/SMS/SG implementation; lifecycle/reset/pause wiring adapted",
+      "real_card_writes": 0,
+      "firmware_writes": 0
+    },
+    {
+      "platform": "sms",
+      "version": "0.4.0-sms.1",
+      "scope": "Offline full fit/timing; game/physical CellRAM/card/save/cheat acceptance pending",
+      "resources": {
+        "alm": 13799,
+        "m10k": 222,
+        "dsp": 32
+      },
+      "timing_records": 72,
+      "minimum_slack_ns": 0.071,
+      "all_tns_zero": true,
+      "reviewed_powerup_warnings": [
+        {
+          "register": "display_on",
+          "powerup": "Low"
+        },
+        {
+          "register": "mask_column0",
+          "powerup": "High"
+        },
+        {
+          "register": "irq_line_en",
+          "powerup": "High"
+        },
+        {
+          "register": "reset_flags",
+          "powerup": "High"
+        },
+        {
+          "register": "spr_address[0]",
+          "powerup": "High"
+        },
+        {
+          "register": "spr_address[1]",
+          "powerup": "High"
+        },
+        {
+          "register": "spr_address[2]",
+          "powerup": "High"
+        },
+        {
+          "register": "spr_address[3]",
+          "powerup": "High"
+        },
+        {
+          "register": "spr_address[4]",
+          "powerup": "High"
+        },
+        {
+          "register": "spr_address[5]",
+          "powerup": "High"
+        },
+        {
+          "register": "spr_address[6]",
+          "powerup": "High"
+        },
+        {
+          "register": "jang_bank2[0]",
+          "powerup": "High"
+        },
+        {
+          "register": "jang_bank4[0]",
+          "powerup": "High"
+        },
+        {
+          "register": "bg_address[1]",
+          "powerup": "High"
+        },
+        {
+          "register": "bg_address[2]",
+          "powerup": "High"
+        },
+        {
+          "register": "bg_address[3]",
+          "powerup": "High"
+        }
+      ],
+      "generated_build_metadata": {},
+      "upstream_commit": "8acc19dcc399950afced528c8ce311174e4f83af",
+      "upstream_archive_sha256": "903445e97ba4cd5c52d69fb87f1cfb2f23a53da3d7b341955a2152f833f93bed",
+      "raw_rbf_sha256": "2571e29d3e7e2268cad3600c963523e97b45d79095e59e8886ff3f49b06991e6",
+      "reversed_rbf_sha256": "5e4c72df09be408644e013661bb6ffcb7b342354e70c7b154edc71b8f7d4caa0",
+      "controller_sha256": "90f75d4239b455c02ee059cb1e8391b7f085b36820bbb77f2e8469d1ecd43f61",
+      "bridge_sha256": "f19f90030d39d32d3acc241efed287079764c86171f8da8cb0493921fffd526e",
+      "target_adapter_sha256": "ab60668de7a57c8446b57532714c3ead211ba0c44530cbe5b6ad9754d895fdb1",
+      "game_logic": "Original native GG/SMS/SG implementation; lifecycle/reset/pause wiring adapted",
+      "real_card_writes": 0,
+      "firmware_writes": 0
+    },
+    {
+      "platform": "sg1000",
+      "version": "0.4.0-sg1000.1",
+      "scope": "Offline full fit/timing; game/physical CellRAM/card/save/cheat acceptance pending",
+      "resources": {
+        "alm": 13727,
+        "m10k": 222,
+        "dsp": 32
+      },
+      "timing_records": 72,
+      "minimum_slack_ns": 0.046,
+      "all_tns_zero": true,
+      "reviewed_powerup_warnings": [
+        {
+          "register": "display_on",
+          "powerup": "Low"
+        },
+        {
+          "register": "mask_column0",
+          "powerup": "High"
+        },
+        {
+          "register": "irq_line_en",
+          "powerup": "High"
+        },
+        {
+          "register": "reset_flags",
+          "powerup": "High"
+        },
+        {
+          "register": "spr_address[6]",
+          "powerup": "High"
+        },
+        {
+          "register": "spr_address[0]",
+          "powerup": "High"
+        },
+        {
+          "register": "spr_address[1]",
+          "powerup": "High"
+        },
+        {
+          "register": "spr_address[2]",
+          "powerup": "High"
+        },
+        {
+          "register": "spr_address[3]",
+          "powerup": "High"
+        },
+        {
+          "register": "spr_address[4]",
+          "powerup": "High"
+        },
+        {
+          "register": "spr_address[5]",
+          "powerup": "High"
+        },
+        {
+          "register": "jang_bank2[0]",
+          "powerup": "High"
+        },
+        {
+          "register": "jang_bank4[0]",
+          "powerup": "High"
+        },
+        {
+          "register": "bg_address[3]",
+          "powerup": "High"
+        },
+        {
+          "register": "bg_address[1]",
+          "powerup": "High"
+        },
+        {
+          "register": "bg_address[2]",
+          "powerup": "High"
+        }
+      ],
+      "generated_build_metadata": {},
+      "upstream_commit": "8acc19dcc399950afced528c8ce311174e4f83af",
+      "upstream_archive_sha256": "903445e97ba4cd5c52d69fb87f1cfb2f23a53da3d7b341955a2152f833f93bed",
+      "raw_rbf_sha256": "a2dff767e27c715ade3540b33a209adce78ede42223274a54ee2e2bf590e9c8c",
+      "reversed_rbf_sha256": "cb6fde4d93723ec096783b80bc025cd344ebaf222ee008ae3eb6dc1c7e0dfb47",
+      "controller_sha256": "bb336e9725ca21eb82fa6b3b4fb664286000b40c4f97e4072ab15901e7d2b6a9",
+      "bridge_sha256": "f19f90030d39d32d3acc241efed287079764c86171f8da8cb0493921fffd526e",
+      "target_adapter_sha256": "ab60668de7a57c8446b57532714c3ead211ba0c44530cbe5b6ad9754d895fdb1",
+      "game_logic": "Original native GG/SMS/SG implementation; lifecycle/reset/pause wiring adapted",
+      "real_card_writes": 0,
+      "firmware_writes": 0
+    }
+  ],
+  "source_input_reproduction": "Complete source reproduction passed; generated date/time/nonce recorded separately; LAST_QUARTUS_VERSION informational normalization only"
+}

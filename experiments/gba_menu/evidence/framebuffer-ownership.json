@@ -1,0 +1,22 @@
+{
+  "date": "2026-10-31",
+  "tested_version": "0.2.0-gba.2",
+  "hardware_result": "Visible Chinese error screen before native menu; not a successful menu startup",
+  "first_run_user_readouts": {
+    "M": "0x1100002A",
+    "P": "0x4B000000",
+    "E": "0x00000022"
+  },
+  "photos_after_button_retries": {
+    "M": "0x1100002A",
+    "P": "0x4B000000",
+    "V": "0x0000004A",
+    "E": "0x00000053",
+    "T": "0x6F6B0002",
+    "H": "0x4F4B0000"
+  },
+  "interpretation": "All 19200 bridge words arrived, zero pixels accepted. M and V report no menu ownership; M reports game-bound and fault. First-run error 0x22 is frame-completion timeout. Error 0x53 was observed after retries, not the first failure.",
+  "remaining_uncertainty": "Why the initial hardware state lost ownership is not established. The retained-state injection reproduces the missing initialization, not the entire physical failure.",
+  "candidate": "0.2.0-gba.3 explicitly resets lifecycle at APF Stop/boot and acquires framebuffer ownership on every menu paint; preserves first fault separately",
+  "candidate_hardware_result": "pending"
+}

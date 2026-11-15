@@ -1,0 +1,45 @@
+# GB / GBC / GBA 前端聚合实验
+
+2026-11-01 最新决定：当前主线为[各机种独立的中文可视化菜单](../../docs/PER-SYSTEM-MENUS.md)。保留官方机种列表，GB/GBC 与 GBA 分别完善，不再合并启动器或修改系统首页。以下聚合、图形首页及自动换核内容保留为历史研究。
+
+2026-10-31。GBA `0.2.0-gba.3` 已获用户确认：正常中文菜单和游戏启动可用；普通存档、RTC 和保存返回仍待实机验收。
+
+2026-11-01 用户澄清方向：[第一屏直接显示主机图形](SYSTEM-FRONTEND.md)，保留系统加载及 Change Core。仅改机种名称和标志图不能实现该交互；所查公开 SDK 未提供全局 OS 布局、字体或动画的替换接口。电脑的四文件名称／标志图候选仅是辅助资源，未写卡。GBA 顺滑动画单独按元素绘制与缓存研究，淡入淡出不等于 GB/GBC 的封面位移动画。
+
+此前的[按游戏调用原生 FPGA 程序研究](NATIVE-CORE-ROUTING.md)保留：Route12 的系统重载 A→B→A 已通过；Route13 读取、Route15 文件打开均成功但未观察到自动重入。当前不继续追加界面内自动换核的同类实机实验。
+
+## 已实现的入口映射
+
+向两个原有核心的 `platform_ids` 末尾追加共同关联 `pocketlab`，增加 `Platforms/pocketlab.json`，名称为 **Pocket Lab**。原顺序分别保持：
+
+```text
+pocketlab.CoverFlow: [gbclab, gb, gbc, pocketlab]
+pocketlab.GBA:       [gbalab, gba, pocketlab]
+```
+
+这是同一系统分组的实验，切换仍由 Analogue OS 的 **Change Core** 执行。文件已安装并校验，用户已确认分组和核心选择正确。原核心身份、二进制、数据槽、素材与存档位置保持原值。平台索引不能随意重排：[数据槽参数](https://www.analogue.co/developer/docs/openfpga/core-definition-files/data-json)通过数组索引选择素材平台。[核心定义](https://www.analogue.co/developer/docs/openfpga/core-definition-files/core-json)最多支持 4 个平台关联。
+
+## 中文图标页直接换核心
+
+尚未实现，不能把上述分组称为原生统一启动器。
+
+- [Chip32 初始化说明](https://www.analogue.co/developer/docs/openfpga/chip32-vm/initialization-of-the-chip32-vm)说明它按需运行，不与核心常驻执行；`HOST 0x4002` 交回 APF。
+- Chip32 的 `CORE` 可以在加载阶段选择二进制，但现有 [Host/Target 接口](https://www.analogue.co/developer/docs/openfpga/host-target-commands)没有公开通用的“运行中启动另一个已安装核心”命令。仍缺少从 FPGA 图标菜单触发重新加载的已验证链路。
+- 旧离线分派实验已跑 7 个字节码用例，CORE/HOST 为日志模型、重新加载由测试宿主显式触发；它没有验证 FPGA 菜单按钮能唤起 Chip32。
+- 现有两套硬件也不能直接拼接。GB/GBC 使用 13,753 ALM、299 M10K、56 DSP；GBA 使用 15,940 ALM、277 M10K、27 DSP；芯片总预算 18,480 ALM、308 M10K、66 DSP。粗略相加超预算；可复用的模块尚未合并综合，不能把相加当作重新设计不可行的证明。
+
+上述加载器交接假设已进行 Route0～15 探针：系统显式重载路径可双向换程序，已测文件请求未形成自动重入。当前收束同类上机测试，优先核实系统首页可扩展边界。按游戏逐个加载原生程序无需同时容纳两套游戏电路。具体门槛和源码证据见[原生程序路由](NATIVE-CORE-ROUTING.md)。
+
+## 界面与素材
+
+GBA `display_update.py` 可在电脑上更新已有菜单图：替换匹配的封面、补中文显示名并去掉底部 A/B 提示。所有启动／存档记录保持逐字节一致。未传入 `--titles` 时保留原有标题像素；传入时只重绘对应文字区域。
+
+```sh
+python experiments/gba_menu/display_update.py --card X:/ --covers /path/to/covers --titles /path/to/titles.json --out .work/gba-display-update
+```
+
+该工具只生成电脑副本，不负责安装。`--titles` 是卡内相对路径到显示名称的 JSON，例如 `{"Assets/gba/common/Example.gba":"示例游戏"}`；文件夹使用其 `Assets/gbalab/common/...bin` 路径。名称不改变 ROM 文件名，也不代表游戏内文字已汉化。每页最后的返回入口显示“返回首页”或“返回上级”。
+
+封面可来自 [libretro-thumbnails GBA](https://github.com/libretro-thumbnails/Nintendo_-_Game_Boy_Advance)，用 [libretro-database](https://github.com/libretro/libretro-database) 的游戏代码对应原作封面，中文别名可参考 [rom-name-cn](https://github.com/yingw/rom-name-cn)。代码匹配后仍须查看图片：本次发现上游 `Chou Makaimura R (Japan).png` 实际是另一款游戏的图，已在本地改用同作美版封面。汉化／改版版本身份仍须另行核对；按文件名整理的改版副标题只是显示别名。仓库不分发商业游戏、BIOS、个人存档、私人清单或封面包。
+
+用户已确认更新后的中文名称正确。详细的[单核心与动画可行性研究](FEASIBILITY.md)包含逐模块资源、共享外部存储方向和离线淡入淡出原型。过渡已接入独立 GBA 电脑副本，联合启动、八档整帧像素比对及游戏视频绕过仿真已通过；Quartus 综合、布局、ASM、STA 各阶段已完成，流程包装器失败与约束限制保留在[收据](gba-fade-validation.json)中。实机仍使用原可用版本。

@@ -1,0 +1,23 @@
+{
+  "date": "2026-11-01",
+  "source": "User confirmed the displayed color and the expected values supplied in the test prompt; values were not separately retyped",
+  "package_source_commit": "bf478c7fbb41ff24f71cb80cd085883016c01919",
+  "entry": "pocketlab.Route5",
+  "observed": {
+    "screen": "Blue",
+    "ID": "0x504C4100",
+    "M": "0x000000B1",
+    "D": "0x504C4100"
+  },
+  "accepted_scope": [
+    "Minimal A entry starts on the physical device",
+    "VM reads the immutable A identity through PMPR",
+    "VM writes M/D through PMPW and matching values are visible through read-only Core Settings aliases"
+  ],
+  "not_established": [
+    "Input or visible video while the VM is still running",
+    "Loading B or A-to-B reconfiguration",
+    "Runtime loader re-entry or game/save handoff"
+  ],
+  "next_trial": "Route7: cold boot B; verify orange screen, immutable ID 0x504C4201 and released run reset before testing A-to-B"
+}

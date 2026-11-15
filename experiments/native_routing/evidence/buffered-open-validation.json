@@ -1,0 +1,199 @@
+{
+  "scope": "Runtime helper + actual SDK command RTL with synthetic host responses; real bytecode with modeled FPGA and preserved VM registers. No automatic OS callback is simulated.",
+  "rtl": "passed",
+  "cases": [
+    {
+      "loader": "Route15",
+      "scenario": "success",
+      "exit": 0,
+      "m": 193,
+      "d": 1347174656,
+      "steps": 30,
+      "cores": [
+        0
+      ],
+      "hosts": [
+        16386
+      ],
+      "loads": [
+        0
+      ],
+      "arms": [
+        2
+      ],
+      "pmp_addresses": [
+        1610612736,
+        1610612752,
+        1610612768,
+        1610612772,
+        1610612784
+      ],
+      "model": true
+    },
+    {
+      "loader": "Route15",
+      "scenario": "reentry-a",
+      "exit": 0,
+      "m": 194,
+      "d": 1347174656,
+      "steps": 33,
+      "cores": [
+        0
+      ],
+      "hosts": [
+        16386
+      ],
+      "loads": [
+        0
+      ],
+      "arms": [
+        2
+      ],
+      "pmp_addresses": [
+        1610612736,
+        1610612752,
+        1610612768,
+        1610612772,
+        1610612784,
+        1610612788
+      ],
+      "model": true
+    },
+    {
+      "loader": "Route15",
+      "scenario": "reentry-b",
+      "exit": 0,
+      "m": 194,
+      "d": 1347174913,
+      "steps": 34,
+      "cores": [
+        1
+      ],
+      "hosts": [
+        16386
+      ],
+      "loads": [
+        0
+      ],
+      "arms": [
+        2
+      ],
+      "pmp_addresses": [
+        1610612736,
+        1610612752,
+        1610612768,
+        1610612772,
+        1610612784,
+        1610612788
+      ],
+      "model": true
+    },
+    {
+      "loader": "Route15",
+      "scenario": "reentry-none",
+      "exit": 0,
+      "m": 230,
+      "d": 1347174656,
+      "steps": 30,
+      "cores": [],
+      "hosts": [
+        16386
+      ],
+      "loads": [
+        0
+      ],
+      "arms": [
+        2
+      ],
+      "pmp_addresses": [
+        1610612736,
+        1610612752,
+        1610612768,
+        1610612772,
+        1610612784,
+        1610612788
+      ],
+      "model": true
+    },
+    {
+      "loader": "Route15",
+      "scenario": "wrong-id",
+      "exit": 0,
+      "m": 231,
+      "d": 0,
+      "steps": 31,
+      "cores": [
+        0
+      ],
+      "hosts": [
+        16386
+      ],
+      "loads": [
+        0
+      ],
+      "arms": [
+        2
+      ],
+      "pmp_addresses": [
+        1610612736,
+        1610612752,
+        1610612768,
+        1610612772,
+        1610612784
+      ],
+      "model": true
+    }
+  ],
+  "loaders": [
+    {
+      "mode": "Route15",
+      "assembly": "passed",
+      "bytecode_sha256": "e9948f066123a47982acf5463ed6b70f6215a154bb2688014a0b7854f60a2bc1"
+    }
+  ],
+  "card_access": false,
+  "automatic_reentry": "not_tested",
+  "inputs": {
+    "runtime_request.sv": "e9f94eaff2fe229236cbeeae45c282dc20c4b1a9e141da9542f0706547663cba",
+    "tb_runtime.sv": "537fcec4580ff6bbb2cd177d7451b94eb88f1651a4cfcdefd1f328ad32947971",
+    "prepare_runtime.py": "62a356c3a073445b16c2331c4c38fe56d70ac70ddd80f31f10a94aebbd7d55a9",
+    "probe_runtime.py": "1b0e4b8400ce55d7f8eb2de11fb342781dc158e8d4d00a07794f2798417b3f99",
+    "reentry_body.asm": "2be1c5d60c65307872cf0e09ebec712587229c1956c5c0888487db14df2e284f",
+    "isolation_loader.asm": "7801c84d44af815e869eec0528cb688072387e34821b9e5b5d00e81669cbc95a",
+    "vm_contract.rs": "228b27701919a29cccd63d89ea97556495ffa31e4d0cbe5e8fb8bbe66834c8a0",
+    "prepare_probe.py": "1b5a25d8e79c3b0e2e18ee8f3e19dfbd3bf8cbfdeecf0a694cffe89ec82f8c1a",
+    "prepare_trial.py": "9fa5b5371527bc4f9768eae6f6ee0d2e70ab81337af625226bf19af31cc921a8",
+    "runtime_param_buffer.sv": "43d0f0a104e9acd10c541be43c75232efdc9bdab524ce011336819e668a18174",
+    "tb_runtime_bridge.sv": "d581edcad671c5a6820df457602a6c0d5505bc6f926d982a87f53881cd3650ca"
+  },
+  "hardware_sources": {
+    "A": {
+      "core/core_top.v": "2be920ec8468cfb64574748cb387e4fa51383deecbfc16bc0780b77588b6a199",
+      "core/runtime_request.sv": "e9f94eaff2fe229236cbeeae45c282dc20c4b1a9e141da9542f0706547663cba",
+      "core/route_probe.sv": "c539c3bc767118a7e034dd29f88fd9fd7eb0b5f0eae16c6946feef14b081ba0a",
+      "core/core_bridge_cmd.v": "f22034f2d309b4172288f1a5ef18afe4f22a803dbb4418e49842fbc7b6fd1687",
+      "apf/common.v": "c1615e2c6c12b111537f6ca11e826e5061eb91f405e349bdc649a17b48e24d4e",
+      "apf/io_bridge_peripheral.v": "fb9c13e0311ac6b01019898d0ca7786f370228380356fe618fc2b473f2add17d",
+      "core/core_constraints.sdc": "41f82740164b7aef9e684d6cfb488911cee7d9c471f2f253c71bf41d2bbd61bc",
+      "ap_core.qsf": "0eca202d76290a775ce7bab8e2e205937dce6d12769682900a9bfed667550573",
+      "core/runtime_param_buffer.sv": "43d0f0a104e9acd10c541be43c75232efdc9bdab524ce011336819e668a18174"
+    },
+    "B": {
+      "core/core_top.v": "4a4697a86395665bed80120202e17471e6833794ceb8a13370d9d6506669cc68",
+      "core/runtime_request.sv": "e9f94eaff2fe229236cbeeae45c282dc20c4b1a9e141da9542f0706547663cba",
+      "core/route_probe.sv": "c539c3bc767118a7e034dd29f88fd9fd7eb0b5f0eae16c6946feef14b081ba0a",
+      "core/core_bridge_cmd.v": "f22034f2d309b4172288f1a5ef18afe4f22a803dbb4418e49842fbc7b6fd1687",
+      "apf/common.v": "c1615e2c6c12b111537f6ca11e826e5061eb91f405e349bdc649a17b48e24d4e",
+      "apf/io_bridge_peripheral.v": "fb9c13e0311ac6b01019898d0ca7786f370228380356fe618fc2b473f2add17d",
+      "core/core_constraints.sdc": "41f82740164b7aef9e684d6cfb488911cee7d9c471f2f253c71bf41d2bbd61bc",
+      "ap_core.qsf": "0eca202d76290a775ce7bab8e2e205937dce6d12769682900a9bfed667550573",
+      "core/runtime_param_buffer.sv": "43d0f0a104e9acd10c541be43c75232efdc9bdab524ce011336819e668a18174"
+    }
+  },
+  "tools": {
+    "bass": "d5c0d4c9171c23d6317e34e594ad2272f7b3c09d686d8b44a76a9c860151b28b",
+    "vm-contract": "62a6d8571470b69b654c988fe28947d3dc52326b4cb5ecfafc9ba4713a27539e",
+    "libchip32_sim-e962cfde56514d3a.rlib": "72228b852d4011b13fdf77fbeca9c032754be4db723cebdc46ba6348418ed1e6"
+  },
+  "serial_bridge": "Real APF state machines and synchronizers with modeled host previous-word reads; inout declaration and optional-port simulation adapters only. Old combinational filename loses its first word; buffered filename/zero flags pass. Actual firmware read trace and automatic callback remain untested."
+}

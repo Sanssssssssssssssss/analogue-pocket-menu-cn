@@ -1,0 +1,57 @@
+{
+  "date": "2026-10-31",
+  "scope": "offline native menu / independent loading components; no combined game core",
+  "contract_tests": 18,
+  "launch_guard_cases": 11,
+  "native_pages": [
+    "home",
+    "gba",
+    "nes",
+    "snes"
+  ],
+  "page_checks": [
+    "B parent and root",
+    "selection wrap",
+    "three exact launch intents",
+    "error return",
+    "partial page refusal",
+    "844638 black loading pixels"
+  ],
+  "snes_loader_cases": 7,
+  "snes_vm_boundary_observations": 2,
+  "gba_nes_ingress": "actual upstream modules with Intel FIFO model passed cold load",
+  "gba_reload_observation": "startup-only simulation assertion; not a hardware failure claim",
+  "fit": {
+    "device": "5CEBA4F23C8",
+    "ALMs": 124,
+    "registers": 114,
+    "M10K": 4,
+    "DSP": 0,
+    "text_cache_bytes": 4096,
+    "clock_constraint_MHz": 100,
+    "minimum_setup_ns": 2.49,
+    "all_reported_TNS": 0,
+    "virtual_interface_pins": 86,
+    "installable_bitstream": false
+  },
+  "game_cpu_integrated": false,
+  "physical_card_access": false,
+  "hardware_validated": false,
+  "source_hashes": {
+    "fetch_sources.py": "92ee1269598f1adb6b000179ac05f15914436981fa8cf2ec1ae31df541a38c75",
+    "fixtures.py": "96752b0d42c1b276806095c193db5e4e1b9a0af7f356b84233629ac6548a3877",
+    "launch_guard.sv": "277195739a964aab800549b3cb5566ce055c68b2205d2773caadb5cbebae0398",
+    "launch_plan.py": "1bb7da6b9d3e726931d3d3631c1b187f942513d53b27673d6f2e67b8ac7f7b4d",
+    "menu_shell.sv": "c33f52c5b0e290d0391ba621bf01e4864660929de8a38b54dc99f3057f72ea4f",
+    "prepare_fit.py": "0ddf8be4c85a36628375e0ba7a0a99e73cd00106fb53547ccf62cf85015358bc",
+    "prepare_pages.py": "7d7e7b0b3484c46d5ca3f2a0a28ee752e60354991223a674c2aadd90d1bdc85c",
+    "probe_ingress.py": "0942fd16a162f03f18898d4422a4583a6f7782f4e6d56a3bc3f03ed6a4cc8d22",
+    "probe_snes_loader.py": "8d2c10504e52e3c65cff0ce5a7a05a39bccf7d5ece702708bb5fb2655ed5b0b5",
+    "profiles.json": "5569d4b7bfef8b4774adc061a623a2ed61953043eb2b9084575154a5d6cff0aa",
+    "run_rtl.sh": "92e593e32e5f3ddccdf081beac619f10bb7b91d5e4cd88c06f9628daaaf3775a",
+    "tb_ingress.sv": "283608142f6d7d91cf0513134b67c1cac7a43e8ca1b97dcd7b5f602f654cf690",
+    "tb_launch_guard.sv": "1629f271ff3f006ba693ca3400d1594529a6b05e3ef21894ddea34875b70f833",
+    "tb_menu.sv": "b46a394553ed618cadb0b44640f5e84056fc2a70777afd967172cbbfac5f8de2",
+    "test_contracts.py": "844fa5521b368f6e236ebccf4ce7e1c336043a5167489852e12e4b7d85e3cd68"
+  }
+}

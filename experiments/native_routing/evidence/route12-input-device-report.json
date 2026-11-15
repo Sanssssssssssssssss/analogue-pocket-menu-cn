@@ -1,0 +1,25 @@
+{
+  "date": "2026-11-01",
+  "source": "User confirmed the expected initial ID/M and runtime B selection C from the test prompt; values were not separately retyped",
+  "package_source_commit": "5f7a229996a27410640547bb183164d4797a8f44",
+  "entry": "pocketlab.Route12",
+  "phase": "Initial boot, then B pressed after the blue screen",
+  "observed": {
+    "ID": "0x504C4100",
+    "M": "0x000000C1",
+    "C": "0x00000002"
+  },
+  "accepted_scope": [
+    "Initial VM completes and A runs normally",
+    "A fresh B press during normal runtime is latched as choice 2",
+    "The runtime selection remains readable in Core Settings"
+  ],
+  "not_established": [
+    "OS reload callback into the VM",
+    "Switching based on the runtime selection",
+    "A-to-B-to-A return",
+    "Direct automatic re-entry from a custom menu",
+    "Why taps were not captured in Route9/10"
+  ],
+  "next_trial": "Without restarting, choose Reload test and probe.dat; inspect orange video, immutable B ID/D and M=0xC2"
+}

@@ -1,0 +1,19 @@
+{
+  "result": "passed",
+  "scope": "Extracted geometry vs actual frozen GB/GBC CoverFlow; original control disabled, no game CPU/card/device",
+  "cases": [
+    "counts 1,2,3,5,127,128,129,2047",
+    "96 left/right/wrap animations",
+    "all four cover positions, scales, brightness, image indices and validity",
+    "title fade",
+    "disabled-state reset"
+  ],
+  "compact": true,
+  "inputs": {
+    "cover_picker.sv": "200a7f117844ba7a3d3eab34d11d29bc2ba16656c482c5d91dbb6ec44069ab81",
+    "coverflow_geometry.sv": "df4d79e55ba13b4de50ee7af5e5f87f0f223ee39ac65663ef6ca2864f8194669",
+    "tb_geometry.sv": "152b2376e309cefcc4dccbc0b5ec698d96cbcfaf91ddd7a5aa5768eccd42fe7d",
+    "picker_dpram.v": "3a59214287a534c9143a48b3293eab320f902b3fd1b12fd006ba1cbcc9402082",
+    "motion-altera_mf.v": "bfdfde8688adb0f2223e6aba5ff56fba569d5ed2ed87866982c2f511aef0f7a6"
+  }
+}

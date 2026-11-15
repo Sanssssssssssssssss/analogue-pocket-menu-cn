@@ -1,0 +1,78 @@
+{
+  "date": "2026-10-31",
+  "device": "5CEBA4F23C8",
+  "capacity": {
+    "alms": 18480,
+    "m10k": 308,
+    "dsp": 66
+  },
+  "scope": "Existing independent full-fitter reports; inclusive hierarchical values must not be added to their parent. Not a merged synthesis or proof of an optimization lower bound.",
+  "builds": [
+    {
+      "system": "GB",
+      "report_sha256": "d91f11f1315aecc2785e7fd3445e13fffa077a7e335f2245b81c473d635dcc97",
+      "entities": [
+        {
+          "entity": "apf_top",
+          "alms_inclusive": 13752.9,
+          "m10k_inclusive": 299,
+          "dsp_inclusive": 56
+        },
+        {
+          "entity": "cart_top",
+          "alms_inclusive": 1227.7,
+          "m10k_inclusive": 128,
+          "dsp_inclusive": 0
+        },
+        {
+          "entity": "cover_picker",
+          "alms_inclusive": 4328.7,
+          "m10k_inclusive": 23,
+          "dsp_inclusive": 44
+        },
+        {
+          "entity": "gb",
+          "alms_inclusive": 5389.5,
+          "m10k_inclusive": 54,
+          "dsp_inclusive": 2
+        },
+        {
+          "entity": "lcd",
+          "alms_inclusive": 159.5,
+          "m10k_inclusive": 61,
+          "dsp_inclusive": 0
+        }
+      ]
+    },
+    {
+      "system": "GBA",
+      "report_sha256": "a6ea59126cc9b4b1b7499ce2816a41fba4996060a42526777c0ea93a034196b2",
+      "entities": [
+        {
+          "entity": "apf_top",
+          "alms_inclusive": 15939.4,
+          "m10k_inclusive": 277,
+          "dsp_inclusive": 27
+        },
+        {
+          "entity": "gba_menu",
+          "alms_inclusive": 764.3,
+          "m10k_inclusive": 2,
+          "dsp_inclusive": 1
+        },
+        {
+          "entity": "gba_top",
+          "alms_inclusive": 13400.6,
+          "m10k_inclusive": 175,
+          "dsp_inclusive": 26
+        },
+        {
+          "entity": "video_adapter",
+          "alms_inclusive": 94.4,
+          "m10k_inclusive": 92,
+          "dsp_inclusive": 0
+        }
+      ]
+    }
+  ]
+}

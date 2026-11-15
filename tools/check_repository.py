@@ -15,7 +15,7 @@ def check():
     names=subprocess.check_output(['git','ls-files','-z'],cwd=ROOT).decode().split('\0')
     names=[name for name in names if name]
     if not names:raise ValueError('No tracked files; stage the intended source tree first')
-    forbidden={'.gb','.gbc','.gba','.sav','.srm','.sus','.iso','.rbf','.rbf_r','.rev','.zip','.tar'}
+    forbidden={'.gb','.gbc','.gba','.nes','.sfc','.smc','.rtc','.state','.sav','.srm','.sus','.iso','.rbf','.rbf_r','.rev','.zip','.tar'}
     for name in names:
         p=ROOT/name
         if p.suffix.lower() in forbidden or any(part in ('.work','.build','dist','node_modules') for part in p.relative_to(ROOT).parts):

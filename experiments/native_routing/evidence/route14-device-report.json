@@ -1,0 +1,19 @@
+{
+  "date": "2026-11-01",
+  "source": "User reported still blue, M=C1, S=2040F and N=1 after the Route14 runtime B test",
+  "package_source_commit": "0d192273efcb2ecc8b23e23c6e45612d92d825b5",
+  "entry": "pocketlab.Route14",
+  "observed": {"screen": "Blue", "M": "0x000000C1", "S": "0x0002040F", "N": "0x00000001"},
+  "decoded_S": {"mode": 2, "armed": true, "request_issued": true, "ack_seen": true, "new_done_seen": true, "result_code": 4},
+  "result_code_source": "https://www.analogue.co/developer/docs/openfpga/host-target-commands",
+  "accepted_scope": [
+    "One runtime Target 0192 open request completed with malformed-path error 4",
+    "The final image stayed blue and M stayed C1; no automatic switch observed"
+  ],
+  "not_established": [
+    "Whether a successful open would re-enter the VM: the file was not opened successfully",
+    "Exact elapsed time, ID, D, C and actual host-received filename bytes were not reported",
+    "The specific cause of malformed path remains to be isolated offline"
+  ],
+  "next_action": "Inspect path bytes and buffered BRIDGE reads before another hardware test; do not repeat the unchanged Route14."
+}

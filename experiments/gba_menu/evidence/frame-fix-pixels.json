@@ -1,0 +1,12 @@
+{
+  "scope": "Actual Intel FIFO, upstream data_loader and patched video_adapter; no GBA CPU or physical device",
+  "result": "passed",
+  "pixels": 38400,
+  "input_hashes": {
+    "tb_pixels.sv": "805cafca2c04cd46787642e54efb0e154dbdcb9d9ed353824e822c59ce542284",
+    "gba_menu_pixels.sv": "78613cdf7f18d008ba58183d2e2c1281200ae3eb28ab3516fc8f756e7e48d19b",
+    "src/fpga/core/video_adapter.sv": "3c6ec1d47a1c1c8414556f51d78dff7c045b3715f9f34d680185c6351f3bfb8e",
+    "src/fpga/pocket/data_loader.sv": "835124f2993469f72c5ff1967cf386a58d6dec51b5035c70b0480a54d50dafb6",
+    "altera_mf.v": "bfdfde8688adb0f2223e6aba5ff56fba569d5ed2ed87866982c2f511aef0f7a6"
+  }
+}

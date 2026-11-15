@@ -1,0 +1,21 @@
+{
+  "date": "2026-11-01",
+  "source": "User confirmed the displayed color and the expected ID/R supplied in the prompt; values were not separately retyped",
+  "package_source_commit": "bf478c7fbb41ff24f71cb80cd085883016c01919",
+  "entry": "pocketlab.Route7",
+  "observed": {
+    "screen": "Orange",
+    "ID": "0x504C4201",
+    "R": "0x00000001"
+  },
+  "accepted_scope": [
+    "B bitstream can start directly through the minimal entry",
+    "Expected immutable B identity is visible and APF run reset is released"
+  ],
+  "not_established": [
+    "Sequential A-to-B CORE operations in one loader",
+    "Input or visible video while the VM is still running",
+    "Runtime loader re-entry or game/save handoff"
+  ],
+  "next_trial": "Route6: A-to-B in one loader, inspect immutable B ID, M=0xB2 and D=ID"
+}

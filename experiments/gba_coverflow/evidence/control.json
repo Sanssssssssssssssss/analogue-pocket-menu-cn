@@ -1,0 +1,11 @@
+{
+  "result": "passed",
+  "scope": "Controller + simulated APF host and video state; synthetic ROM header bytes, no game CPU/card/hardware/save durability",
+  "inputs": {
+    "gba_menu.sv": "32bba574f5c0106bd6b5d487fe3e4926f46b6499afcf8ab89bb798f915de644b",
+    "tb_menu.sv": "312aeb5a3b2073eb1c1092b770c90f7694a6721e7c25ad54dfcb1b39639578e8",
+    "probe_control.py": "c5ca38766f135c53417102cc43f16510dfef6fd2463eb35982c57da36d229c5d",
+    "library.py": "5611a5a64112d1f1d77e04bec59d526bc6440c6eac4a3585f4907c7d07ff50c3"
+  },
+  "f2_path_identity": "byte-exact compared to F1 records"
+}

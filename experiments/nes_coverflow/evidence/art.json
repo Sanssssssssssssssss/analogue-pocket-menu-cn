@@ -1,0 +1,9 @@
+{
+  "result": "passed",
+  "output": "PASS: five full RGB565 128/80 atlases, 56960 DWORD reads, packed slot/mip edges, incomplete upload guard and cancellation\nexperiments/nes_coverflow/tb_art_ram.sv:45: $finish called at 2848171000 (1ps)\n",
+  "scope": "Synthetic RTL only; no hardware or original games/progress",
+  "inputs": {
+    "experiments/nes_coverflow/art_ram.sv": "1a30b4fa3305ccc4e912163d70cc1324b1bb3af27efe408fc4290c528e7cda74",
+    "experiments/nes_coverflow/tb_art_ram.sv": "40aef0986c41fbec375c33443f935246a4cedcdc06df0594e08e11abb3e66ae2"
+  }
+}

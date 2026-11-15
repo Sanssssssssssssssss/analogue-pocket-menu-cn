@@ -1,0 +1,9 @@
+{
+  "result": "passed",
+  "output": "PASS: 720 bidirectional/wrap selections, 452 fills, 9 count boundaries, no alias/visible eviction, invalidation/disable\nexperiments/coverflow_shared/tb_assoc_cache.sv:46: $finish called at 18511000 (1ps)\n",
+  "scope": "Synthetic RTL only; no hardware or original games/progress",
+  "inputs": {
+    "experiments/coverflow_shared/assoc_cache.sv": "c2bb21f3d25d30e06d521a2b220ed8ff38326f6cb30d1b21fa1e4f351b9a4896",
+    "experiments/coverflow_shared/tb_assoc_cache.sv": "6546c0129e8241ed02d9d97fcdace9e485aac2004c19cc8fb3969c2af5e90b61"
+  }
+}

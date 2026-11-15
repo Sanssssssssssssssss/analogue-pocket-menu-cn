@@ -1,0 +1,18 @@
+{
+  "result": "passed",
+  "scope": "Four full raster frames with synthetic textures and Unicode text; actual five-slot associative cache and packed NES art RAM; static and both movement directions",
+  "reference_exception": "Test reference only corrects the documented original signed-clipping bug; frozen inputs unchanged",
+  "ram_backend": "Packed art RAM RTL plus portable line/text RAM previously crosschecked against Intel model",
+  "physical_slot_order": "4 minus logical game ID, verifies every visible slot translation",
+  "hardware_playtest": "pending",
+  "inputs": {
+    ".work/coverflow-delivery/nes-raster-1/coverflow_reference.sv": "7ee2d3da048b394f39a5921f981f39d9a75a3568e49316fbb292141ef35eab58",
+    ".work/coverflow-delivery/nes-raster-1/coverflow_geometry.sv": "df4d79e55ba13b4de50ee7af5e5f87f0f223ee39ac65663ef6ca2864f8194669",
+    ".work/coverflow-delivery/nes-raster-1/coverflow_assoc_view.sv": "28d95b57cc19fd290d2705628038ca5356bd3050a20d6cc470c4fe8162057cd4",
+    ".work/coverflow-delivery/nes-raster-1/coverflow_assoc_cache.sv": "c2bb21f3d25d30e06d521a2b220ed8ff38326f6cb30d1b21fa1e4f351b9a4896",
+    ".work/coverflow-delivery/nes-raster-1/coverflow_line_fetch.sv": "eb64f4c44ea2919e044a7e6874f3f59a659c447599f8afdb68fb7b458988c7b0",
+    "experiments/coverflow_shared/sim_ram.sv": "29b650c8e6661cc13b61ea7689f4a826cbe44262603c06736e8a2781165046ed",
+    "experiments/nes_coverflow/art_ram.sv": "1a30b4fa3305ccc4e912163d70cc1324b1bb3af27efe408fc4290c528e7cda74",
+    ".work/coverflow-delivery/nes-raster-1/tb_view.sv": "fcb8a2eb9643f01bf1f7fcef17c30d337e3bb3ed793bde15f8804ff89cce3edf"
+  }
+}

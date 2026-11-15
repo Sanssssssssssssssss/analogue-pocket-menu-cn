@@ -1,0 +1,77 @@
+{
+  "source": "core/src/core/cover_picker.sv",
+  "source_sha256": "200a7f117844ba7a3d3eab34d11d29bc2ba16656c482c5d91dbb6ec44069ab81",
+  "scope": "Actual frozen RTL numeric x/size/brightness outputs: rest, eight right and eight left poses; no game CPU/card/hardware",
+  "engine": "Icarus; source control disabled, count 5 and animation state supplied; numerical geometry independent of cache RAM",
+  "layout": "96 bits, slot k in bits k*24+:24, {signed x[10:0],size[7:0],brightness[4:0]}",
+  "poses": [
+    {
+      "index": 0,
+      "word": "2808001c8a090c1010018a09"
+    },
+    {
+      "index": 1,
+      "word": "2428a2170beb088e0dfe4946"
+    },
+    {
+      "index": 2,
+      "word": "216925130d6d05ec8bfc08c3"
+    },
+    {
+      "index": 3,
+      "word": "1f6986102e8e042b8afa6882"
+    },
+    {
+      "index": 4,
+      "word": "1e09a70e2f2f02eac9f94841"
+    },
+    {
+      "index": 5,
+      "word": "1d29e80cefaf020a49f88800"
+    },
+    {
+      "index": 6,
+      "word": "1ca9e80c4fef01aa09f82800"
+    },
+    {
+      "index": 7,
+      "word": "1c89e80c0fef018a09f80800"
+    },
+    {
+      "index": 8,
+      "word": "1c8a090c1010018a09f80800"
+    },
+    {
+      "index": 9,
+      "word": "204946116e0d04ebebfb28a2"
+    },
+    {
+      "index": 10,
+      "word": "2308c3156c8b078d6dfd6925"
+    },
+    {
+      "index": 11,
+      "word": "252882186b8a096e8eff2986"
+    },
+    {
+      "index": 12,
+      "word": "2668411a4ac90a8f2f0029a7"
+    },
+    {
+      "index": 13,
+      "word": "2748001b8a490b6faf00e9e8"
+    },
+    {
+      "index": 14,
+      "word": "27c8001c2a090bcfef0149e8"
+    },
+    {
+      "index": 15,
+      "word": "27e8001c6a090befef0169e8"
+    },
+    {
+      "index": 16,
+      "word": "2808001c8a090c1010018a09"
+    }
+  ]
+}

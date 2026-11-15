@@ -1,0 +1,50 @@
+{
+  "POKEMINI": {
+    "d67e84a3fe36978d5d57be915db75a195a2272a82f4b3e6ffcbd5bf8258763bf": {
+      "receipt_sha256": "4cc5c3ec8d2995fce07481a222a58df35064b6cf0da9da361774bb574ce61a4d",
+      "hardware_acceptance": "pending"
+    }
+  },
+  "CPS1": {
+    "0a2560d24a979979255dc85b012a4c74943b5a4a963b55c96be42400bf5a991a": {
+      "receipt_sha256": "218f5b6a487c1966530e5f0269ecb5bef475ef4bc1c6f07a8f6ba64256087b8d",
+      "hardware_acceptance": "pending"
+    }
+  },
+  "CPS15": {
+    "cb91a01c9e8721a67eb10b8f3ffec7f626377d922566b0afaa3506303324449e": {
+      "receipt_sha256": "63d6ed8d45e8981567a841d2dd5810cbb143e9957b2001b294e93c60266c8c7a",
+      "hardware_acceptance": "pending"
+    }
+  },
+  "ARDUBOY": {
+    "8382f86d9272e6ba5e67e0afb44a56a25067386f1a2d859e1e25064670680159": {
+      "receipt_sha256": "4f5cce9706ba391c941babaad9a1ad1f2ac98d9730c94f84520a465a27fae095",
+      "hardware_acceptance": "pending"
+    }
+  },
+  "WS": {
+    "1102b838794ad721e1bd1fa31981185a74ef6d2e731352bb6bea6173149e401b": {
+      "receipt_sha256": "03d1007d9225e1ef3c625ead3965153976a64f6164511cf0fa7ea6b58ea24ce7",
+      "hardware_acceptance": "pending"
+    }
+  },
+  "ATARI2600": {
+    "3e6cbd2a5e470bf1c628ba64fd4f28095c48c42288ea7b04ccfdd7a2d8f96280": {
+      "receipt_sha256": "c835ef77891c265853a8b821ec69d31c1b142b9ee99f645abc77051f52dd6564",
+      "hardware_acceptance": "pending"
+    }
+  },
+  "ATARI7800": {
+    "ed5a29092aff519414c460f6b040dde94a71062449a5917cc5dc6a1e11fdcd12": {
+      "receipt_sha256": "2b2abfb74d0d3fc319ec31c851226cf17b03db2792e9a3364bec469c749b56a0",
+      "hardware_acceptance": "pending"
+    }
+  },
+  "SUPERVISION": {
+    "3129a498a4376d99755d6ef6d717bf9cd604c821c50bf794404f24421f01e43f": {
+      "receipt_sha256": "5ff266ff3a0d0c08ce36e4fa87c465013e86a4d7d7ee9fd604bb465274faacb6",
+      "hardware_acceptance": "pending"
+    }
+  }
+}

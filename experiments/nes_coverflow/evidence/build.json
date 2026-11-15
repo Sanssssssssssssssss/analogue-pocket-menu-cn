@@ -1,0 +1,44 @@
+{
+  "result": "full_compilation_and_timing_passed",
+  "version": "0.3.0-nes.2",
+  "upstream_commit": "be5f1303a0df15d012155cb248b6174bb81e64b6",
+  "upstream_archive_sha256": "8699f04685f156d2887712d7f148623419b94c2739c3e4981ebb795a65ed6c0f",
+  "resources": {
+    "alm": 16010,
+    "m10k": 283,
+    "dsp": 40
+  },
+  "timing_records": 128,
+  "minimum_slack_ns": 0.056,
+  "all_tns_zero": true,
+  "critical_warnings": 0,
+  "menu_hz": 47.85488413547237,
+  "hardware_acceptance": "pending",
+  "firmware_writes": 0,
+  "device_writes": 0,
+  "renderer": {
+    "source": "core/src/core/cover_picker.sv",
+    "source_sha256": "200a7f117844ba7a3d3eab34d11d29bc2ba16656c482c5d91dbb6ec44069ab81",
+    "verbatim_geometry_sha256": "9b47f595be6819c1c2011caa231223d8bf4fe480a8d3d18a05c7b918d12f9d81",
+    "compact": true,
+    "pose_table_sha256": "1683e6b2093f2b3cbc12e8664b0d7bf7c8b3a60a7bb1073fbb6918c7ca1847fd",
+    "adaptation": "Numerical poses from original RTL table; original state/title timing and game/valid mapping retained",
+    "scope": "NES native core + five independent BRAM cover slots; game SDRAM and inherited clocks retained",
+    "adaptations": [
+      "pixel clock enable and RAM read enable",
+      "single physical-clock sync pulses",
+      "bitmap columns for both Unicode text rows",
+      "completed-line guard",
+      "new ready/response texture transport"
+    ],
+    "cache_adapter": "Five physical slots; original candidate wrap/priority and raster, fully associative tags",
+    "menu_format": "GBAF2/NES; widths at 24/28, ROM fields unchanged",
+    "menu_hz": 47.85488413547237,
+    "game_changes": "Prior isolated pause/launch/save adapter only; no game CPU emulation"
+  },
+  "raw_bitstream_sha256": "461038ddf15305e088dbe6678c74d36c8e177355f113aaa6831c8bbd6c7349d0",
+  "report_sha256": {
+    "nes.fit.summary": "935fb22e3b5e4730aca3938eda8782690272c97308c3a6d7164ee95ca3cbdc6c",
+    "nes.sta.summary": "33ec7eede556ce42da23e14aa897ab5c653c3afdee244a5143c6fe2737fc7143"
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "date": "2026-11-03",
+  "result": "controller_regression_passed",
+  "hardware_status": "No corrected bitstream built or installed; .6 remains device-rejected and .3 remains on the device",
+  "confirmed_code_defect": "CF_ART_DRAIN ignored a latched backend error and used the full-ROM timeout, preventing prompt error/input recovery",
+  "device_root_cause": "Unconfirmed; this fault injection reproduces a code defect, not the original physical failure",
+  "baseline": {
+    "version": "0.2.0-gba.6",
+    "controller_sha256": "ab598a23883c480e445856aa146929a282365b4524c33f216085ac43eb605b5b",
+    "result": "expected failure: backend fault is hidden while upload_ready remains false",
+    "log_sha256": "a781be9db1960ce2dd2f715957367f1421242ab749dcc6a05a3b0dd98d8623f7"
+  },
+  "corrected_controller_sha256": "4cceccea865127d7c391acc6b54ccc5b02570d21ca1aeba79da8194a9ea529a0",
+  "regression_cases": [
+    "Backend fault during incomplete upload reports error 0x74 promptly; B returns to root",
+    "Incomplete upload without a fault times out with error 0x71 under the frame watchdog; B returns to root",
+    "Fresh Run and full inherited lifecycle: A/B/wrap, three ROM loads, 64K/128K save capacity, RTC, pause, flush failure retention and stale completion rejection"
+  ],
+  "after_log_sha256": "74684bd1e0e881e9253339aa7837763e55cf113f0ab1b0834d52c162acd427e1",
+  "scope": "Actual generated GBA controller with synthetic APF file replies and substituted rendering/ready state. No physical RAM, game CPU, device/card, timing or save durability certification.",
+  "GBA_only": true,
+  "NES_GG_SMS_SG1000_controllers_and_default_bench": "Byte-exact unchanged against before-change hashes",
+  "sources": {
+    "experiments/gba_coverflow/prepare.py": "31504ff1d9bcc7476a555d595b01363684a1e2221e075a5a5c546e4f4564cbab",
+    "experiments/gba_coverflow/probe_control.py": "61ac6d23d0970e66e143992dadbe5b6696fe613a1ce2c5480b6144946c517824"
+  }
+}

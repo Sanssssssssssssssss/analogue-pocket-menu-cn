@@ -1,0 +1,18 @@
+{
+  "date": "2026-11-01",
+  "package_source_commit": "57b9acab3ed0ce745e5669865223d501f2927548",
+  "scope": "Added independent buffered-path Route15; path fix and automatic re-entry await hardware observation",
+  "entries": ["pocketlab.Route15"],
+  "added_files": 10,
+  "added_bytes": 1602263,
+  "shared_files_verified": 3,
+  "protected_files_sha256_verified": 4258,
+  "protected_backup_bytes": 48023184,
+  "overwritten_files": 0,
+  "save_writes": 0,
+  "firmware_writes": 0,
+  "previous_controls": "Route11-14 and shared files matched the original staged hashes before installation; protected originals verified again afterward",
+  "backup": "Fresh protected-data snapshot; exact new package, journal, scripts and source bundle retained locally without public card inventory",
+  "rollback": "Remove only the 10 listed Route15 files when their SHA256 still matches; preserve shared files, existing cores and saves",
+  "acceptance": "First verify successful open result; separately inspect M and target identity for automatic VM re-entry. File installation integrity is not hardware behavior acceptance."
+}

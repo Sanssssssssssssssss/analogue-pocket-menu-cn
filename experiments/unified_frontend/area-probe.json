@@ -1,0 +1,27 @@
+{
+  "date": "2026-10-31",
+  "scope": "One area-first GBA map/fit/timing experiment; not a combined GB/GBC/GBA core",
+  "compiler": "Quartus Prime Lite 22.1std.2 Build 922",
+  "device": "5CEBA4F23C8",
+  "settings_changed": {
+    "OPTIMIZATION_MODE": "AGGRESSIVE AREA",
+    "OPTIMIZATION_TECHNIQUE": "AREA"
+  },
+  "source_core_top_sha256": "017a597bb961d04a2874b1c2fd46a85566e4a2f2c614eb5e3e538b98be046522",
+  "baseline_core_top_identical": true,
+  "map": "passed",
+  "fit": "passed",
+  "timing": "passed",
+  "alms": 15777,
+  "m10k": 280,
+  "dsp": 27,
+  "baseline": {
+    "alms": 15940,
+    "m10k": 277,
+    "dsp": 27
+  },
+  "timing_records": 104,
+  "minimum_slack_ns": 0.109,
+  "all_tns_zero": true,
+  "note": "Single independent build comparison; packing/build-ID variation is not controlled. Board-level exceptions remain. No bitstream generated or installed."
+}

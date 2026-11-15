@@ -1,0 +1,14 @@
+{
+  "scope": "Synthetic retained-register injection, not proof of the original physical startup cause",
+  "baseline_menu_sha256": "a67a3552bc24c553b6bd137c597db2d21a26dd8a0ee659119a4c24ac18d8f043",
+  "baseline_result": "failed as expected before the first menu frame",
+  "failure": "boot did not acquire framebuffer/reset game ownership",
+  "injected_state": {
+    "menu_owned": 0,
+    "menu_reset": 0,
+    "game_bound": 1
+  },
+  "candidate_menu_sha256": "26662a928ebc7dafbf6c103acfd2e9dfa6f4c4c477d19f6d2ee48c7699c389f4",
+  "candidate_result": "boot ownership assertion and complete first framebuffer passed",
+  "candidate_cases_receipt": "ownership-boot.json"
+}

@@ -1,0 +1,55 @@
+# 按游戏调用对应的原生核心
+
+2026-11-01 后续决定：当前改为[各机种独立的中文可视化菜单](../../docs/PER-SYSTEM-MENUS.md)，不再合并 GB/GBC 和 GBA 启动器。下文是已收束的路由研究记录。
+
+2026-11-01 用户已将当前方向调整为[图形主机首页与系统加载](SYSTEM-FRONTEND.md)：第一屏显示主机图形并保留 Change Core。所查公开 SDK 尚无替换 OS 全局布局的接口，改平台标志图不能实现该目标。以下保留原生路由实验依据，当前不继续同类界面内自动换核测试。
+
+目标：统一中文游戏库 → 选择游戏 → 按机种加载对应的 FPGA bitstream → 游戏。GB/GBC 使用原 GB/GBC 硬件实现，GBA 使用原 GBA 实现；一次只配置当前机种。这个目标不要求两套游戏电路同时放进 FPGA，不能用两套资源相加超预算来否定它。
+
+2026-11-01 当前结果：Route12 已实机完成运行时选择及 **OS 重载触发的 A→B→A**，仍需系统菜单操作。[Route13 读取实测](../native_routing/evidence/route13-device-report.json)为蓝屏、M=C1、S=1000F、N=1：一次文件读取报告成功，但没有观察到自动重入。[Route14](../native_routing/evidence/route14-device-report.json) 打开请求返回路径格式错误 4（S=2040F）；[Route15 修正版](../native_routing/evidence/route15-device-report.json) 随后成功打开（S=2000F、N=1），仍蓝屏/M=C1。读取和同路径打开两种已测请求均未观察到自动重入；本轮收束，不重复这些探针。这些结果尚未形成可用的自动统一前端。下文保留实验过程与来源。
+
+2026-10-31 源码核对结果：按 ROM 选择原生程序已有社区实例；运行中的中文图标页主动发起重配置，仍缺已验证接口。本轮没有连接设备卡。
+
+Route14 后续离线排查得到[独立 Route15 候选](../native_routing/README.md#route15缓冲路径读回)：真实 APF 串行桥在模型宿主按一字缓冲协议读取时，旧组合逻辑路径丢失首字，新缓冲路径完整。候选已完成编译和离线检查，并[备份安装](../native_routing/evidence/buffered-open-install-report.json)，实机已确认打开返回成功，但没有自动换核。未捕获实际固件串行轨迹；保留成功文件打开作为参考，不把它记为统一前端已实现。
+
+| 环节 | 证据与状态 |
+|---|---|
+| 一个包声明多个原生程序 | [官方 core.json](https://www.analogue.co/developer/docs/openfpga/core-definition-files/core-json)支持最多 8 个 bitstream |
+| 启动时识别 ROM 并选程序 | [SNES loader](https://github.com/agg23/openfpga-SNES/blob/1a08c84ddef760bedd30a376114fc2e97527df19/support/loader.asm)解析 ROM 信息，在主程序、SPC7110/SDD1/BSX 程序、PAL 程序之间选择；[core.json](https://github.com/agg23/openfpga-SNES/blob/1a08c84ddef760bedd30a376114fc2e97527df19/pkg/pocket/Cores/agg23.SNES/core.json)列出三个 ID |
+| 同一加载器依次配置 A→B | [Route6 实机通过](../native_routing/evidence/route6-device-report.json)：最终橙屏、不可改写的 B 身份和 PMPR 读回匹配 |
+| 运行后选择、由 OS 重载触发 VM 并双向换核 | [Route12 切 B](../native_routing/evidence/route12-reload-device-report.json)与[返回 A](../native_routing/evidence/route12-return-device-report.json)均通过：同一入口完整 A→B→A，仍需系统重载操作 |
+| OS 中重选可重载文件后调用 Chip32 | [官方 VM 初始化说明](https://www.analogue.co/developer/docs/openfpga/chip32-vm/initialization-of-the-chip32-vm)明确支持；这是宿主触发 |
+| 自绘菜单按 A 后主动重启加载器 | [官方 Target 命令](https://www.analogue.co/developer/docs/openfpga/host-target-commands)与 [core-template](https://github.com/open-fpga/core-template/blob/da3a021b1eaf742604d86d8dc9b33a6666263e6a/src/fpga/core/core_bridge_cmd.v)中没有找到已验证的通用接口；不能把文件打开／读取当成已完成重配置 |
+| 游戏结束后跨核心返回中文首页 | 未实现、未上机验证 |
+
+SNES 的 `set_core` 路径先执行默认 `CORE 0`，特殊芯片或 PAL 分支再执行相应的 `CORE`。这是加载阶段的现成参考，不能由此推断运行阶段也可随时调用 Chip32。当前旧 VM 实验中的 CORE/HOST 仍是日志模型，不能认证 Pocket 宿主实际重配置。
+
+## 下一项可证伪的小实验
+
+2026-11-01：已建立[独立 A/B 探针](../native_routing/README.md)，包含两份板级源码、三种加载阶段、不可由写寄存器伪造的身份与有限按键轮询。RTL 和实际汇编已检查；旧日志 VM 必须因无 FPGA 读数而拒绝，防止把其 CORE 日志当作真机结果。官方启动流程明确将 Setup 与运行阶段分开；宿主是否显示加载阶段光栅仍待实测。
+
+随后已完成独立诊断包：保留只读身份，增加最近按键及 M/D 结果，移除不用的音频时钟，按已有 GBA 的范围显式处理 APF 协议 I/O 例外。两套新版工程完成全流程编译和内部时序检查，备份后新增 `Pocket Lab Test` 四个入口；当前只请求验证 Route0 对照，实际换核仍待验收。详见[试验包与回退边界](../native_routing/README.md#独立实机诊断包)。
+
+Route0 对照已获用户确认：固定身份正确、运行复位释放、B 键读数正确、计时持续增加。[实机记录](../native_routing/evidence/route0-device-report.json)仅认证该普通启动路径。随后 Route3 黑屏并短暂报错，Route1 可启动但 M/D 全零；实际旧字节码存在地址表达式截断，已用完整地址修正。新一轮 23 项指令模型检查和 A/B 板级编译通过，最小 Route4/5/7/6 包已备份安装，见[安装记录](../native_routing/evidence/isolation-install-report.json)；[现场记录](../native_routing/evidence/route1-route3-device-report.json)不把离线检查或安装校验当作原生换核验收。
+
+随后 [Route4 实机通过](../native_routing/evidence/route4-device-report.json)：立即蓝屏、ID 为 A、运行复位释放。[Route5 也通过](../native_routing/evidence/route5-device-report.json)：蓝屏、ID/D 为 A、M=`0xB1`，确认 VM 的身份读取与结果写入。[Route7](../native_routing/evidence/route7-device-report.json)确认 B 单独启动，[Route6](../native_routing/evidence/route6-device-report.json)确认同一加载器 A→B，最终橙屏、ID/D 为 B、M=`0xB2`。下一项为修正后的 Route8～10 按键测试；等待期间的画面、按键与 A→B→A 返回仍须实测，运行阶段重入尚未验证。
+
+[Route8 无输入分支已通过](../native_routing/evidence/route8-device-report.json)：几秒后蓝屏、ID 为 A、M=`0xE2`、D=`0`。接下来 Route10 比较完整初始化后等待期间的画面和输入，使用松开 Run 后再次短按 A 的方式；仍未把无输入正常退出记成按键或换核成功。
+
+[Route10](../native_routing/evidence/route10-device-report.json) 与 [Route9](../native_routing/evidence/route9-device-report.json) 短按后仍为 E2/D=0，没有进入换核分支。下一步以 Route11 记录真实等待时长和按键数据，以 Route12 验证官方可重载槽的 OS 重入路径。Route12 是运行后从系统 UI 触发的对照，不能代替自绘菜单主动触发的证明。两项已备份安装，实机结果待确认，见[安装记录](../native_routing/evidence/handoff-install-report.json)与[操作边界](../native_routing/README.md#计时与运行后重入对照)。
+
+[Route12 正常运行后的选择已确认](../native_routing/evidence/route12-input-device-report.json)：初始 ID 为 A、M=C1，蓝屏后按 B，C=2。下一项在同一次会话选择 Reload test，核对 VM 重入和按选择切 B；尚未把运行时输入通过记成换核通过。
+
+随后 [OS 重载切 B](../native_routing/evidence/route12-reload-device-report.json)及[再次重载返回 A](../native_routing/evidence/route12-return-device-report.json)均获实机确认：目标身份、读回和最终画面匹配，M 均为 C2。运行时选择与 OS 触发的双向 VM 重入已通过。下一项是独立探测运行期 Target 只读文件命令是否也会触发 VM；文件命令完成和 VM 重入必须分别读取证据，不能等同。
+
+先使用无 ROM、无 BIOS、无存档的独立 A/B 程序，避免把未知重载机制直接接入游戏：
+
+1. 验证加载阶段先配置一个简单选择器时，Chip32 尚未结束，画面、按键和 `PMPR` 桥接读数能否正常工作。
+2. 用户在选择器中按键后，VM 读取选择并执行另一个 `CORE`；新程序显示不同的只读指纹和纯色，区分真实重配置与旧程序换颜色。
+3. 验证 APF 交接、退出和反复 A→B→A。只有首轮加载成功不代表游戏运行后还能唤起 VM；需要单独验证返回与重新进入的触发。
+
+“VM 在加载阶段持有选择器”是待测假设：系统可能一直遮住画面、不给核心按键，或不在 VM 执行期间服务 Target 文件请求。[文件指令](https://www.analogue.co/developer/docs/openfpga/chip32-vm/file-process)主要操作已声明的数据槽，也没有提供已验证的任意路径菜单启动接口。本轮没有把上述假设标记为可用，也没有生成可安装的统一启动器。
+
+触发链成立后，才统一数据槽、BIOS 加载地址、平台目录、视频模式和普通存档交接。`CORE` 选择的是同一包中声明的程序 ID，不能把其他已安装核心的文件夹名直接当作 ID。现有两套 BIOS 槽与菜单数据格式不同，具体冲突见 [可行性研究](FEASIBILITY.md)。
+
+也核对了芯片级 `ALTREMOTE_UPDATE`：Cyclone V 的[启用条件](https://www.intel.com/programmable/technical-pdfs/683375.pdf)要求相应的 Active Serial／配置存储器模式，而当前工程声明 Passive Serial、由 Pocket 宿主管理配置。通用 FPGA 远程升级示例不能直接当作从 SD 选择 openFPGA 核心的功能；本轮未启用该 IP 或改配置模式。

@@ -1,0 +1,435 @@
+{
+  "upstream": "https://github.com/agg23/openfpga-pokemonmini/tree/81cfccb7c5620f7acb4a992df2ed355e922d0afd",
+  "files": [
+    {
+      "path": ".github/FUNDING.yml",
+      "bytes": 14,
+      "sha256": "84281a5d418b2232c9243c681c3921e59cb8b5eb47c71294b8d83a17d1aab0f0"
+    },
+    {
+      "path": ".github/ISSUE_TEMPLATE/BUG_REPORT.yml",
+      "bytes": 2140,
+      "sha256": "c28dc084fe5221e187b666aa509db810fb5e1831bb322c90fa124a708aaf4acf"
+    },
+    {
+      "path": ".github/ISSUE_TEMPLATE/QUESTION.yml",
+      "bytes": 856,
+      "sha256": "77190f69eac14e071aae1cce9686cf3652dd549e1e747624b93e281c0a0c2528"
+    },
+    {
+      "path": ".gitignore",
+      "bytes": 96,
+      "sha256": "de53385382c817fce21e805d605298131340215ff718f8822cbfdb015ba6e012"
+    },
+    {
+      "path": "assets/PKMini.aseprite",
+      "bytes": 2000,
+      "sha256": "736745d4114f9a7ed2b716517792e94d287037e4b28b9b81e711da938654f826"
+    },
+    {
+      "path": "dist/Assets/poke_mini/common/.gitkeep",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "dist/Cores/agg23.PokemonMini/audio.json",
+      "bytes": 46,
+      "sha256": "61d2263613a47f29f19bc0d19c32a19c2dbd0872bccc29f833c3de44f4830add"
+    },
+    {
+      "path": "dist/Cores/agg23.PokemonMini/core.json",
+      "bytes": 790,
+      "sha256": "47b9c5c6f553d207aafafa51f8e0e0c63c6fe7e58934a74b71c1d3d27e02d5cb"
+    },
+    {
+      "path": "dist/Cores/agg23.PokemonMini/data.json",
+      "bytes": 495,
+      "sha256": "98c63f656b009fcfb3797a3fc90b859c5874a45d3e5406525d9b4f0a1f7ef158"
+    },
+    {
+      "path": "dist/Cores/agg23.PokemonMini/icon.bin",
+      "bytes": 2592,
+      "sha256": "cbdd69d2dd2650a8a48640a2d9f9798dc53ecfd189b85b3d84eeb70480067799"
+    },
+    {
+      "path": "dist/Cores/agg23.PokemonMini/info.txt",
+      "bytes": 576,
+      "sha256": "bc775189abc4998d76f06ebbd7456467ca4ce71bede8f2ccd0d611a78328931c"
+    },
+    {
+      "path": "dist/Cores/agg23.PokemonMini/input.json",
+      "bytes": 697,
+      "sha256": "ec5ce404eea500e279789558750209ed637b7756369150132732bbbe2f668b55"
+    },
+    {
+      "path": "dist/Cores/agg23.PokemonMini/interact.json",
+      "bytes": 339,
+      "sha256": "9ed7db6dcae272f0d5bc865f09ce11845b6300f43bc922875949d3b6e4d58032"
+    },
+    {
+      "path": "dist/Cores/agg23.PokemonMini/variants.json",
+      "bytes": 84,
+      "sha256": "20435a5a696085a01110c617f93f25a7cc9c403ea5fa71050fe2d687f2f86162"
+    },
+    {
+      "path": "dist/Cores/agg23.PokemonMini/video.json",
+      "bytes": 225,
+      "sha256": "d9f7ddd99c09a58d15c37091f95a106e254a57feea95f6f7486bd5b6c13afa31"
+    },
+    {
+      "path": "dist/Platforms/_images/poke_mini.bin",
+      "bytes": 171930,
+      "sha256": "1052599461ea625a5f4c2dceaa2901e215e087ea1b8b460ffdd5da1f6258b6ef"
+    },
+    {
+      "path": "dist/Platforms/poke_mini.json",
+      "bytes": 129,
+      "sha256": "c55d578bfb0381526e960156ada3e506f786b661f84192f5f56056b7081d9f6b"
+    },
+    {
+      "path": "LICENSE",
+      "bytes": 18092,
+      "sha256": "8177f97513213526df2cf6184d8ff986c675afb514d4e68a404010521b880643"
+    },
+    {
+      "path": "README.md",
+      "bytes": 1820,
+      "sha256": "e4ef974aab099049c0e0084b9dafbddee0d27feeb046ea5a6a12df50003703c8"
+    },
+    {
+      "path": "src/fpga/.gitignore",
+      "bytes": 275,
+      "sha256": "a24e140cdeafcdf3df755c9305133115d68d26396cd8ae5f0811ab68f2198f54"
+    },
+    {
+      "path": "src/fpga/ap_core.qpf",
+      "bytes": 1325,
+      "sha256": "a969a78714a6a5602d60abc899ea378dfb31815f12712a710367f7a583d9dd75"
+    },
+    {
+      "path": "src/fpga/ap_core.qsf",
+      "bytes": 45164,
+      "sha256": "563c5c2b86188da79ef48e186598817c692d20eaa097cb4963bedbfe9a14e088"
+    },
+    {
+      "path": "src/fpga/ap_core_assignment_defaults.qdf",
+      "bytes": 55108,
+      "sha256": "f5d8e675f3d11c1b0e79571d2bc8173dbf4f9e8dea3cec9d731af0ca6bbd30ff"
+    },
+    {
+      "path": "src/fpga/apf/apf.qip",
+      "bytes": 640,
+      "sha256": "252741535c1572cb58c59ddcf245ad7bb707f7d1ed738bfef1d090b2729f4fb2"
+    },
+    {
+      "path": "src/fpga/apf/apf_constraints.sdc",
+      "bytes": 517,
+      "sha256": "47fe6a363d5ba5fbd1de3663ba1a496e357272f69136a4aa7d1132a9098ecc44"
+    },
+    {
+      "path": "src/fpga/apf/apf_top.v",
+      "bytes": 15838,
+      "sha256": "6410c00a7d1972e48a5c4e88db5d8f67a720e571ed10284259c09dd9f0ceeae0"
+    },
+    {
+      "path": "src/fpga/apf/build_id.mif",
+      "bytes": 186,
+      "sha256": "e1c21f3bb4b6e94cab279c98a6d6e2aaf764f8cdfe99f2dd772504effcda3956"
+    },
+    {
+      "path": "src/fpga/apf/build_id_gen.tcl",
+      "bytes": 7201,
+      "sha256": "6279533fec80081e3c91884e1cc5df853b2a716df0b573636147f3420aace996"
+    },
+    {
+      "path": "src/fpga/apf/common.v",
+      "bytes": 5357,
+      "sha256": "118954fe6623fe67dea38fdde553c6c40412a5f3737c3f83c7d9282c8e1bc374"
+    },
+    {
+      "path": "src/fpga/apf/io_bridge_peripheral.v",
+      "bytes": 10934,
+      "sha256": "fb9c13e0311ac6b01019898d0ca7786f370228380356fe618fc2b473f2add17d"
+    },
+    {
+      "path": "src/fpga/apf/io_pad_controller.v",
+      "bytes": 9456,
+      "sha256": "51e841d49403b06bceb3a95a97e7f4a9fe634a89d914f00c5bcb74747b2f9a74"
+    },
+    {
+      "path": "src/fpga/apf/mf_datatable.qip",
+      "bytes": 266,
+      "sha256": "ea4b6875e12a79823c709566c52a48ccfc61af68cc587b73f2249820d4abec5a"
+    },
+    {
+      "path": "src/fpga/apf/mf_datatable.v",
+      "bytes": 10871,
+      "sha256": "626002917f9928ee50277d51493c376d00102ac1b0b6996aeabc0102a598ec96"
+    },
+    {
+      "path": "src/fpga/apf/mf_ddio_bidir_12.qip",
+      "bytes": 366,
+      "sha256": "32e946cba208d535d97e8b8ec4e8d4739a9241085da92374e4e677ce7aadd49e"
+    },
+    {
+      "path": "src/fpga/apf/mf_ddio_bidir_12.v",
+      "bytes": 5437,
+      "sha256": "73674edb40a6314f9b00829942bedcad9e183515bcdbb327095f96401799c536"
+    },
+    {
+      "path": "src/fpga/core/core_bridge_cmd.v",
+      "bytes": 14790,
+      "sha256": "2f8c7f01eefb9e754a3ae653f481ee29e8cf0c6e198069a604299906cc10a1c6"
+    },
+    {
+      "path": "src/fpga/core/core_constraints.sdc",
+      "bytes": 566,
+      "sha256": "3f334de38a8abeeb1c3cee4027723c1d9611277f4bba75b48b45fbe3763fd13b"
+    },
+    {
+      "path": "src/fpga/core/core_top.v",
+      "bytes": 20762,
+      "sha256": "2785d1a26e03c54724a74f155a39f30aecb5bd0b0fbfb89e2f7b8f66a87e1b44"
+    },
+    {
+      "path": "src/fpga/core/data_loader.sv",
+      "bytes": 7380,
+      "sha256": "835124f2993469f72c5ff1967cf386a58d6dec51b5035c70b0480a54d50dafb6"
+    },
+    {
+      "path": "src/fpga/core/data_unloader.sv",
+      "bytes": 8111,
+      "sha256": "4f9b3e5b3ed0d1675fc28291340a8c56e95aa127b5d350394fce3968c79cdc24"
+    },
+    {
+      "path": "src/fpga/core/main.sv",
+      "bytes": 22355,
+      "sha256": "ca19c13820b7c2d635efd81795231663b0a3de99fedafe4d45660f3c99bfceae"
+    },
+    {
+      "path": "src/fpga/core/mf_pllbase/mf_pllbase_0002.qip",
+      "bytes": 428,
+      "sha256": "eb47247cb283d3bd21d865ef0152993978eeaaec4b72c66a39746c0375f25815"
+    },
+    {
+      "path": "src/fpga/core/mf_pllbase/mf_pllbase_0002.v",
+      "bytes": 2341,
+      "sha256": "76f4b69b10e49cac0b893a35d5cb2edc9eadaf98086abc26b7a3ee93f66754d4"
+    },
+    {
+      "path": "src/fpga/core/mf_pllbase.bsf",
+      "bytes": 5315,
+      "sha256": "18efd2f3d16bcdaf943cba23eaafa7fde0dfc589d25a8d4a67b3fa3216be9e70"
+    },
+    {
+      "path": "src/fpga/core/mf_pllbase.ppf",
+      "bytes": 679,
+      "sha256": "b14d0417220d002fce40a144c5dc8dad39ea66ece0adc919170d07d52dcda5de"
+    },
+    {
+      "path": "src/fpga/core/mf_pllbase.qip",
+      "bytes": 56976,
+      "sha256": "a2ca7cbbe53a0527cc3959badc335a7e8f80741ef33f2519fc6d41f4062d2e28"
+    },
+    {
+      "path": "src/fpga/core/mf_pllbase.sip",
+      "bytes": 536,
+      "sha256": "37ff4c0aa442bee0ffdfc49ddf77e464756da5aca4133d311fe5b520bf2f37a7"
+    },
+    {
+      "path": "src/fpga/core/mf_pllbase.spd",
+      "bytes": 193,
+      "sha256": "d8646fe21873b0c06aeec4a4f14dc17507b0485e9c7e6d1256da5512039678e9"
+    },
+    {
+      "path": "src/fpga/core/mf_pllbase.v",
+      "bytes": 17481,
+      "sha256": "59058aae78a8f6e3231fdc5be83d758a3277888c5b04123b460a36e1ad0b9fc3"
+    },
+    {
+      "path": "src/fpga/core/mf_pllbase_sim/aldec/rivierapro_setup.tcl",
+      "bytes": 12560,
+      "sha256": "9e5b4a285ed14a857aac7b7a16f687bdd739a54ec0ecd1ccbc94cb848e5c6a51"
+    },
+    {
+      "path": "src/fpga/core/mf_pllbase_sim/cadence/cds.lib",
+      "bytes": 1297,
+      "sha256": "46dd738642b9cf11b65234fad487e33390f271ee7e7efd236b271d01d80731e3"
+    },
+    {
+      "path": "src/fpga/core/mf_pllbase_sim/cadence/hdl.var",
+      "bytes": 18,
+      "sha256": "e265aff8a21b8913b2c80771e606b9d636225551f3d8faee4e01015540092723"
+    },
+    {
+      "path": "src/fpga/core/mf_pllbase_sim/cadence/ncsim_setup.sh",
+      "bytes": 9562,
+      "sha256": "7bd209864348b5ecf11d38b49b75b9aad7ba0a4455e539427fd841d10ba31e5f"
+    },
+    {
+      "path": "src/fpga/core/mf_pllbase_sim/mentor/msim_setup.tcl",
+      "bytes": 12684,
+      "sha256": "04a3abea6ea0311c1e3c950e1b3194e4cccb86e326a4e6a2cd1bbe2c02c98428"
+    },
+    {
+      "path": "src/fpga/core/mf_pllbase_sim/mf_pllbase.vo",
+      "bytes": 18669,
+      "sha256": "a4c94a92c4050924ff18349ef0b127839b0ccb4a7cb7227b6ab1253518fc415b"
+    },
+    {
+      "path": "src/fpga/core/mf_pllbase_sim/synopsys/vcs/vcs_setup.sh",
+      "bytes": 6356,
+      "sha256": "c1544b88657622e83d9f5a2c380e36e10870a9db0b9390726de3efa40f3cfd2f"
+    },
+    {
+      "path": "src/fpga/core/mf_pllbase_sim/synopsys/vcsmx/synopsys_sim.setup",
+      "bytes": 616,
+      "sha256": "4330adbdae577a3e54e8c8c324aefc37d50eba7324a672cd4ce5767f8941e264"
+    },
+    {
+      "path": "src/fpga/core/mf_pllbase_sim/synopsys/vcsmx/vcsmx_setup.sh",
+      "bytes": 9639,
+      "sha256": "6bbf24c02f65eca6e0b5dbe40d877ab3436b1d965c74c297bf9d587aa06a71da"
+    },
+    {
+      "path": "src/fpga/core/mf_pllbase_sim.f",
+      "bytes": 29,
+      "sha256": "066fdaf5fb0232cc648bc58d7c2775ecad4deb7ede0d06b8eee1bbc417b946f3"
+    },
+    {
+      "path": "src/fpga/core/pin_ddio_clk.ppf",
+      "bytes": 485,
+      "sha256": "62b8842ea2cec75c4f9a2fcd51e5cd3fb37d4cd7aa49abd462d60d1979811c2e"
+    },
+    {
+      "path": "src/fpga/core/pin_ddio_clk.qip",
+      "bytes": 449,
+      "sha256": "f200d873400b7385d8bf53890ad915f5c0aa3368b9f05ea5f56c626abb94321b"
+    },
+    {
+      "path": "src/fpga/core/pin_ddio_clk.v",
+      "bytes": 4350,
+      "sha256": "ff0c101427896bf0fab4a9db68a3d6fca6359545e6bef278ae0226baca1e73c9"
+    },
+    {
+      "path": "src/fpga/core/rtl/alu.sv",
+      "bytes": 9678,
+      "sha256": "c38d5d22059641333383fc3d02653515497183f7d26198d09b5d5129a87d6d39"
+    },
+    {
+      "path": "src/fpga/core/rtl/bcd_addsub.sv",
+      "bytes": 1003,
+      "sha256": "61d5523727b0446f6860c2821fa406e6eebcfb8542767767a5dd9392a2dea3f2"
+    },
+    {
+      "path": "src/fpga/core/rtl/dpram.vhd",
+      "bytes": 4440,
+      "sha256": "55b55f86a2cae68c671922b73585c97a05ad068344747057c12606144882a16c"
+    },
+    {
+      "path": "src/fpga/core/rtl/eeprom.sv",
+      "bytes": 6533,
+      "sha256": "849c4d107ab33ab2260616ea4526dd5de3679292bb6b5da8c91cb0e880ebb3af"
+    },
+    {
+      "path": "src/fpga/core/rtl/irq.sv",
+      "bytes": 5776,
+      "sha256": "a857a241b60300bf4de459e249cf330712903e3d3547caebe87ee4a1459401ba"
+    },
+    {
+      "path": "src/fpga/core/rtl/key_input.sv",
+      "bytes": 702,
+      "sha256": "575321847be794e9eac3c1ab69a453adf45923828ae8e2eedc1c83127771563e"
+    },
+    {
+      "path": "src/fpga/core/rtl/lcd_controller.sv",
+      "bytes": 8094,
+      "sha256": "58d1500754352dc0007156725b4fafce1a01cd3d8b1c29feb87282e91556199a"
+    },
+    {
+      "path": "src/fpga/core/rtl/minx.sv",
+      "bytes": 11971,
+      "sha256": "bcdbca9bcefdebb38669e845dbf8aa617c0b3bbb3b892fa680045caa19d07bc1"
+    },
+    {
+      "path": "src/fpga/core/rtl/prc.sv",
+      "bytes": 34468,
+      "sha256": "ff971ac8ea387a160b07ceb6918665c906d9de14e4a10feb4d592655a78f353d"
+    },
+    {
+      "path": "src/fpga/core/rtl/rtc.sv",
+      "bytes": 1649,
+      "sha256": "5979c0f8f9fb266d49d9fe1a82a19dfc42cb2a743f07e7a6bf946a35582d8493"
+    },
+    {
+      "path": "src/fpga/core/rtl/s1c88.sv",
+      "bytes": 61301,
+      "sha256": "510c6687d47056bffeea9c6b5fbb60d47d642a3fae8b690db5e25c5d8cb45b92"
+    },
+    {
+      "path": "src/fpga/core/rtl/sdram.sv",
+      "bytes": 8305,
+      "sha256": "332e6e07cf89c39cf7323808b84e21a04d74a5b20ed30df1e86efe2910b1e48a"
+    },
+    {
+      "path": "src/fpga/core/rtl/sound.sv",
+      "bytes": 1248,
+      "sha256": "b21f61b4f150e8038f2d653941e3b7514193ce43f432cf27b0bd78f37f7564ef"
+    },
+    {
+      "path": "src/fpga/core/rtl/spram.vhd",
+      "bytes": 2022,
+      "sha256": "7a83e05228b91579bf7abe3f33bb7757fbbbad1cdd0a72525a91b6132b251128"
+    },
+    {
+      "path": "src/fpga/core/rtl/system_control.sv",
+      "bytes": 1253,
+      "sha256": "051be9a745c42479c2888c181df8aa125948f7b90a8c81b0243e63c7b6c1f993"
+    },
+    {
+      "path": "src/fpga/core/rtl/timer.sv",
+      "bytes": 7615,
+      "sha256": "7f7a6afcd334d794e1cafb0acadba92ca980952037ea85cbd76ad73b81f5bbde"
+    },
+    {
+      "path": "src/fpga/core/rtl/timer256.sv",
+      "bytes": 2107,
+      "sha256": "546a2a7aefb01679faa62fde14ac22d7b356c9c42ba40dda598dbbce9320d80d"
+    },
+    {
+      "path": "src/fpga/core/rumble.v",
+      "bytes": 2093,
+      "sha256": "dc475c1749f685021a38abb3779b991997a01e603ee855b4c3037d82a90f381d"
+    },
+    {
+      "path": "src/fpga/core/sound_i2s.sv",
+      "bytes": 5260,
+      "sha256": "00340dfbbc6c058db2ca0cca4a2468a36e32ebbcf5345307ae78fac0d15f42eb"
+    },
+    {
+      "path": "src/fpga/core/stp1.stp",
+      "bytes": 3535967,
+      "sha256": "ff9fc4f8c36291b438051719c222433e0abe19d0c67fd098d2d4b6a8d67c6caa"
+    },
+    {
+      "path": "src/fpga/core/sync_fifo.sv",
+      "bytes": 2871,
+      "sha256": "3477215899494668667797790821f8ce1e0c992f40abe36b34d12c74facace85"
+    },
+    {
+      "path": "src/fpga/freebios.hex",
+      "bytes": 9756,
+      "sha256": "2f5bb40b2c0adb650aecc8cd249b81a4fb83d050f36194072260e053ab81cdbe"
+    },
+    {
+      "path": "src/fpga/rom/rom.mem",
+      "bytes": 14255,
+      "sha256": "e28a6b066fae01bce6a16dc720d5c4f9bec21f500d2a7c04cccc4d995428a0a9"
+    },
+    {
+      "path": "src/fpga/rom/translation_rom.mem",
+      "bytes": 2645,
+      "sha256": "30c556b3ed6f398853eeffe46a6d3786904a407b768fbaa783b6146496604cc6"
+    }
+  ]
+}

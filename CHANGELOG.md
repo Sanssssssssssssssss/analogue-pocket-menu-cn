@@ -1,5 +1,21 @@
 # Changelog
 
+## Experiment branch — GBA acceptance and Chinese captions, 2026-10-31
+
+- One Pocket user confirmed Chinese menus and game launch in `0.2.0-gba.3`; ordinary saves, RTC and save-return remain unconfirmed.
+- Added a local GBA display updater for explicit Chinese aliases, PNG covers and removal of bottom A/B hints. Every launch/save record is preserved; no RTL or game display setting changes.
+- Documented the shared Pocket Lab platform association experiment and its platform-index constraints. OS grouping and Chinese captions are now user-confirmed; native automatic cross-core switching remains unimplemented.
+- Stable GB/GBC release and public binary remain unchanged. See [experiment scope](experiments/unified_frontend/README.md).
+
+## Experiment branch — machine icons, 2026-10-31
+
+- Original GB/GBC machine and genre pixel illustrations, using the existing RGB565 cover format.
+- Optional v9 restyler: machine home, classic shortcut group, corrected parent links, original game/save identities retained.
+- Installer checks the source menu snapshot and publishes new child pages before linking them.
+- Exact native RTL screenshots and repeatable page preview. Hardware source and bitstream remain the accepted 0.1.2 baseline; the new layout awaits hardware acceptance.
+
+This is a source-branch update, not a new firmware or multi-system core release.
+
 ## v0.1.2-public.1 — 2026-10-31
 
 First public preview of Analogue Pocket CoverFlow Chinese Menu.

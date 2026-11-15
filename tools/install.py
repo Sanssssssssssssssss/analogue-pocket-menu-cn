@@ -3,13 +3,16 @@
 """Plan or apply a confined, backed-up installation; never writes saves/firmware."""
 import argparse
 import ctypes
+import errno
 from datetime import datetime, timezone
 import json
 import os
 from pathlib import Path, PurePosixPath
+import re
 import shutil
 import tempfile
 from build_library import sha
+from apf_metadata import check_core
 
 PREFIXES = ('Cores/pocketlab.CoverFlow/', 'Assets/gbclab/common/')
 EXACT = ('Platforms/gbclab.json','Platforms/_images/gbclab.bin')
@@ -30,11 +33,15 @@ def safe_path(root, rel):
 
 def confined(root, rel):
     target=safe_path(root,rel)
-    if not (rel in EXACT or any(rel.startswith(p) for p in PREFIXES)):
+    if not (rel in EXACT or any(rel.startswith(p) for p in PREFIXES)
+            or re.fullmatch(r'Assets/gbclab/cheat/[0-9a-f]{20}\.cht', rel)):
         raise ValueError(f'Path outside menu installation scope: {rel}')
     return target
 
 def identity(card):
+    # Windows temp/reader paths may use 8.3 aliases or directory junctions.
+    # Compare the canonical root in both preflight and later rollback checks.
+    card=Path(card).resolve()
     marker=card/'Analogue_Pocket.json'
     if json.loads(marker.read_text(encoding='utf-8-sig')).get('product')!='Analogue Pocket':
         raise ValueError('Expected an Analogue Pocket card root or its local copy')
@@ -57,6 +64,44 @@ def read_manifest(root, filename):
             raise ValueError(f'Package/library checksum mismatch: {rel}')
     return value
 
+def refresh_library_plan(card, package, changes, core):
+    """Refresh native library files through delivery.py; retain working metadata."""
+    current=check_core(safe_path(card,core))
+    candidate=check_core(safe_path(package,core))
+    if current['cores']!=candidate['cores'] or current['metadata']['platform_ids']!=candidate['metadata']['platform_ids']:
+        raise ValueError('Library refresh requires the same native core identity')
+    for item in candidate['cores']:
+        rel=core.rstrip('/')+'/'+item['filename']
+        if sha(safe_path(card,rel))!=sha(safe_path(package,rel)):
+            raise ValueError('Library refresh requires the same native bitstream')
+    def definition(root,filename,key):
+        return json.loads(safe_path(root,core.rstrip('/')+'/'+filename).read_text(encoding='utf-8-sig'))[key]
+    if definition(card,'data.json','data')['data_slots']!=definition(package,'data.json','data')['data_slots']:
+        raise ValueError('Library refresh refuses changed native data-slot bindings')
+    def dimensions(root):
+        return [(row['width'],row['height']) for row in definition(root,'video.json','video')['scaler_modes']]
+    if dimensions(card)!=dimensions(package):
+        raise ValueError('Library refresh refuses changed native scaler bindings')
+    result=[];guards=[]
+    for row in changes:
+        rel=row['path'];target=safe_path(card,rel)
+        if target.exists() and not target.is_file():raise ValueError('Expected file: '+rel)
+        previous=sha(target) if target.is_file() else None
+        # Existing metadata contains the user's display/input choices. A
+        # library refresh neither installs another RBF nor replaces these.
+        if rel.startswith(core.rstrip('/')+'/') or rel.startswith('Platforms/'):
+            if previous is not None:
+                guards.append({'path':rel,'bytes':target.stat().st_size,'sha256':previous})
+                continue
+        if rel.startswith('Saves/') and previous is not None:
+            if target.stat().st_size!=row['bytes']:raise ValueError('Existing ordinary save has an unsupported size: '+rel)
+            continue
+        if previous==row['sha256']:
+            guards.append({'path':rel,'bytes':target.stat().st_size,'sha256':previous})
+        else:result.append({**row,'previous_sha256':previous})
+    return {'changes':result,'guards':guards,'operation':'library_refresh_same_bitstream'}
+
+
 def plan(card, package, library):
     card,package,library=map(lambda p:Path(p).resolve(),(card,package,library))
     ident=identity(card)
@@ -65,16 +110,26 @@ def plan(card, package, library):
             raise ValueError('Package and library must be separate local folders outside the card')
     p=read_manifest(package,'release-manifest.json')
     lib=read_manifest(library,'library-manifest.json')
+    if 'source_packs' in lib:
+        if lib['identity']!=ident:
+            raise ValueError('Styled library belongs to a different card/copy')
+        for item in lib['source_packs']:
+            rel=item['path']
+            if not rel.startswith('Assets/gbclab/common/') or not rel.endswith('.bin'):
+                raise ValueError('Unexpected source pack path')
+            if sha(confined(card,rel))!=item['sha256']:
+                raise ValueError('Menu changed after styling; rebuild the staged library')
     for suffix in ('','meta','folders'):safe_path(card,'Saves/gbclab/common/'+suffix)
     required={'Cores/pocketlab.CoverFlow/core.json','Cores/pocketlab.CoverFlow/gbc.rbf_r',
               'Cores/pocketlab.CoverFlow/data.json','Cores/pocketlab.CoverFlow/video.json',
               'Cores/pocketlab.CoverFlow/input.json','Cores/pocketlab.CoverFlow/interact.json',
-              'Cores/pocketlab.CoverFlow/audio.json','Platforms/gbclab.json','Platforms/_images/gbclab.bin'}
+              'Cores/pocketlab.CoverFlow/audio.json','Cores/pocketlab.CoverFlow/variants.json',
+              'Platforms/gbclab.json','Platforms/_images/gbclab.bin'}
     if not required.issubset({x['path'] for x in p['files']}):raise ValueError('Incomplete core package')
     if not {'Assets/gbclab/common/covers.bin','Assets/gbclab/common/gbc_bios.bin'}.issubset({x['path'] for x in lib['files']}):
         raise ValueError('Incomplete library/BIOS manifest')
-    metadata=json.loads((package/'Cores/pocketlab.CoverFlow/core.json').read_text(encoding='utf-8'))
-    if metadata['core']['metadata']['platform_ids']!=['gbclab','gb','gbc']:
+    metadata=check_core(package/'Cores/pocketlab.CoverFlow')
+    if metadata['metadata']['platform_ids']!=['gbclab','gb','gbc']:
         raise ValueError('Unexpected platform mapping')
     bios=library/'Assets/gbclab/common/gbc_bios.bin'
     if not bios.is_file() or bios.stat().st_size!=2304:
@@ -95,7 +150,8 @@ def plan(card, package, library):
             if target.exists() and not target.is_file(): raise ValueError('Destination is not a file')
             if previous!=item['sha256']:
                 changes.append({**item,'source':str(source),'previous_sha256':previous})
-    changes.sort(key=lambda x:(x['path'].endswith('/core.json'),x['path']))
+    # Publish new child pages before changing parent links, then Home and core metadata.
+    changes.sort(key=lambda x:(x['path'].endswith('/core.json'),x['path'].endswith('/covers.bin'),x['previous_sha256'] is not None,x['path']))
     return {'identity':ident,'version':p['version'],'changes':changes,'save_writes':0,'firmware_writes':0}
 
 def publish(source, target, expected):
@@ -110,6 +166,40 @@ def publish(source, target, expected):
         if sha(target)!=expected: raise ValueError('Destination readback mismatch')
     finally:
         if temporary.exists(): temporary.unlink()
+
+
+def publish_new(source, target, expected):
+    """Create a verified new file without replacing a late-arriving save."""
+    target.parent.mkdir(parents=True, exist_ok=True)
+    descriptor, name = tempfile.mkstemp(prefix='.pocket-menu-', dir=target.parent)
+    temporary = Path(name)
+    try:
+        with os.fdopen(descriptor, 'wb') as out, source.open('rb') as incoming:
+            shutil.copyfileobj(incoming, out)
+            out.flush()
+            os.fsync(out.fileno())
+        if sha(temporary) != expected:
+            raise ValueError('Temporary file readback mismatch')
+        if os.name == 'nt':
+            # Unlike os.replace, Windows rename atomically refuses an existing name.
+            os.rename(temporary, target)
+        else:
+            try:
+                os.link(temporary, target)
+            except OSError as error:
+                if error.errno not in (errno.EPERM, errno.EOPNOTSUPP, errno.ENOSYS):
+                    raise
+                # FAT/exFAT may not implement hard links. Exclusive creation still
+                # prevents replacement; an interrupted new seed remains for review.
+                with target.open('xb') as out, temporary.open('rb') as incoming:
+                    shutil.copyfileobj(incoming, out)
+                    out.flush()
+                    os.fsync(out.fileno())
+        if sha(target) != expected:
+            raise ValueError('Destination readback mismatch')
+    finally:
+        if temporary.exists():
+            temporary.unlink()
 
 def apply(card, package, library, backup):
     card,backup=Path(card).resolve(),Path(backup).resolve()

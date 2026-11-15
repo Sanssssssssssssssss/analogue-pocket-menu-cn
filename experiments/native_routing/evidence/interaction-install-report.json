@@ -1,0 +1,19 @@
+{
+  "date": "2026-11-01",
+  "package_source_commit": "3cbe8882389189354cb6973bcc3b4f8b0aa90dad",
+  "scope": "New corrected bounded input diagnostics only; physical Route8-10 results pending",
+  "entries": [
+    "pocketlab.Route8",
+    "pocketlab.Route9",
+    "pocketlab.Route10"
+  ],
+  "added_files": 30,
+  "added_bytes": 4777669,
+  "shared_files_verified": 3,
+  "protected_files_sha256_verified": 4169,
+  "overwritten_files": 0,
+  "save_writes": 0,
+  "firmware_writes": 0,
+  "backup": "Fresh protected-data snapshot and exact candidate/source bundle verified locally",
+  "rollback": "Remove only the 30 listed additions if their hashes match; preserve existing shared assets and Route0-7"
+}

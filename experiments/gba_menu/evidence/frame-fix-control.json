@@ -1,0 +1,34 @@
+{
+  "scope": "RTL simulation only: no physical Pocket, game CPU, PSRAM or SD durability validation",
+  "tests": [
+    {
+      "test": "tb_menu",
+      "result": "passed",
+      "input_hashes": {
+        "gba_menu.sv": "a67a3552bc24c553b6bd137c597db2d21a26dd8a0ee659119a4c24ac18d8f043",
+        "tb_menu.sv": "76456864dfaf7fd2d8909c674e5c479eb3536a53edfaa09559a9ee7eecbe5749"
+      }
+    },
+    {
+      "test": "tb_commands",
+      "result": "passed",
+      "input_hashes": {
+        "tb_commands.sv": "03d23cfc63a59fa76a873baea877ff72231647632d305002deca4286d0600919",
+        "core_bridge_cmd.v": "c2023bcd0a54ee03d0606939db0cda82f9e6ea26497619c6b976b0d3fa7805e1",
+        "common.v": "c1615e2c6c12b111537f6ca11e826e5061eb91f405e349bdc649a17b48e24d4e"
+      }
+    },
+    {
+      "test": "tb_reload",
+      "result": "passed",
+      "input_hashes": {
+        "tb_reload.sv": "2f7ead3064d2e05faece68e7f7b125d5dac9446dd1c2fd38cbf96f6a20d8bd9c",
+        "apf_write_ingress.sv": "a64edbe4b5b526fe95bf2d6cb27951606331aaacde3896c1b5f529d1c064a43f",
+        "save_type_detector.sv": "de971938ab4718cb0483a292e4cf011ea30766e7a7fe6e4622df7eecfe86ab49",
+        "rtc_persistence.sv": "edcfbea9619dd70dd8ec5de499df1aa9071bfdf186e17974fcdb1bd4852c33c6",
+        "altera_mf.v": "bfdfde8688adb0f2223e6aba5ff56fba569d5ed2ed87866982c2f511aef0f7a6"
+      }
+    }
+  ],
+  "vendor_fifo_test": true
+}

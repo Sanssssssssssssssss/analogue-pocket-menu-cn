@@ -1,0 +1,24 @@
+{
+  "result": "passed",
+  "platform": "sms",
+  "scope": "Actual prepared controller and upstream cheat parser, simulated APF/file/video state. No game CPU, physical RAM/card, cheat gameplay or save durability.",
+  "cases": [
+    {
+      "case": "none",
+      "result": "passed",
+      "bench_sha256": "58cc28e8fa1030ffd87144ebdd90118fc76c47aa92d42352f2ed30f7a707f715"
+    },
+    {
+      "case": "matched",
+      "result": "passed",
+      "bench_sha256": "9fc4cc290752dc7396fb93f96323a38c2933fbc55aa4225ae534c2ce3dd6e3ff"
+    },
+    {
+      "case": "invalid",
+      "result": "passed",
+      "bench_sha256": "9990c7edfc066582819a042756cd06675b26940f9e78eafd3c8984a450230a17"
+    }
+  ],
+  "controller_sha256": "90f75d4239b455c02ee059cb1e8391b7f085b36820bbb77f2e8469d1ecd43f61",
+  "parser_sha256": "aec266432ad5feff51fa7343cb160e24eac3bd1b52bf0bb4e5f28dde6c95ea1d"
+}

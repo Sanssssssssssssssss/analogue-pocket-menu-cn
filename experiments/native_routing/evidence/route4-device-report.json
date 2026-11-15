@@ -1,0 +1,23 @@
+{
+  "date": "2026-11-01",
+  "source": "User-reported observations on the physical Pocket",
+  "package_source_commit": "bf478c7fbb41ff24f71cb80cd085883016c01919",
+  "entry": "pocketlab.Route4",
+  "observed": {
+    "screen": "Blue appeared immediately; no ten-second wait needed, duration not measured",
+    "ID": "0x504C4100",
+    "R": "0x00000001"
+  },
+  "accepted_scope": [
+    "Minimal entry configured with Chip32 loader reaches the blue A diagnostic screen",
+    "Core Settings reads the expected immutable A identity",
+    "APF run reset is released"
+  ],
+  "not_established": [
+    "Chip32 PMPR/PMPW result reporting; Route4 does not perform it",
+    "Input or video while the VM is still running",
+    "Loading B or A-to-B reconfiguration",
+    "Runtime loader re-entry or game/save handoff"
+  ],
+  "next_trial": "Route5: boot A, read immutable ID through PMPR, write M=0xB1 and D=ID, then complete initialization"
+}

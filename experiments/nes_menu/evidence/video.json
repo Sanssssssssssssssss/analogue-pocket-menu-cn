@@ -1,0 +1,11 @@
+{
+  "result": "passed",
+  "menu_pixels": 38400,
+  "raster_pixels": 61440,
+  "game_bypass_patterns": 256,
+  "scope": "Actual standalone menu raster and inferred memory; no game core or physical device",
+  "inputs": {
+    "menu_video.sv": "5dd86b52e54313b6f5ec02a34c9f263b319c5165d86a7e07c33147630e6e9b05",
+    "tb_video.sv": "a9c436e2cbdac953df79ce2a384995eb4c366359257f5488c1df5ad89fb4cf2f"
+  }
+}

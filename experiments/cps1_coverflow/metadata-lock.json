@@ -1,0 +1,20 @@
+{
+  "jtcps1": {
+    "core.json": "296de07c216ed7f8b6716ddb0d1b1533fbd928f9b7ff97282a6835e33fe73e9a",
+    "data.json": "9829f60cc39a52b7058ef61aee1878849288e7b274399f1fc6bca00af81338d7",
+    "audio.json": "5e2b61c3e0dd6da89d13ea2bcbb06c0ad38d0a8b94035ec2a260e9ddcad17ca5",
+    "video.json": "adedf23316774e6034ef023b1ad192d45b4c2632beacc4af9f53fb1fe236c385",
+    "input.json": "aeda54d96d9184795601574147dba49322b5d9bd14baabd01a62611d41f59d15",
+    "interact.json": "1e45d9eb3a6314d8223eead7ee5e09baced4bf80fe55883d8a71c1f1fe6543cb",
+    "variants.json": "e043a74f385862c232f52bc333c7b301643f4c75000c4cf7c79de853878e4cd1"
+  },
+  "jtcps15": {
+    "core.json": "bfddd132184349356d16aac37600d306f633afbfe1da34b1b8abd37945c1b74e",
+    "data.json": "9829f60cc39a52b7058ef61aee1878849288e7b274399f1fc6bca00af81338d7",
+    "audio.json": "5e2b61c3e0dd6da89d13ea2bcbb06c0ad38d0a8b94035ec2a260e9ddcad17ca5",
+    "video.json": "adedf23316774e6034ef023b1ad192d45b4c2632beacc4af9f53fb1fe236c385",
+    "input.json": "aeda54d96d9184795601574147dba49322b5d9bd14baabd01a62611d41f59d15",
+    "interact.json": "1e45d9eb3a6314d8223eead7ee5e09baced4bf80fe55883d8a71c1f1fe6543cb",
+    "variants.json": "e043a74f385862c232f52bc333c7b301643f4c75000c4cf7c79de853878e4cd1"
+  }
+}

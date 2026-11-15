@@ -1,0 +1,879 @@
+{
+  "date": "2026-11-01",
+  "scope": "Real bytecode with modeled FPGA, time and preserved VM registers; physical input and OS-triggered re-entry are not simulated",
+  "rtl": "passed including read-only diagnostic aliases",
+  "cases": [
+    {
+      "loader": "pre-init",
+      "scenario": "success",
+      "exit": 0,
+      "m": 160,
+      "d": 1347174656,
+      "steps": 120,
+      "cores": [
+        0,
+        1,
+        0
+      ],
+      "hosts": [
+        16386
+      ],
+      "loads": [
+        0,
+        0,
+        0
+      ],
+      "pmp_addresses": [
+        1610612736,
+        1610612744,
+        1610612752,
+        1610612756,
+        1610612768,
+        1610612772
+      ],
+      "model": true
+    },
+    {
+      "loader": "pre-init",
+      "scenario": "skip-switch",
+      "exit": 0,
+      "m": 227,
+      "d": 1347174656,
+      "steps": 110,
+      "cores": [
+        0,
+        1
+      ],
+      "hosts": [
+        16386
+      ],
+      "loads": [
+        0,
+        0
+      ],
+      "pmp_addresses": [
+        1610612736,
+        1610612744,
+        1610612752,
+        1610612756,
+        1610612768,
+        1610612772
+      ],
+      "model": true
+    },
+    {
+      "loader": "pre-init",
+      "scenario": "skip-return",
+      "exit": 0,
+      "m": 228,
+      "d": 1347174913,
+      "steps": 119,
+      "cores": [
+        0,
+        1,
+        0
+      ],
+      "hosts": [
+        16386
+      ],
+      "loads": [
+        0,
+        0,
+        0
+      ],
+      "pmp_addresses": [
+        1610612736,
+        1610612744,
+        1610612752,
+        1610612756,
+        1610612768,
+        1610612772
+      ],
+      "model": true
+    },
+    {
+      "loader": "pre-init",
+      "scenario": "no-input",
+      "exit": 0,
+      "m": 226,
+      "d": 0,
+      "steps": 126,
+      "cores": [
+        0
+      ],
+      "hosts": [
+        16386
+      ],
+      "loads": [
+        0
+      ],
+      "pmp_addresses": [
+        1610612736,
+        1610612744,
+        1610612748,
+        1610612752,
+        1610612756,
+        1610612768,
+        1610612772
+      ],
+      "model": true
+    },
+    {
+      "loader": "pre-init",
+      "scenario": "clock-stuck",
+      "exit": 0,
+      "m": 226,
+      "d": 0,
+      "steps": 1835066,
+      "cores": [
+        0
+      ],
+      "hosts": [
+        16386
+      ],
+      "loads": [
+        0
+      ],
+      "pmp_addresses": [
+        1610612736,
+        1610612744,
+        1610612748,
+        1610612752,
+        1610612756,
+        1610612768,
+        1610612772
+      ],
+      "model": true
+    },
+    {
+      "loader": "pre-init",
+      "scenario": "wrong-id",
+      "exit": 1,
+      "m": 0,
+      "d": 0,
+      "steps": 14,
+      "cores": [
+        0
+      ],
+      "hosts": [],
+      "loads": [
+        0
+      ],
+      "pmp_addresses": [
+        1610612736
+      ],
+      "model": true
+    },
+    {
+      "loader": "reset-exit",
+      "scenario": "success",
+      "exit": 0,
+      "m": 160,
+      "d": 1347174656,
+      "steps": 124,
+      "cores": [
+        0,
+        1,
+        0
+      ],
+      "hosts": [
+        16385,
+        16386
+      ],
+      "loads": [
+        0,
+        0,
+        0
+      ],
+      "pmp_addresses": [
+        1610612736,
+        1610612744,
+        1610612752,
+        1610612756,
+        1610612768,
+        1610612772
+      ],
+      "model": true
+    },
+    {
+      "loader": "reset-exit",
+      "scenario": "skip-switch",
+      "exit": 0,
+      "m": 227,
+      "d": 1347174656,
+      "steps": 114,
+      "cores": [
+        0,
+        1
+      ],
+      "hosts": [
+        16385,
+        16386
+      ],
+      "loads": [
+        0,
+        0
+      ],
+      "pmp_addresses": [
+        1610612736,
+        1610612744,
+        1610612752,
+        1610612756,
+        1610612768,
+        1610612772
+      ],
+      "model": true
+    },
+    {
+      "loader": "reset-exit",
+      "scenario": "skip-return",
+      "exit": 0,
+      "m": 228,
+      "d": 1347174913,
+      "steps": 123,
+      "cores": [
+        0,
+        1,
+        0
+      ],
+      "hosts": [
+        16385,
+        16386
+      ],
+      "loads": [
+        0,
+        0,
+        0
+      ],
+      "pmp_addresses": [
+        1610612736,
+        1610612744,
+        1610612752,
+        1610612756,
+        1610612768,
+        1610612772
+      ],
+      "model": true
+    },
+    {
+      "loader": "reset-exit",
+      "scenario": "no-input",
+      "exit": 0,
+      "m": 226,
+      "d": 0,
+      "steps": 130,
+      "cores": [
+        0
+      ],
+      "hosts": [
+        16385,
+        16386
+      ],
+      "loads": [
+        0
+      ],
+      "pmp_addresses": [
+        1610612736,
+        1610612744,
+        1610612748,
+        1610612752,
+        1610612756,
+        1610612768,
+        1610612772
+      ],
+      "model": true
+    },
+    {
+      "loader": "reset-exit",
+      "scenario": "clock-stuck",
+      "exit": 0,
+      "m": 226,
+      "d": 0,
+      "steps": 1835070,
+      "cores": [
+        0
+      ],
+      "hosts": [
+        16385,
+        16386
+      ],
+      "loads": [
+        0
+      ],
+      "pmp_addresses": [
+        1610612736,
+        1610612744,
+        1610612748,
+        1610612752,
+        1610612756,
+        1610612768,
+        1610612772
+      ],
+      "model": true
+    },
+    {
+      "loader": "reset-exit",
+      "scenario": "wrong-id",
+      "exit": 1,
+      "m": 0,
+      "d": 0,
+      "steps": 14,
+      "cores": [
+        0
+      ],
+      "hosts": [],
+      "loads": [
+        0
+      ],
+      "pmp_addresses": [
+        1610612736
+      ],
+      "model": true
+    },
+    {
+      "loader": "full-init",
+      "scenario": "success",
+      "exit": 0,
+      "m": 160,
+      "d": 1347174656,
+      "steps": 125,
+      "cores": [
+        0,
+        1,
+        0
+      ],
+      "hosts": [
+        16386,
+        16386
+      ],
+      "loads": [
+        0,
+        0,
+        0
+      ],
+      "pmp_addresses": [
+        1610612736,
+        1610612744,
+        1610612752,
+        1610612756,
+        1610612768,
+        1610612772
+      ],
+      "model": true
+    },
+    {
+      "loader": "full-init",
+      "scenario": "skip-switch",
+      "exit": 0,
+      "m": 227,
+      "d": 1347174656,
+      "steps": 115,
+      "cores": [
+        0,
+        1
+      ],
+      "hosts": [
+        16386,
+        16386
+      ],
+      "loads": [
+        0,
+        0
+      ],
+      "pmp_addresses": [
+        1610612736,
+        1610612744,
+        1610612752,
+        1610612756,
+        1610612768,
+        1610612772
+      ],
+      "model": true
+    },
+    {
+      "loader": "full-init",
+      "scenario": "skip-return",
+      "exit": 0,
+      "m": 228,
+      "d": 1347174913,
+      "steps": 124,
+      "cores": [
+        0,
+        1,
+        0
+      ],
+      "hosts": [
+        16386,
+        16386
+      ],
+      "loads": [
+        0,
+        0,
+        0
+      ],
+      "pmp_addresses": [
+        1610612736,
+        1610612744,
+        1610612752,
+        1610612756,
+        1610612768,
+        1610612772
+      ],
+      "model": true
+    },
+    {
+      "loader": "full-init",
+      "scenario": "no-input",
+      "exit": 0,
+      "m": 226,
+      "d": 0,
+      "steps": 129,
+      "cores": [
+        0
+      ],
+      "hosts": [
+        16386
+      ],
+      "loads": [
+        0
+      ],
+      "pmp_addresses": [
+        1610612736,
+        1610612744,
+        1610612748,
+        1610612752,
+        1610612756,
+        1610612768,
+        1610612772
+      ],
+      "model": true
+    },
+    {
+      "loader": "full-init",
+      "scenario": "clock-stuck",
+      "exit": 0,
+      "m": 226,
+      "d": 0,
+      "steps": 1835069,
+      "cores": [
+        0
+      ],
+      "hosts": [
+        16386
+      ],
+      "loads": [
+        0
+      ],
+      "pmp_addresses": [
+        1610612736,
+        1610612744,
+        1610612748,
+        1610612752,
+        1610612756,
+        1610612768,
+        1610612772
+      ],
+      "model": true
+    },
+    {
+      "loader": "full-init",
+      "scenario": "wrong-id",
+      "exit": 1,
+      "m": 0,
+      "d": 0,
+      "steps": 14,
+      "cores": [
+        0
+      ],
+      "hosts": [],
+      "loads": [
+        0
+      ],
+      "pmp_addresses": [
+        1610612736
+      ],
+      "model": true
+    },
+    {
+      "loader": "negative-compiler-regression",
+      "scenario": "truncated-expression",
+      "exit": 0,
+      "m": 0,
+      "d": 0,
+      "steps": 1835066,
+      "cores": [
+        0
+      ],
+      "hosts": [
+        16386
+      ],
+      "loads": [
+        0
+      ],
+      "pmp_addresses": [
+        8,
+        12,
+        16,
+        20,
+        32,
+        36,
+        1610612736
+      ],
+      "model": true
+    },
+    {
+      "loader": "Route4",
+      "scenario": "modeled-normal-host",
+      "exit": 0,
+      "m": 0,
+      "d": 0,
+      "steps": 8,
+      "cores": [
+        0
+      ],
+      "hosts": [
+        16386
+      ],
+      "loads": [
+        0
+      ],
+      "pmp_addresses": [],
+      "model": true
+    },
+    {
+      "loader": "Route5",
+      "scenario": "modeled-normal-host",
+      "exit": 0,
+      "m": 177,
+      "d": 1347174656,
+      "steps": 15,
+      "cores": [
+        0
+      ],
+      "hosts": [
+        16386
+      ],
+      "loads": [
+        0
+      ],
+      "pmp_addresses": [
+        1610612736,
+        1610612768,
+        1610612772
+      ],
+      "model": true
+    },
+    {
+      "loader": "Route6",
+      "scenario": "modeled-normal-host",
+      "exit": 0,
+      "m": 178,
+      "d": 1347174913,
+      "steps": 19,
+      "cores": [
+        0,
+        1
+      ],
+      "hosts": [
+        16386
+      ],
+      "loads": [
+        0,
+        0
+      ],
+      "pmp_addresses": [
+        1610612736,
+        1610612768,
+        1610612772
+      ],
+      "model": true
+    },
+    {
+      "loader": "Route7",
+      "scenario": "modeled-normal-host",
+      "exit": 0,
+      "m": 0,
+      "d": 0,
+      "steps": 8,
+      "cores": [
+        1
+      ],
+      "hosts": [
+        16386
+      ],
+      "loads": [
+        0
+      ],
+      "pmp_addresses": [],
+      "model": true
+    },
+    {
+      "loader": "Route11",
+      "scenario": "success",
+      "exit": 0,
+      "m": 3506438176,
+      "d": 3000,
+      "steps": 66,
+      "cores": [
+        0
+      ],
+      "hosts": [
+        16386
+      ],
+      "loads": [
+        0
+      ],
+      "pmp_addresses": [
+        1610612744,
+        1610612748,
+        1610612752,
+        1610612756,
+        1610612768,
+        1610612772
+      ],
+      "model": true
+    },
+    {
+      "loader": "Route11",
+      "scenario": "no-input",
+      "exit": 0,
+      "m": 3523215360,
+      "d": 16000,
+      "steps": 264,
+      "cores": [
+        0
+      ],
+      "hosts": [
+        16386
+      ],
+      "loads": [
+        0
+      ],
+      "pmp_addresses": [
+        1610612744,
+        1610612748,
+        1610612752,
+        1610612756,
+        1610612768,
+        1610612772
+      ],
+      "model": true
+    },
+    {
+      "loader": "Route11",
+      "scenario": "clock-stuck",
+      "exit": 0,
+      "m": 3539992576,
+      "d": 0,
+      "steps": 2097178,
+      "cores": [
+        0
+      ],
+      "hosts": [
+        16386
+      ],
+      "loads": [
+        0
+      ],
+      "pmp_addresses": [
+        1610612744,
+        1610612748,
+        1610612752,
+        1610612756,
+        1610612768,
+        1610612772
+      ],
+      "model": true
+    },
+    {
+      "loader": "Route12",
+      "scenario": "success",
+      "exit": 0,
+      "m": 193,
+      "d": 1347174656,
+      "steps": 27,
+      "cores": [
+        0
+      ],
+      "hosts": [
+        16386
+      ],
+      "loads": [
+        0
+      ],
+      "pmp_addresses": [
+        1610612736,
+        1610612752,
+        1610612768,
+        1610612772
+      ],
+      "model": true
+    },
+    {
+      "loader": "Route12",
+      "scenario": "reentry-a",
+      "exit": 0,
+      "m": 194,
+      "d": 1347174656,
+      "steps": 30,
+      "cores": [
+        0
+      ],
+      "hosts": [
+        16386
+      ],
+      "loads": [
+        0
+      ],
+      "pmp_addresses": [
+        1610612736,
+        1610612752,
+        1610612756,
+        1610612768,
+        1610612772
+      ],
+      "model": true
+    },
+    {
+      "loader": "Route12",
+      "scenario": "reentry-b",
+      "exit": 0,
+      "m": 194,
+      "d": 1347174913,
+      "steps": 31,
+      "cores": [
+        1
+      ],
+      "hosts": [
+        16386
+      ],
+      "loads": [
+        0
+      ],
+      "pmp_addresses": [
+        1610612736,
+        1610612752,
+        1610612756,
+        1610612768,
+        1610612772
+      ],
+      "model": true
+    },
+    {
+      "loader": "Route12",
+      "scenario": "reentry-none",
+      "exit": 0,
+      "m": 230,
+      "d": 1347174656,
+      "steps": 27,
+      "cores": [],
+      "hosts": [
+        16386
+      ],
+      "loads": [
+        0
+      ],
+      "pmp_addresses": [
+        1610612736,
+        1610612752,
+        1610612756,
+        1610612768,
+        1610612772
+      ],
+      "model": true
+    },
+    {
+      "loader": "Route12",
+      "scenario": "wrong-id",
+      "exit": 0,
+      "m": 231,
+      "d": 0,
+      "steps": 28,
+      "cores": [
+        0
+      ],
+      "hosts": [
+        16386
+      ],
+      "loads": [
+        0
+      ],
+      "pmp_addresses": [
+        1610612736,
+        1610612752,
+        1610612768,
+        1610612772
+      ],
+      "model": true
+    }
+  ],
+  "loaders": [
+    {
+      "mode": "pre-init",
+      "assembly": "passed",
+      "bytecode_sha256": "94432b8061a1485a0de3087bfcf2f20f479622a218446c639f19e1c335e2b7cd"
+    },
+    {
+      "mode": "reset-exit",
+      "assembly": "passed",
+      "bytecode_sha256": "9c9af83b8f30a0bdfd58d55f9939505fb78d3a513d5bf1b588d5f96c935bbedd"
+    },
+    {
+      "mode": "full-init",
+      "assembly": "passed",
+      "bytecode_sha256": "81ac78c7a00578f27175aac91f82a80b7cb88c383cc947ff5d78839425c4cc94"
+    },
+    {
+      "mode": "Route4",
+      "assembly": "passed",
+      "bytecode_sha256": "9a137241b9475f3b1a100c4fb84d67e8ec5ee52aa1207dea718c406949f7f9cd"
+    },
+    {
+      "mode": "Route5",
+      "assembly": "passed",
+      "bytecode_sha256": "b4422b10bf9c76eee3c7677685a293c3d3523ba1e6772d8e63ed08e5a7104c3a"
+    },
+    {
+      "mode": "Route6",
+      "assembly": "passed",
+      "bytecode_sha256": "411727ae9674ac5528b9b292d9edc8298448ee22070fee40a2dcbab542194241"
+    },
+    {
+      "mode": "Route7",
+      "assembly": "passed",
+      "bytecode_sha256": "24f28ca623e10cc9e5bd633e378e23c1b348022ce7c84624643f6afc4ec95577"
+    },
+    {
+      "mode": "Route11",
+      "assembly": "passed",
+      "bytecode_sha256": "d15896d79f0d68fe253a02932a7e8e698cfef7a4f8815b23309d761d1a11bdae"
+    },
+    {
+      "mode": "Route12",
+      "assembly": "passed",
+      "bytecode_sha256": "ba75fcd70befd7ad7fd0aad2c3e54490249ff7c799f2824beb235b1c8a81fea6"
+    }
+  ],
+  "inputs": {
+    "route_probe.sv": "c539c3bc767118a7e034dd29f88fd9fd7eb0b5f0eae16c6946feef14b081ba0a",
+    "tb_probe.sv": "4a4d6d176003d96e226937f86f96e6e94a2de548da36cec4e813ccb4c20dd268",
+    "loader.asm": "4c7a48b8ec816f3aec38cab2277e1e72a15cf666fd88c6abc6bfffb4842eba62",
+    "isolation_loader.asm": "7801c84d44af815e869eec0528cb688072387e34821b9e5b5d00e81669cbc95a",
+    "prepare_probe.py": "1b5a25d8e79c3b0e2e18ee8f3e19dfbd3bf8cbfdeecf0a694cffe89ec82f8c1a",
+    "prepare_trial.py": "9fa5b5371527bc4f9768eae6f6ee0d2e70ab81337af625226bf19af31cc921a8",
+    "prepare_isolation.py": "c47e2b43a2ffc5d9a6ea0853bbe0d0f26ebd8a0baccd57e188d2dc91d58ac60b",
+    "vm_contract.rs": "a324f4b388544ecd1d1bf2ae34fafaa5307b0b7eb51465c466b99650fc397d0f",
+    "probe_isolation.py": "d31c0e7f8c223cb3afd3efdf56be4e375d8d90bb1b34532d4c0350447b6186e6",
+    "timing_body.asm": "8316c11fbb77d65a9c9635c0b8d3531ca33c0ea80d02445b068a606d39c1c8cc",
+    "reentry_body.asm": "2be1c5d60c65307872cf0e09ebec712587229c1956c5c0888487db14df2e284f",
+    "prepare_handoff.py": "c289bea506831cab2754e904875ad105ece309920e45b38664d0445ef69e85f3",
+    "probe_handoff.py": "097aa48a565327ddc65989857ee1b183a15d5a7b46c5a831077e9400c878f85d"
+  },
+  "tools": {
+    "bass": "d5c0d4c9171c23d6317e34e594ad2272f7b3c09d686d8b44a76a9c860151b28b",
+    "vm-contract": "1f060a3bf2097a3447d8a7ba38dee22f1966b7f82ab2448fe55c1e11dc958730",
+    "libchip32_sim-e962cfde56514d3a.rlib": "72228b852d4011b13fdf77fbeca9c032754be4db723cebdc46ba6348418ed1e6"
+  },
+  "hardware_reconfiguration": "not_tested",
+  "card_access": false
+}
