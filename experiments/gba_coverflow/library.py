@@ -11,7 +11,7 @@ from pathlib import Path,PurePosixPath
 ROOT=Path(__file__).resolve().parents[2]
 sys.path.insert(0,str(ROOT/'tools'))
 import build_library as gb
-from menu_icons import LABELS,kind
+from menu_icons import LABELS,kind,folder_label
 spec=importlib.util.spec_from_file_location('gba_f1',ROOT/'experiments/gba_menu/library.py')
 old=importlib.util.module_from_spec(spec);spec.loader.exec_module(old)
 STRIDE=65536
@@ -60,7 +60,7 @@ def upgrade(source,out,titles=None,folders=None,covers=None):
             keys.add(key);key=key.rsplit('/',1)[0] if '/' in key else ''
     for key in keys- {''}:
         name=hashlib.sha256(key.encode()).hexdigest()[:16]
-        page_titles[f'/Assets/gbalab/common/libs/{name}.bin']=folders.get(key,'GBA 游戏库' if key=='gba' else LABELS.get(key.rsplit('/',1)[-1],key.rsplit('/',1)[-1]))
+        page_titles[f'/Assets/gbalab/common/libs/{name}.bin']=folders.get(key,'GBA 游戏库' if key=='gba' else folder_label(key.rsplit('/',1)[-1]))
     extra_titles=manifest.get('page_titles',{})
     if not isinstance(extra_titles,dict) or any(not isinstance(v,str) or not v.strip() for v in extra_titles.values()):raise ValueError('Invalid generated page titles')
     declared_pages={'/'+item['path'] for item in manifest['files']}
@@ -86,8 +86,8 @@ def upgrade(source,out,titles=None,folders=None,covers=None):
             else:title=titles.get(entry['rom'].lstrip('/'),PurePosixPath(entry['rom']).stem)
             if not title:raise ValueError('Missing folder label: '+entry['rom'])
             width,text,clipped,unknown=gb.columns(title,gb.font())
-            subwidth,sub,_,subunknown=gb.columns('任天堂 GBA',gb.font())
-            if unknown or subunknown:raise ValueError('Missing glyphs: '+''.join(unknown+subunknown))
+            subwidth,sub,_,_=gb.columns('任天堂 GBA',gb.font())
+            if unknown:warnings.append({'path':entry['rom'],'missing_glyphs':unknown})
             if clipped:warnings.append({'path':entry['rom'],'reason':'long title clipped to 500 columns'})
             cover=None
             if not entry['folder']:
@@ -98,7 +98,7 @@ def upgrade(source,out,titles=None,folders=None,covers=None):
                         cover=candidate;break
                 if cover:matched+=1
                 else:missing+=1
-            picture=gb.picture(cover,entry['folder'],kind(title)) if cover or entry['folder'] else gb.title_card(title,'gba')
+            picture=gb.picture(cover,entry['folder'],kind(title)) if cover or entry['folder'] else gb.title_card(title,'gba',strict=False)
             if len(picture)!=ART_BYTES:raise ValueError('Wrong shared CoverFlow image layout')
             table=bytearray(entry['record']);struct.pack_into('<II',table,16,width,subwidth)
             # ROM/save/RTC path structs and content identities remain byte exact.

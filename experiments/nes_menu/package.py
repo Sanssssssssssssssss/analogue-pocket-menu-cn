@@ -9,7 +9,7 @@ sys.path.insert(0,str(ROOT/'tools'))
 from apf_metadata import check_core
 from display_styles import configure as configure_display
 def sha(p):return hashlib.sha256(p.read_bytes()).hexdigest()
-def stage(build,out,archive,coverflow=False):
+def stage(build,out,archive,coverflow=False,native_features=False):
     build,out=Path(build).resolve(),Path(out).resolve()
     if out.exists() or out.is_relative_to(build) or build.is_relative_to(out):raise ValueError('Fresh staging outside build tree required')
     output=build/'projects/output_files';name='nes_pocket'
@@ -24,6 +24,10 @@ def stage(build,out,archive,coverflow=False):
     prepare_inputs=prepare
     if coverflow:
         spec=importlib.util.spec_from_file_location('nes_coverflow_prepare',ROOT/'experiments/nes_coverflow/prepare.py')
+        adapter=importlib.util.module_from_spec(spec);spec.loader.exec_module(adapter);prepare_inputs=adapter.prepare
+    if native_features:
+        if not coverflow:raise ValueError('Native features require the CoverFlow controller')
+        spec=importlib.util.spec_from_file_location('nes_native_prepare',ROOT/'experiments/native_features/prepare_nes.py')
         adapter=importlib.util.module_from_spec(spec);spec.loader.exec_module(adapter);prepare_inputs=adapter.prepare
     reference=prepare_inputs(archive,ROOT/'.work/nes-menu'/('package-reference-'+uuid.uuid4().hex))
     inputs={}
@@ -46,7 +50,7 @@ def stage(build,out,archive,coverflow=False):
     original=build/'pkg/pocket/Cores/agg23.NES'
     for key in ['input','interact','audio','variants','video']:shutil.copy2(original/(key+'.json'),dst/(key+'.json'))
     meta=json.loads((original/'core.json').read_text())['core']
-    version='0.3.0-nes.2' if coverflow else '0.3.0-nes.1'
+    version='0.4.0-nes.1' if native_features else ('0.3.0-nes.2' if coverflow else '0.3.0-nes.1')
     meta['metadata'].update(platform_ids=['neslab','nes'],shortname='NES',author='pocketlab',
         description='Chinese NES preview. L+R+Select: pause, save and return.',
         version=version,date_release='2026-11-02' if coverflow else '2026-11-01',url='https://github.com/Sanssssssssssssssss/analogue-pocket-menu-cn')
@@ -62,6 +66,9 @@ def stage(build,out,archive,coverflow=False):
         {'id':0,'name':'Cartridge','required':False,'deferload':True,'parameters':'0x8','extensions':['nes'],'address':'0x10000000','size_maximum':'0x2000000'},
         {'id':10,'name':'Save','required':False,'deferload':True,'parameters':'0x0','nonvolatile':True,'extensions':['sav'],'address':'0x20000000','size_maximum':'0x40000'},
         {'id':11,'name':'Custom Palette','required':False,'filename':'palettes/custom.pal','parameters':'0x3','extensions':['pal'],'size_maximum':'0xC0','address':'0x10000000'}]
+    if native_features:
+        slots.append({'id':12,'name':'Matched Cheats','required':False,'deferload':True,'parameters':'0x8',
+                      'extensions':['cht'],'address':'0x90000000','size_maximum':'0x130'})
     (dst/'data.json').write_text(json.dumps({'data':{'magic':'APF_VER_1','data_slots':slots}},indent=2)+'\n')
     table=bytes(int(f'{i:08b}'[::-1],2) for i in range(256));(dst/'nes.rbf_r').write_bytes(raw.translate(table))
     check_core(dst);platforms=pkg/'Platforms';(platforms/'_images').mkdir(parents=True)
@@ -77,9 +84,14 @@ def stage(build,out,archive,coverflow=False):
         'timing_scope':'Inherited board/clock constraints; no unconstrained clocks, external port exceptions retained. Not board-level signoff.',
         'limitations':limitations,
         'source_inputs':inputs,'files':[{'path':p.relative_to(pkg).as_posix(),'sha256':sha(p),'bytes':p.stat().st_size} for p in sorted(pkg.rglob('*')) if p.is_file()]}
+    if native_features:
+        receipt.update(features=['PLCH1'],bitstream_sha256=sha(dst/'nes.rbf_r'))
+        for rel in inputs:
+            target=out/'sources'/rel;target.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(build/rel,target)
     (out/'build-receipt.json').write_text(json.dumps(receipt,indent=2)+'\n');return receipt
 if __name__=='__main__':
     p=argparse.ArgumentParser(description=__doc__)
     for k in ['build','out','archive']:p.add_argument('--'+k,required=True)
     p.add_argument('--coverflow',action='store_true')
-    a=p.parse_args();r=stage(a.build,a.out,a.archive,a.coverflow);print(json.dumps({k:r[k] for k in ['core','minimum_slack_ns','timing_records','hardware_acceptance']}))
+    p.add_argument('--native-features',action='store_true')
+    a=p.parse_args();r=stage(a.build,a.out,a.archive,a.coverflow,a.native_features);print(json.dumps({k:r[k] for k in ['core','minimum_slack_ns','timing_records','hardware_acceptance']}))

@@ -1,18 +1,16 @@
 # Analogue Pocket CoverFlow Chinese Menu
 
-As of 2026-11-03, [complete delivery work](docs/COMPLETE-DELIVERY.md) retains official openFPGA / Change Core and separate native menus using the accepted GB/GBC CoverFlow. After restoring mandatory `variants.json` files, one user reports working NES/GG menus, animation and game launch; NES names and artwork still need work. GBA `.5` failed on hardware and was replaced by the previously accepted `.3`; the failed bitstream is blocked from candidate installation while CoverFlow adaptation continues offline. [Device feedback](docs/DEVICE-FEEDBACK-2026-11-03.md) distinguishes these scopes. The public stable release remains GB/GBC; OS firmware is not modified.
+The 2026-11-16 development batch adds [Pokémon Mini](docs/ADDITIONAL-CORES.md), bringing the preview to 18 native menu groups including WonderSwan / Color, Supervision, Atari 2600 / 7800, Arduboy and CPS1 / CPS1.5. Mini passes offline animation, transfer, compilation and independent SRAM review; device acceptance remains pending. Neo Geo's Chinese menu remains research without a fully verified installable package. Each menu retains its native FPGA engine and a separate launch entry. Enable **Settings → Analogue OS → Group openFPGA** to collect Chinese menus under **CN Menu**, alongside the original core categories.
 
-GBA `.6` freezes after opening a child page on hardware: captions appear, covers do not load, and input stops responding. The previously accepted `.3` has been restored and `.6` is blocked from reinstallation. Earlier pixel, first-screen and timing results remain [offline evidence](experiments/gba_coverflow/evidence/cellram-gba.6.json); the first-screen probe did not cover the complete child-page load path. Repair continues offline.
+GBA `.10` adds image-upload synchronization and bounded recovery; SNES `.3` corrects the menu refresh rate; CPS2 `.3` repairs APF completion, path/save read timing and per-game instance configuration. All three CPS candidates also repair native EEPROM ERASE_ALL initialization. The installer blocks intermediate binaries rejected by protocol validation. Offline checks precede delivery; physical acceptance of these repairs and new cores is pending. Historical failures remain in [device feedback](docs/DEVICE-FEEDBACK-2026-11-03.md), the [GBA records](experiments/gba_coverflow/README.md) and [console experiments](experiments/console_coverflow/README.md).
 
-The new [GBA `.7` animation candidate](experiments/gba_coverflow/README.md) uses dedicated SRAM and a shared RGB blender. Full child-page navigation and scrolling simulations pass, along with 104 timing checks (+0.076 ns minimum). Native game clocks, launch and ordinary-save paths retain the earlier implementation. Hardware acceptance of this version remains pending.
+The public stable release supports GB/GBC. Earlier GBA, NES and GG experiments have single-device launch feedback. See [development status](docs/COMPLETE-DELIVERY.md) for the current native previews, timing checks and hardware acceptance.
 
-The public stable release supports GB/GBC. One Pocket user confirmed Chinese menus and game launch in the earlier [GBA `.3` experiment](experiments/gba_menu/README.md); ordinary saves, RTC and save-return await hardware acceptance. [NES CoverFlow](experiments/nes_coverflow/README.md) passes full fit and 128 timing records with +0.056 ns minimum slack and has the basic single-device feedback above. Full-library gameplay and save durability remain unverified. SNES failed timing and has no installable package. Per-platform scope is recorded in [development status](docs/PER-SYSTEM-MENUS.md). Experimental candidates are not included in the stable release.
+The [batch preflight, update and rollback tool](docs/BATCH-UPDATE.md) handles independent menu groups and retains existing settings and progress during refresh. New packages require corresponding sources and a reviewed build receipt.
 
-The development branch includes a [batch preflight/update/rollback tool](docs/BATCH-UPDATE.md) for all six supported components, preserving current display defaults and both old and new progress. Actual-card verification and physical acceptance of new candidates remain pending.
+[Build from your own filenames](docs/FILENAME-MENUS.md) scans existing game directories and uses each filename as its title by default. Missing artwork gets a text cover. Compatible core packages and the batch tool handle installation and refresh.
 
-[Build from your own filenames](docs/FILENAME-MENUS.md): `python tools/build_menus.py --card X:/ --out ./my-menus` detects six supported groups and defaults to ROM filename captions, including Chinese. Missing artwork gets a text cover bearing the game name. This command only generates local libraries; installation/refresh still needs a matching core and verified backup.
-
-A native **openFPGA GB/GBC cover-flow frontend for Analogue Pocket**, with Simplified Chinese controls, Unicode game titles, folders and a black background.
+Native **openFPGA CoverFlow menus for Analogue Pocket**, with Unicode game titles, folders and a black background. Separate cores retain official Change Core navigation.
 
 [简体中文](README.md) · [Releases](https://github.com/Sanssssssssssssssss/analogue-pocket-menu-cn/releases) · [Validation](docs/VALIDATION.md) · [Build](docs/BUILD.md) · [License](LICENSE.md)
 
@@ -22,15 +20,25 @@ This image is output from the actual menu RTL simulation, using synthetic entrie
 
 ## Status
 
-**v0.1.2-public.1 is a public preview.** Its bitstream is identical to the 0.1.2 lab build whose Chinese menu, GB/GBC launch and folder-transition flash fix were user-confirmed on a Pocket running Analogue OS 2.5. The new general-purpose packaging/install tools are tested with synthetic fixtures; multi-device validation is pending.
+**v0.1.2-public.1 is the GB/GBC reference release.** Its bitstream is identical to the 0.1.2 lab build whose Chinese menu, GB/GBC launch and folder-transition flash fix were user-confirmed on a Pocket running Analogue OS 2.5. The 18 native menu groups and Windows assistant are separately published as **v0.5.0-preview.1**, a development preview whose added cores still need device acceptance.
 
 - Chinese menu text and independent Unicode display titles, without renaming ROMs.
 - Folder navigation: A opens, B returns, including at the root.
 - Optional cover art, favorites controls and a Chinese pause menu.
 - Local v9 library generation, installation plan, verified backup, file readback and rollback.
-- Known limitations: occasional flash when handing off to a game, loading delay, incomplete per-game/sound/save/pause testing. GBA and NES remain separate experiments; SNES has no installable candidate and automatic cross-core launching is unimplemented. Analogue OS menus remain outside this frontend.
+- Hardware acceptance covers the reported GB/GBC menu, folder navigation and game launch. The native previews require separate gameplay and save verification. Occasional flash and loading delay can occur at game handoff.
 
 ## Install
+
+For Windows, download `PocketLab-Windows-2026-11-16-preview.zip` from the [18-core development preview](https://github.com/Sanssssssssssssssss/analogue-pocket-menu-cn/releases/tag/v0.5.0-preview.1), check the accompanying `SHA256SUMS.txt`, extract the whole folder and run `PocketLab.exe`. Python is included.
+
+1. Keep your own ROMs under each platform's `Assets/<platform>/common/`, including subfolders. Select the newly connected card and a local workspace in the assistant.
+2. Inspect systems, prepare the library, and review excluded files, artwork and ordinary-save matches. Filenames supply titles; optional aliases and covers are not required to build a menu.
+3. Use **Backup and install**, then safely eject and insert the card into a powered-off Pocket. Open **openFPGA → CN Menu**; enable **Group openFPGA** in system settings if needed. Rebuild and update menus after adding, removing or renaming ROMs.
+
+Supply your own games, external BIOS files and personal progress. Firmware is outside the update scope. See [supported platforms and save boundaries](docs/COMPLETE-DELIVERY.md).
+
+The commands below are for the **v0.1.2-public.1 GB/GBC reference release** and its `-core.zip`, separately from the Windows development preview above.
 
 Use Python 3.11+, a microSD reader, your own GB/GBC ROMs and a 2304-byte GBC BIOS. No games, BIOS or saves are distributed.
 

@@ -1,5 +1,7 @@
 # GBA 原生中文菜单实验 / Native GBA menu experiment
 
+本页记录 F1 菜单和早期整页过渡。当前开发预览使用 [GBA `.9` CoverFlow](../gba_coverflow/README.md)，保留封面独立移动、缩放，并支持绑定一致的 `.7` 升级。当前验证见链接；下文日期对应历史阶段。This page documents the earlier F1 baseline; use the linked `.9` CoverFlow notes for the current preview and acceptance scope.
+
 2026-11-01：新增[菜单动画离线候选](MOTION.md)，使用小缓存保留旧画面，再进行 8 帧缓动整页过渡。它独立于当前可用核心；离线像素检查、完整编译和实机验收分别记录，尚未写卡。
 
 2026-10-31。**独立 GBA 核心的开发实验；用户已确认 `0.2.0-gba.3` 中文菜单与游戏启动可用，普通存档、RTC 和保存返回尚待实机验收。** [用户报告](evidence/hardware-acceptance.json)仅覆盖一台 Pocket，不代表完整兼容性认证。稳定发行版 `v0.1.2-public.1` 继续只支持 GB/GBC。本目录不提供游戏、BIOS、个人进度或整卡清单；其他机种另有[独立候选](../../docs/PER-SYSTEM-MENUS.md)，跨核心自动切换未实现。
@@ -92,7 +94,7 @@ python experiments/gba_menu/install.py --card X:/ --backup <该次备份目录> 
 
 ## 来源和边界
 
-基于 [mincer-ray/openfpga-GBA](https://github.com/mincer-ray/openfpga-GBA/tree/a61eaf2e8d50631f5dd32bda5c84229a0c54ab78) `a61eaf2`（1.0.1）。[冻结清单](upstream-lock.json)校验 128 个原文件和源压缩包；`prepare_build.py` 在副本中清除上游嵌入的 BIOS 初值，再按精确锚点修改。已有通知及许可保持原样，新工具和独立菜单模块为 MIT。上游没有根目录许可文件，因此本分支公开接入脚本和新代码；合并核心二进制不作为公共发行包发布。
+基于 [mincer-ray/openfpga-GBA](https://github.com/mincer-ray/openfpga-GBA/tree/a61eaf2e8d50631f5dd32bda5c84229a0c54ab78) `a61eaf2`（1.0.1）。[冻结清单](upstream-lock.json)校验 128 个原文件和源压缩包；`prepare_build.py` 在副本中清除上游嵌入的 BIOS 初值，再按精确锚点修改。上游 README 声明 GPL-2.0，各文件原有通知继续适用。新工具和独立菜单模块为 MIT。[GBA CoverFlow](../gba_coverflow/README.md)记录后续候选；其本地开发预览附带[对应源码](../../docs/PREVIEW-SOURCES.md)，实机验收状态单独记录。
 
 数据槽顺序固定为 `[100 菜单, 4 BIOS, 1 ROM, 10 Save, 11 RTC]`；存档大小写入对应 datatable 索引 7、9。目标命令使用官方[读／写／打开／刷新接口](https://www.analogue.co/developer/docs/openfpga/host-target-commands)，槽参数见 [data.json 文档](https://www.analogue.co/developer/docs/openfpga/core-definition-files/data-json)。这些命令没有通用换核心操作；当前通过 Analogue OS 选择不同平台。
 

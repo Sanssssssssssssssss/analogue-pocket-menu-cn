@@ -1,20 +1,18 @@
 # Analogue Pocket CoverFlow 中文菜单
 
-**为 Analogue Pocket 的 openFPGA GB / GBC 核心提供中文操作、中文游戏名和封面浏览。** 黑色背景，左右选游戏，A 进入，B 返回上级。
+**为 Analogue Pocket 的原生 openFPGA 核心提供中文游戏名、分类和 CoverFlow 封面浏览。** 黑色背景，左右选游戏，A 进入，B 返回上级。各机种独立启动，保留官方 Change Core。
 
 [English](README.en.md) · [下载公开预览版](https://github.com/Sanssssssssssssssss/analogue-pocket-menu-cn/releases) · [安装与回退](docs/INSTALL.zh-CN.md) · [验证范围](docs/VALIDATION.md) · [更新日志](CHANGELOG.md)
 
-2026-11-03：[完整交付工作](docs/COMPLETE-DELIVERY.md)复用原版 GB/GBC CoverFlow。FC/NES、GG 在补齐必需的 `variants.json` 后，已有单机用户报告菜单、动画及游戏启动正常；FC 名称与封面仍需补齐。GBA `.5` 上机失败，已恢复可启动的 `.3`；GBA CoverFlow 继续离线适配，拒绝重新安装已失败的 bitstream。[设备反馈](docs/DEVICE-FEEDBACK-2026-11-03.md)记录了范围。公开稳定版仍限 GB/GBC，不修改系统固件。
+2026-11-16 开发批次加入 [Pokémon Mini](docs/ADDITIONAL-CORES.md)，与 WonderSwan / Color、Supervision、Atari 2600 / 7800、Arduboy、CPS1 / CPS1.5 等组成 18 组原生中文菜单。Mini 已通过离线动画、读写、编译和独立 SRAM 复核，实机仍待验收。Neo Geo 的中文菜单继续研究，尚无通过完整检查的安装包。CN 菜单可用官方分类集中显示：**Settings → Analogue OS → Group openFPGA → On**，然后进入 **CN Menu**。
 
-GBA `.6` 实机进入子目录后出现封面未加载、按键无响应，已恢复可用的 `.3`，并拒绝重新安装 `.6`。此前像素、首屏和时序检查保留为[离线证据](experiments/gba_coverflow/evidence/cellram-gba.6.json)；首屏通过没有覆盖完整的子目录加载链路，修复继续离线进行。
-
-新的 [GBA `.7` 动画候选](experiments/gba_coverflow/README.md)使用独立 SRAM 缓存及共用 RGB 混合，通过完整进出分类／连续切换仿真和 104 项时序检查（最小 +0.076 ns）。原生游戏时钟、启动与普通存档路径沿用此前实现，本版实机使用仍待验收。
+GBA `.10` 增加图像上传同步与有限重试；SFC `.3` 修正菜单刷新率；CPS2 `.3` 修正 APF 完成握手、文件路径与存档读取时序，以及每次启动的实例配置。三个 CPS 候选还修正了原生 EEPROM 全片擦除的初始化遗漏。已被协议验证拒绝的中间位流会被安装助手拦截。新修复和新增核心经过离线检查后交付，实机效果仍待确认。历史失败版本与检查边界保留在[设备反馈](docs/DEVICE-FEEDBACK-2026-11-03.md)、[GBA 记录](experiments/gba_coverflow/README.md)及[主机核心记录](experiments/console_coverflow/README.md)。公开稳定二进制仍限 GB/GBC。
 
 ![本项目原生 RTL 输出的中文菜单预览](docs/images/menu-preview.png)
 
-开发分支提供[整批预检／更新／回退](docs/BATCH-UPDATE.md)：统一准备六个组件，保留已有画面默认值与新旧进度。实际卡核对与新候选实机验收仍待完成。
+开发分支的[整批预检、更新与回退](docs/BATCH-UPDATE.md)支持独立核心，刷新时沿用已有显示和进度。安装助手只接受带有对应源码和已核对收据的新增核心包。
 
-[用自己的文件名建库](docs/FILENAME-MENUS.md)：`python tools/build_menus.py --card X:/ --out ./my-menus` 自动扫描六组已有目录，默认显示 ROM 文件名；中文可用，缺图自动生成带游戏名的文字封面。此命令只在电脑生成菜单，安装和刷新仍需匹配核心及备份。
+[用自己的文件名建库](docs/FILENAME-MENUS.md)可直接扫描已有游戏目录。中文文件名直接显示，缺图生成文字封面。建库后用匹配的核心包进行整批安装或刷新。
 
 *预览来自实际菜单 RTL 仿真，使用自绘占位图和合成测试条目；不是掌机实拍，也不代表游戏运行验证。*
 
@@ -27,22 +25,33 @@ GBA `.6` 实机进入子目录后出现封面未加载、按键无响应，已�
 | 封面、收藏操作、中文暂停菜单 | 已实现；暂停保存／恢复仍需更多实机反馈 |
 | 用户自己的 GB/GBC 目录与中文别名 | 公共 v9 生成器，读取原文件并在电脑生成菜单包 |
 | 安装前计划、版本备份、回读校验、回退 | 有；默认仅预览，明确加 `--apply` 才写卡 |
-| GBA / NES / SNES、全机种自动换核心 | 稳定版不含；GBA 实验的中文菜单与游戏启动获单机确认，存档／返回待验收；NES 有离线核心候选，SNES 尚无可安装版，自动换核未实现，见[各机种状态](docs/PER-SYSTEM-MENUS.md) |
+| GBA / NES / Sega / PCE / MD / SFC / CPS2 | 独立开发候选，分别从 openFPGA 进入。支持范围和实机进度见[各机种状态](docs/COMPLETE-DELIVERY.md)。 |
+| WS / Supervision / Atari / Arduboy / CPS1 / CPS1.5 / Pokémon Mini | 新增原生开发候选；游戏目录、存档边界和分类方法见[说明](docs/ADDITIONAL-CORES.md)。 |
 | Analogue OS 系统首页、系统设置汉化 | 不在当前功能范围；此界面运行于 GB/GBC 核心内 |
 
-当前版本 **`v0.1.2-public.1`（公开预览）**。FPGA 程序与已经使用者验收的 `0.1.2-cn-lab` 相同；公开版新增通用打包／安装工具及文档。新工具已用合成文件测试，尚未完成多台 Pocket 实机验收。启动游戏偶尔短暂闪屏、加载稍慢仍是已知问题。
+GB/GBC 基础版为 **`v0.1.2-public.1`**，FPGA 程序与已获单机验收的 `0.1.2-cn-lab` 相同。18 组原生菜单和 Windows 助手作为 **`v0.5.0-preview.1` 开发预览**单独发布，新增核心仍需实机验收。启动游戏时的短暂闪屏和加载延迟不能据此宣称全部解决。
 
 当前实验分支包含 [GBA / NES / SNES 接口实验](experiments/multi_system/README.md)，并继续进行[独立 GBA 完整核心接入](experiments/gba_menu/README.md)。用户已确认 `0.2.0-gba.3` 的中文菜单与游戏启动可用；普通存档、RTC、保存返回和更多游戏仍待实机验收，没有可安装的全机种公共发行版。
 
 2026-11-01 当前方向为[各机种独立的中文可视化菜单](docs/PER-SYSTEM-MENUS.md)：保留官方 openFPGA 的机种列表及 Change Core，分别完善 GB/GBC、GBA，再逐个适配其他核心。系统首页和跨机种合并启动器的研究已收束。
 
-共用 CoverFlow 的 NES `.2` 完整编译通过 128 条时序检查，最小 slack +0.056 ns，并获上述单机基本使用反馈。GBA `.5` 虽通过离线检查，仍因实体启动失败退出候选；时序通过不等于上机通过。旧 [GBA 整页滑动](experiments/gba_menu/MOTION.md)和 [NES 静态页](experiments/nes_menu/README.md)只保留历史记录。[SFC/SNES 原型](experiments/snes_menu/README.md)时序未通过，不提供安装包。实验候选不属于稳定发行版。
+共用 CoverFlow 的 NES `.2` 通过 128 条时序检查，最小余量 +0.056 ns，已有单机使用反馈。旧的[GBA 整页滑动](experiments/gba_menu/MOTION.md)、[NES 静态页](experiments/nes_menu/README.md)及[SFC 初版原型](experiments/snes_menu/README.md)保留为开发记录。
 
 本分支还提供[机种图标菜单](docs/MACHINE-MENU.md)：GB / GBC 掌机图标 → 分类 → 原有游戏封面，经典系列集中在收藏入口。复用稳定核心，用户已确认新布局可用。
 
-已有 GB/GBC 菜单可用[显示素材更新工具](docs/DISPLAY-UPDATES.md)补中文名和封面，保留原游戏／存档关联。GBA 的[素材工具](experiments/unified_frontend/README.md)另提供中文标题、封面和底部提示更新。此前试用的共同 Pocket Lab 分组已按独立机种方向备份后移除；中文图标页内自动切换核心尚未实现。
+已有 GB/GBC 菜单可用[显示素材更新工具](docs/DISPLAY-UPDATES.md)补中文名和封面，保留原游戏／存档关联。GBA 的[素材工具](experiments/unified_frontend/README.md)另提供中文标题、封面和底部提示更新。当前采用独立机种核心加 CN Menu 分类；中文图标页内自动切换核心尚未实现。
 
 ## 快速开始
+
+Windows 用户下载 [18 组核心开发预览](https://github.com/Sanssssssssssssssss/analogue-pocket-menu-cn/releases/tag/v0.5.0-preview.1)中的 `PocketLab-Windows-2026-11-16-preview.zip`，核对同页 `SHA256SUMS.txt`，完整解压后运行 `PocketLab.exe`，无需安装 Python。
+
+1. 把自备 ROM 放在相应 `Assets/<平台>/common/` 下，可使用子文件夹；在助手中选择本次连接的卡与电脑工作目录。
+2. 识别机种，准备游戏库并查看排除项、图文和旧存档报告。中文文件名直接显示；封面与别名可选，不含这些资料也能建库。
+3. 点击“备份并安装”。完成后安全弹出，Pocket 关机插卡，从 **openFPGA → CN Menu** 进入；若未分组，在系统设置打开 **Group openFPGA**。新增、删除或改名 ROM 后，用助手重新准备并更新菜单。
+
+游戏、外部 BIOS 和个人存档由使用者自备。原固件不参与更新。详细支持范围、普通存档和原作者兼容入口见[完整交付说明](docs/COMPLETE-DELIVERY.md)。
+
+以下命令保留给 **GB/GBC 基础版 `v0.1.2-public.1`**；下载该标签的 `-core.zip`，不要与上面的 Windows 开发预览混用。
 
 需要 Analogue Pocket、microSD 读卡器、Python 3.11+，以及你自己的 GB/GBC ROM 和 2,304 字节 GBC BIOS。原实机报告使用 Analogue OS 2.5；其他固件版本未在此项目逐一验证。本项目不提供游戏、BIOS 或个人存档。
 

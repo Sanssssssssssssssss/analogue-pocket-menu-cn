@@ -1,6 +1,12 @@
 # GBA CoverFlow 动画
 
-`.7` 候选沿用 GB/GBC 的封面移动、缩放、亮度、倒影及中文文字绘制，使用五张封面的关联缓存。GBA 游戏由原生核心运行。完整编译通过 104 项时序检查，最小余量 +0.076 ns，TNS 为零；本版实机动画与游戏／存档验收仍待完成。此前可用的 `.3` 保留为回退版本。
+2026-11-08，使用者报告 `.7` 在操作时反复出现“操作失败”。`.9` 保留 CoverFlow 动画，可从 `.7` 直接更新。封面读取错误、缓存故障或上传超时会清除封面缓存，当前运行使用占位图，重新进入核心时恢复读图。ROM、存档和 RTC 的错误仍正常报告。
+
+[控制仿真](probe_control.py)对 `.7` 注入封面读取失败，复现 `0x70`。`.8` 通过同一用例及缓存故障、上传超时用例，并在封面错误后完成进出分类、加载已有普通存档／RTC、启动和保存返回。完整 APF、Intel FIFO 与 SRAM 模型连线也通过中途读取失败的 40 帧用例，包含进出分类、四次标题加载和八帧滚动。实机故障的具体触发点尚未确认。
+
+`.8` 最差 setup 余量为 −2.294 ns。另两次布线也定位到原生 GBA CPU 的乘法和带进位加法。`.9` 在已有四拍乘法状态内分段计算，并提前寄存加法结果。GHDL 对照上游 CPU，1,664 个运算结果、1,152 次 CPSR 读出和 50,700 拍逐拍比较一致。完整布线的 104 项时序余量均为正，最小 +0.090 ns，SRAM 引脚检查也通过。实机仍待确认。
+
+`.7` 沿用 GB/GBC 的封面移动、缩放、亮度、倒影及中文文字绘制，使用五张封面的关联缓存。GBA 游戏由原生核心运行。该版完整编译通过 104 项时序检查，最小余量 +0.076 ns，TNS 为零。下方记录对应 `.7` 离线验证。
 
 封面放入 Pocket 的 256 KB SRAM，占用 227,840 字节。八项 RAM 队列接收上传；完成标志在绘制读取期间保持有效，发布标签前确认整张图片已写完。各图层共用最后一步 RGB 混合，保留整数截断与显示优先级。错误和上传超时可返回菜单。ROM、EWRAM、CRAM0、存档及 RTC 的原有源码与 `.3` 一致。
 
@@ -38,7 +44,7 @@ python experiments/gba_menu/package.py --build .work/gba-coverflow --sources .wo
 
 编译树保留原样；交付副本只修正 SDC 注释中的预算说明。收据记录前后哈希，并核对每条可执行 SDC 行及 RBF 相同。打包器再次验证这些注释变更。
 
-`tb_sram_cache.sv` 可与 `sim_sram.sv` 和生成的 `coverflow_sram_cache.sv` 直接用 Icarus 运行。`probe_boot.py` 保留旧 CellRAM 构建的复现能力；默认生成器现在只生成 `.7` SRAM 方案。
+`tb_sram_cache.sv` 可与 `sim_sram.sv` 和生成的 `coverflow_sram_cache.sv` 直接用 Icarus 运行。`probe_boot.py` 保留旧 CellRAM 构建的复现能力。当前生成器使用五封面 SRAM 缓存。
 
 ## 此前失败版本
 
@@ -46,7 +52,9 @@ python experiments/gba_menu/package.py --build .work/gba-coverflow --sources .wo
 
 ## English
 
-Candidate `.7` reuses the accepted GB/GBC CoverFlow geometry and compositor with five associative SRAM cover slots (227,840 bytes), an eight-entry RAM upload queue and one shared final RGB blender. The GBA CPU remains native. Full compilation passes 104 timing records with +0.076 ns minimum slack and zero TNS. Hardware animation and game/save acceptance remain pending; `.3` is the previously accepted fallback.
+On 2026-11-08 the user reported intermittent hardware errors on `.7`. Candidate `.9` updates that CoverFlow installation directly and keeps the artwork fault handling verified on `.8`. The exact device trigger remains unconfirmed. The CPU keeps its original instruction timing and uses the existing multiply cycles for the partial products. Against the upstream CPU, the GHDL check matched 1,664 results, 1,152 CPSR reads and 50,700 cycles. All 104 post-fit timing records pass, as do the SRAM path checks. Physical acceptance is pending.
+
+Candidate `.7` reuses the accepted GB/GBC CoverFlow geometry and compositor with five associative SRAM cover slots (227,840 bytes), an eight-entry RAM upload queue and one shared final RGB blender. The GBA CPU remains native. Its historical full compilation passed 104 timing records with +0.076 ns minimum slack and zero TNS.
 
 Offline checks pass all 113,920 SRAM writes, 4,850 DWORD samples and 18 complete raster frames / 2,019,600 golden pixel comparisons. The APF/loader/vendor-FIFO wiring runs 149 frames through a 12-entry child, 16 moves including wrap/reversal, B return and subsequent input. Portable RAM is crosschecked against Intel first. The datasheet SRAM model uses 4.25 ns I/O delays, a conservative 9.930 ns period and worst-case byte-output disable. Separate lifecycle/error tests pass. Against `.3`, 93 inherited files (45 native GBA files) are byte-exact; generated error HEX differs only in line endings. All 106 final inputs and 135 frozen GB/GBC inputs are checked.
 

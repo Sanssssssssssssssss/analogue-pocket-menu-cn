@@ -1,5 +1,7 @@
 # SFC / SNES 原生菜单原型
 
+本页保留早期静态菜单及负时序原型。2026-11-08 的[原生 CoverFlow 候选](../console_coverflow/README.md)已通过完整编译及 104 条时序检查，最小余量 +0.086 ns；实机验收待完成。下文为历史记录。This page preserves the superseded prototype; the linked native CoverFlow candidate passes offline timing and awaits hardware acceptance.
+
 当前是离线原型，尚不能交付上机。最新完整编译虽完成布局布线，但 96 条时序记录中有 4 条为负值，最小 slack **−2.823 ns**，因此不生成可安装包。另有上游 `CEGen` 上电值告警及未匹配的约束项，需要继续检查。
 
 之后补充了普通存档绑定保护：菜单或未完成的加载不向 OS 宣告可保存的 RAM。此修正已在新副本生成，尚未重新完成硬件编译；不能把前述报告当作新输入的编译证据。

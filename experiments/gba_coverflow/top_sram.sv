@@ -39,10 +39,15 @@ wire [2:0] cf_upload_slot_s;
 synch_3 cf_upload_event(.i(cf_upload_toggle),.o(cf_upload_sync_s),.clk(clk_sys),.rise(),.fall());
 synch_3 cf_clear_event(.i(cf_clear_toggle),.o(cf_clear_sync_s),.clk(clk_sys),.rise(),.fall());
 synch_3 #(.WIDTH(3)) cf_slot_sync(.i(cf_upload_slot),.o(cf_upload_slot_s),.clk(clk_sys),.rise(),.fall());
-reg cf_upload_seen=0,cf_clear_seen=0;
-always @(posedge clk_sys)begin cf_upload_seen<=cf_upload_sync_s;cf_clear_seen<=cf_clear_sync_s;end
+// Give the bundled slot bus one extra destination clock to settle before
+// consuming its synchronized event. Independent bit synchronizers can skew.
+reg cf_upload_stable=0,cf_upload_seen=0,cf_clear_seen=0;
+always @(posedge clk_sys)begin
+    cf_upload_stable<=cf_upload_sync_s;
+    cf_upload_seen<=cf_upload_stable;cf_clear_seen<=cf_clear_sync_s;
+end
 coverflow_sram_cache cf_images(.clk(clk_sys),.enable(cf_enable_s),
-    .invalidate(cf_clear_seen!=cf_clear_sync_s),.begin_upload(cf_upload_seen!=cf_upload_sync_s),.upload_slot(cf_upload_slot_s),
+    .invalidate(cf_clear_seen!=cf_clear_sync_s),.begin_upload(cf_upload_seen!=cf_upload_stable),.upload_slot(cf_upload_slot_s),
     .write_en(cf_art_we),.write_addr(cf_art_addr),.write_data(cf_art_data),.upload_ready(cf_uploaded_s),.idle(cf_backend_idle),
     .request(cf_source_request),.word_address(cf_source_word),.done(cf_source_done),.data(cf_source_data),.fault(cf_art_fault),
     .sram_a(sram_a),.sram_dq(sram_dq),.sram_oe_n(sram_oe_n),.sram_we_n(sram_we_n),.sram_ub_n(sram_ub_n),.sram_lb_n(sram_lb_n));

@@ -60,7 +60,7 @@ def decide(header_file,loader,simulator,out):
         'scope':'Actual upstream loader on same-size sparse header fixtures; FPGA/host operations are stubs, no game execution'}
     out.write_text(json.dumps(receipt,ensure_ascii=False,indent=2)+'\n',encoding='utf8')
 
-def build(card,decisions,out,titles=None,covers=None):
+def build(card,decisions,out,titles=None,covers=None,*,coverflow=False):
     card,out=Path(card).resolve(),Path(out).resolve()
     if out.exists() or out.is_relative_to(card) or card.is_relative_to(out):raise ValueError('Fresh staging outside card required')
     ident=nes.identity(card);metadata=json.loads(Path(decisions).read_text(encoding='utf8'))
@@ -88,6 +88,14 @@ def build(card,decisions,out,titles=None,covers=None):
         series=PurePosixPath(rel).parts[4] if len(PurePosixPath(rel).parts)>5 else '游戏'
         groups.setdefault(series,[]).append(entry);sources.append(row)
     if not sources:raise ValueError('No supported standard NTSC favorites')
+    if coverflow:
+        if len(groups)>127 or any(len(entries)>127 for entries in groups.values()):
+            raise ValueError('SFC CoverFlow pages allow 127 entries plus Back')
+        spec=importlib.util.spec_from_file_location('sfc_coverflow_library',ROOT/'experiments/nes_coverflow/library.py')
+        atlas=importlib.util.module_from_spec(spec);spec.loader.exec_module(atlas)
+    def pack(entries):
+        if coverflow:return atlas.pack(entries,covers,'snes','超级任天堂',namespace='snescn')[0]
+        return nes.pack(entries,covers,'snes','snescn')
     out.mkdir(parents=True);files=[]
     def write(rel,raw):
         p=nes.safe_path(out,rel);p.parent.mkdir(parents=True,exist_ok=True);p.write_bytes(raw)
@@ -96,7 +104,7 @@ def build(card,decisions,out,titles=None,covers=None):
     home=f'/{ASSETS}/menu.bin';root=[]
     for series,entries in groups.items():
         path=f'/{ASSETS}/libs/{hashlib.sha256(series.encode()).hexdigest()[:16]}.bin'
-        write(path[1:],nes.pack(entries+[folder(home,'返回首页')],covers,'snes','snescn'))
+        write(path[1:],pack(entries+[folder(home,'返回首页')]))
         root.append(folder(path,aliases.get('folder:'+series,series)))
         for e in entries:
             if e['save_bytes']==0:continue
@@ -104,8 +112,8 @@ def build(card,decisions,out,titles=None,covers=None):
             if existing.is_file():
                 if existing.stat().st_size!=e['save_bytes']:raise ValueError('Unexpected existing preview save size: '+rel)
             else:write(rel,bytes(e['save_bytes']))
-    write(home[1:],nes.pack(root+[folder(home,'返回首页')],covers,'snes','snescn'))
-    result={'format':'GBAF1/SNES','identity':ident,'files':files,'source_refs':sources,'excluded':excluded,
+    write(home[1:],pack(root+[folder(home,'返回首页')]))
+    result={'format':'GBAF2/SNES' if coverflow else 'GBAF1/SNES','identity':ident,'files':files,'source_refs':sources,'excluded':excluded,
         'unique_games':len(sources),'pages':len(groups)+1,'rom_copies':0,'source_writes':0,'save_imports':0,
         'scope':'Standard NTSC only; isolated progress; original OS Quit/save path, device save acceptance pending'}
     (out/'library-manifest.json').write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n',encoding='utf8');return result
@@ -113,7 +121,8 @@ def build(card,decisions,out,titles=None,covers=None):
 if __name__=='__main__':
     p=argparse.ArgumentParser(description=__doc__);p.add_argument('mode',choices=['headers','decide','build'])
     for k in ['card','out','headers','loader','simulator','decisions','titles','covers']:p.add_argument('--'+k)
+    p.add_argument('--coverflow',action='store_true')
     a=p.parse_args()
     if a.mode=='headers':headers(a.card,a.out)
     elif a.mode=='decide':decide(a.headers,a.loader,a.simulator,a.out)
-    else:print(json.dumps({k:v for k,v in build(a.card,a.decisions,a.out,a.titles,a.covers).items() if k in ['unique_games','pages','rom_copies']}))
+    else:print(json.dumps({k:v for k,v in build(a.card,a.decisions,a.out,a.titles,a.covers,coverflow=a.coverflow).items() if k in ['unique_games','pages','rom_copies']}))

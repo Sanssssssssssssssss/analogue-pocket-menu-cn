@@ -18,13 +18,15 @@ CLASSICS_ID = hashlib.sha256(b'machine-menu/classics/v1').hexdigest()[:16]
 CLASSICS_PACK = lib.ASSETS + '/libs/' + CLASSICS_ID + '.bin'
 
 
-def decode(raw):
+def decode(raw, allow_cheats=False):
     if len(raw) < 1040:
         raise ValueError('Truncated menu pack')
     magic, version, count, cw, tw = struct.unpack_from('<4sHHHH', raw)
     if (magic, version, cw, tw) != (b'GBCV', 9, 128, 80) or not 1 <= count <= lib.MAX_ENTRIES:
         raise ValueError('Only v9 128/80 pixel menu packs are supported')
-    if len(raw) != 1040 + count * (128 + 65536 + 768):
+    end = 1040 + count * (128 + 65536 + 768)
+    extended = allow_cheats and len(raw) == end+count*256
+    if len(raw) != end and not extended:
         raise ValueError('Truncated or extended menu pack')
     art0, paths0 = 528 + count*128, 528 + count*(128+65536)
     entries = []
@@ -43,10 +45,19 @@ def decode(raw):
             raise ValueError('Game link escapes GB/GBC asset trees')
         if not paths[1].startswith(lib.SAVES+'/') or not paths[2].startswith(lib.SAVES+'/'):
             raise ValueError('Save link escapes the experimental save tree')
-        entries.append({'record': record, 'blob': raw[art0+i*65536:art0+(i+1)*65536], 'paths': paths})
+        entry = {'record': record, 'blob': raw[art0+i*65536:art0+(i+1)*65536], 'paths': paths}
+        if allow_cheats:
+            size = int.from_bytes(record[42:44], 'little')
+            field = raw[end+i*256:end+(i+1)*256] if extended else bytes(256)
+            value = field.split(b'\0', 1)[0].decode('utf8')
+            if (size and (not extended or record[40] & 128 or field != lib.path_bytes(value))
+                    or not size and any(field)):
+                raise ValueError('Invalid GB/GBC cheat path extension')
+            entry.update(cheat_bytes=size, cheat_path=value)
+        entries.append(entry)
     if not entries[-1]['record'][40] & 128:
         raise ValueError('Final parent entry must be a folder')
-    return {'header':raw[:528], 'entries':entries, 'tail':raw[-512:]}
+    return {'header':raw[:528], 'entries':entries, 'tail':raw[end-512:end]}
 
 
 def encode(pack):

@@ -8,7 +8,7 @@ sys.path.insert(0,str(ROOT/'tools'))
 from install import safe_path,identity
 import build_library as gb
 from sega_formats import legacy_gamegear
-from menu_icons import LABELS,kind
+from menu_icons import LABELS,kind,folder_label
 spec=importlib.util.spec_from_file_location('sega_pause_images',ROOT/'experiments/gba_menu/library.py')
 visual=importlib.util.module_from_spec(spec);spec.loader.exec_module(visual)
 LABEL={'gg':'世嘉 掌机','sms':'世嘉 家用机','sg1000':'世嘉 早期主机'}
@@ -82,15 +82,17 @@ def cheat_payload(profile,raw):
     return payload
 
 
-def pack(entries,platform,covers=None):
+def pack(entries,platform,covers=None,*,warnings=None):
     # CB=7 is a direct 128-texture cache. Larger counts can alias at wrap.
     if not 1<=len(entries)<=128 or not entries[-1]['folder']:raise ValueError('Page requires final parent and at most 128 texture slots')
     count=len(entries);base=64+count*1024;pause=base+count*65536
     rows=[];blobs=[];matched=0;missing=[]
     for entry in entries:
         subtitle=LABEL[platform]+(' · 已配金手指' if entry.get('cheat_bytes') else '')
-        width,title,_,unknown=gb.columns(entry['title'],gb.font());subwidth,sub,_,subunknown=gb.columns(subtitle,gb.font())
-        if unknown or subunknown or subwidth>300:raise ValueError('Unsupported Unicode caption')
+        width,title,clipped,unknown=gb.columns(entry['title'],gb.font());subwidth,sub,_,_=gb.columns(subtitle,gb.font())
+        if subwidth>300:raise ValueError('Subtitle exceeds display width')
+        if warnings is not None and (clipped or unknown):
+            warnings.append({'path':entry['rom'],'truncated':clipped,'missing_glyphs':unknown})
         row=bytearray(1024);struct.pack_into('<4s7I',row,0,b'ENT1',int(entry['folder']),entry.get('bytes',0),32768,entry.get('cheat_bytes',0),0,width,subwidth)
         for offset,key in [(32,'rom'),(288,'save'),(544,'cheat')]:row[offset:offset+256]=path_field(entry[key],platform)
         cover=Path(covers)/Path(entry['rom'].lstrip('/')).with_suffix('.png') if covers and not entry['folder'] else None
@@ -100,7 +102,7 @@ def pack(entries,platform,covers=None):
         else:
             cover=None
             if not entry['folder']:missing.append(entry['rom'])
-        art=gb.picture(cover,entry['folder'],kind(entry['title'])) if cover or entry['folder'] else gb.title_card(entry['title'],platform)
+        art=gb.picture(cover,entry['folder'],kind(entry['title'])) if cover or entry['folder'] else gb.title_card(entry['title'],platform,strict=False)
         rows.append(bytes(row));blobs.append((art+title+sub).ljust(65536,b'\0'))
     pause_frames=[]
     for i in range(2):
@@ -123,7 +125,7 @@ def build(card,out,platform,titles=None,covers=None,folders=None,cheats=None,off
     def ensure(key):
         if key in nodes:return
         parent=key.rsplit('/',1)[0] if '/' in key else '';ensure(parent);leaf=key.rsplit('/',1)[-1]
-        title=folders.get(platform+'/'+key,LABELS.get(leaf,'经典精选' if leaf=='0.FAVORITES' else leaf))
+        title=folders.get(platform+'/'+key,folder_label(leaf))
         nodes[key]={'title':title,'parent':parent,'children':set(),'games':[]};nodes[parent]['children'].add(key)
     refs=[];excluded=[];warnings=[];ids={};seen={};payloads={};applied=[]
     for path in sorted(source.rglob('*')):
@@ -174,7 +176,7 @@ def build(card,out,platform,titles=None,covers=None,folders=None,cheats=None,off
         'save':f'/Saves/{namespace}/common/'+('0'*20)+'.sav','cheat':f'/Assets/{namespace}/cheat/'+('0'*20)+'.cht'}
     for key,node in nodes.items():
         entries=[folder(page(k),nodes[k]['title']) for k in sorted(node['children'])]+node['games']+[folder(page(node['parent']),'返回上级' if key else '返回首页')]
-        raw,m,miss=pack(entries,platform,covers);write(page(key).lstrip('/'),raw);matched+=m;missing+=miss
+        raw,m,miss=pack(entries,platform,covers,warnings=warnings);write(page(key).lstrip('/'),raw);matched+=m;missing+=miss
     for tag in ids:
         rel=f'Saves/{namespace}/common/{tag}.sav';existing=safe_path(card,rel)
         if existing.is_file():

@@ -72,24 +72,56 @@ def bench(fault_recovery=False):
         'watchdog state=%0d code=%h page=%0d selected=%0d cfmenu=%b level=%d target=%d art=%0d want=%b pending=%h",state,code,page,selected,cf_menu,cf_level,cf_target,art_chunks,cf_want,dut.cf_pending')
     if fault_recovery:
         s=replace(s,".SETTLE_CYCLES(20'd16)",".SETTLE_CYCLES(20'd16),.FRAME_TIMEOUT(34'd256)")
-        s=replace(s,'reg cf_want=0;','reg cf_want=0,cf_fault=0,cf_uploaded=1;')
+        s=replace(s,'reg cf_want=0;', '''reg cf_want=0,cf_fault=0,cf_uploaded=1;
+    reg [2:0] cf_art_result=0;
+    integer fail_remaining=0,art_attempts=0;''')
         s=replace(s,".cf_fetch_fault(1'b0),.cf_upload_ready(1'b1)",
             '.cf_fetch_fault(cf_fault),.cf_upload_ready(cf_uploaded)')
+        s=replace(s,'reply(0);\n                end else if(wr)',
+            "reply(slot==100 && address[31:24]==8'h42 ? cf_art_result:3'd0);\n                end else if(wr)")
+        s=replace(s,"if(!rst || bound || !cf_menu || address!=32'h42000000+art_bytes)",'''if(address==32'h42000000)begin
+                            art_attempts=art_attempts+1;art_bytes=0;art_chunks=0;
+                            cf_art_result=fail_remaining>0 ? 3'd2:3'd0;
+                            if(fail_remaining>0)fail_remaining=fail_remaining-1;
+                        end
+                        if(!rst || bound || !cf_menu || address!=32'h42000000+art_bytes)''')
         s=replace(s,'cf_want=1;wait(cf_commit);cf_want=0;repeat(4)@(negedge clk);', '''
-        cf_uploaded=0;cf_want=1;wait(state==51);cf_want=0;cf_fault=1;
-        repeat(8)@(negedge clk);
-        if(!fault || code!=8'h74)$fatal(1,"cover backend fault was hidden in the upload drain");
-        cf_fault=0;cf_uploaded=1;press(5);menu(0);
-        art_chunks=0;art_bytes=0;cf_uploaded=0;
-        cf_want=1;wait(state==51);cf_want=0;
-        repeat(320)@(negedge clk);
-        if(!fault || code!=8'h71)$fatal(1,"incomplete cover ignored the frame watchdog");
-        cf_uploaded=1;press(5);menu(0);
-        // Establish a fresh Run before the independent save-error assertions.
+        fail_remaining=1;cf_want=1;
+        wait(cf_commit);cf_want=0;repeat(4)@(negedge clk);
+        if(art_attempts!=2 || dut.cf_art_unavailable || fault || art_bytes!=45568)
+            $fatal(1,"transient APF failure did not recover automatically");
+        $display("PASS: transient APF failure reloads a complete cover without Stop/Run");
         ready=0;repeat(8)@(negedge clk);ready=1;menu(0);
-        art_chunks=0;art_bytes=0;
+        art_attempts=0;fail_remaining=10;cf_want=1;
+        wait(art_attempts==3 && dut.cf_art_unavailable && state==13);
+        repeat(7000)@(negedge clk);
+        if(art_attempts!=3 || fault)$fatal(1,"persistent read error retries forever");
+        cf_want=0;
+        press(4);menu(0);if(page!=1 || dut.cf_art_unavailable)$fatal(1,"page did not restore recovery budget");
+        press(5);menu(0);if(page!=0)$fatal(1,"cannot return after persistent error");
+        $display("PASS: persistent failure stops after two retries and preserves A/B navigation");
+        art_attempts=0;fail_remaining=0;cf_uploaded=0;cf_want=1;
+        wait(state==51);cf_fault=1;
+        wait(cf_invalidate);@(negedge clk);cf_fault=0;cf_uploaded=1;
+        wait(cf_commit);cf_want=0;repeat(4)@(negedge clk);
+        if(art_attempts!=2 || fault)$fatal(1,"backend failure did not recover");
+        $display("PASS: backend fault drains, invalidates and reloads");
+        art_attempts=0;cf_uploaded=0;cf_want=1;
+        wait(state==54);@(negedge clk);cf_uploaded=1;
         cf_want=1;wait(cf_commit);cf_want=0;repeat(4)@(negedge clk);
-        $display("PASS: backend fault and incomplete-cover timeout both allow B to return to root before a fresh Run");''')
+        if(art_attempts!=2 || fault)$fatal(1,"incomplete upload did not recover");
+        $display("PASS: incomplete upload times out then reloads");''')
+        s=replace(s,'        // A malformed progress path is rejected before opening a ROM or save.', '''
+        art_chunks=0;art_bytes=0;fail_remaining=1;cf_want=1;
+        wait(art_chunks==1);cf_want=0;
+        wait(state==13 || fault);
+        if(fault)$fatal(1,"cover error prevented selecting a game");
+        press(4);running;
+        if(transactions!=4 || save_reads!=2 || rtc_reads!=2)$fatal(1,"launch after cover error lost progress");
+        quit_game;menu(0);
+        $display("PASS: existing save and RTC load, game launch and save-return still work after a cover error");
+        // A malformed progress path is rejected before opening a ROM or save.''')
+        s=replace(s,"code!=8'h13||rom_reads!=3||bound", "code!=8'h13||rom_reads!=4||bound")
     return s
 
 def run(build,out,fault_recovery=False):
@@ -125,5 +157,5 @@ def run(build,out,fault_recovery=False):
 
 if __name__=='__main__':
     p=argparse.ArgumentParser(description=__doc__);p.add_argument('--build',required=True);p.add_argument('--out',required=True)
-    p.add_argument('--fault-recovery',action='store_true',help='Inject a backend fault while an upload drain is incomplete, then recover with B')
+    p.add_argument('--fault-recovery',action='store_true',help='Inject failed cover transfers and check navigation and recovery')
     a=p.parse_args();run(a.build,a.out,a.fault_recovery)

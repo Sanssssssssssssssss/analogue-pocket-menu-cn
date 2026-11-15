@@ -94,6 +94,26 @@ class Delivery(unittest.TestCase):
                 self.assertFalse(self.backup.exists())
                 path.write_bytes(old)
 
+    def test_replacement_needs_one_file_of_headroom_and_can_roll_back(self):
+        source = self.inputs/'GBA'
+        files = ['Assets/gbalab/common/libs/'+str(index)*16+'.bin' for index in range(4)]
+        changes = []
+        for rel in files:
+            put(self.card/rel, b'A'*524288)
+            put(source/rel, b'B'*524288)
+            changes.append({**delivery.snapshot(source/rel, rel), 'source': str(source),
+                            'previous_sha256': delivery.sha(self.card/rel)})
+        self.staging.mkdir()
+        delivery.seal(self.card,self.staging,[('GBA', {'identity':delivery.identity(self.card), 'changes':changes})])
+        usage = shutil.disk_usage(self.root)
+        def limited(path):
+            return usage._replace(free=33*1024**2) if path == self.card else usage
+        with patch.object(delivery.shutil,'disk_usage',side_effect=limited):
+            delivery.apply(self.card,self.staging,self.backup)
+        self.assertTrue(all((self.card/rel).read_bytes() == b'B'*524288 for rel in files))
+        delivery.rollback(self.card,self.backup,execute=True)
+        self.assertTrue(all((self.card/rel).read_bytes() == b'A'*524288 for rel in files))
+
     def test_failure_after_atomic_publish_restores_menu_pair(self):
         self.stage()
         real_publish = delivery.publish
@@ -271,6 +291,7 @@ class Delivery(unittest.TestCase):
         raw[0xB2] = 0x96
         raw[0xBD] = (-sum(raw[0xA0:0xBD])-0x19) & 255
         put(self.card/self.rom, raw)
+        put(self.card/'Assets/gba/common/gba_bios.bin', bytes(16384))
         put(self.card/'Assets/nes/common/Test.nes', b'NES\x1a' + bytes([1]) + bytes(11) + bytes(16384))
         for platform, suffix in (('gg', 'gg'), ('sms', 'sms'), ('sg1000', 'sg')):
             put(self.card/f'Assets/{platform}/common/Test.{suffix}', b'\x11'*32768)
@@ -289,6 +310,8 @@ class Delivery(unittest.TestCase):
                             description='Synthetic delivery fixture', url='https://example.org',
                             version='test', date_release='2026-11-02')
             slots = [{'id': v} for v in ([100,4,1,10,11] if name == 'GBA' else [100,0,10,11])]
+            if name == 'GBA':
+                slots[1].update(filename='gba_bios.bin', parameters='0x1000008', address='0x30000000', size_exact=16384)
             video = {'magic': 'APF_VER_1', 'scaler_modes': [
                 {'width':240, 'height':160, 'aspect_w':3, 'aspect_h':2, 'rotation':0, 'mirror':0}],
                      'display_modes': [{'id':'0x10'}], 'defaults': {'sharpness': 1}}
@@ -306,7 +329,7 @@ class Delivery(unittest.TestCase):
                 delivery.write(core/(key+'.json'), value)
             put(core/(platform+'.rbf_r'), b'synthetic core fixture')
             put(package/f'core/Platforms/_images/{ns}.bin', b'synthetic icon')
-            delivery.write(package/f'core/Platforms/{ns}.json', {})
+            delivery.write(package/f'core/Platforms/{ns}.json', {'platform': {'name':name,'category':'Handhelds'}})
             receipt = {'core':'pocketlab.'+short, 'version':'test', 'minimum_slack_ns':1,
                        'minimum_reported_slack_ns':1, 'timing_records':72,
                        'menu_format':'GBAF2' if name == 'GBA' else 'GBAF2/NES' if name == 'NES' else 'GBAF2/Sega',
@@ -335,6 +358,79 @@ class Delivery(unittest.TestCase):
             self.assertEqual(after[rel], value)
         for rel in set(after)-set(before):
             self.assertTrue(rel.startswith('Saves/'))
+
+    def test_gba_f2_upgrade_accepts_regenerated_pages_and_guards_existing_bindings(self):
+        import build_menus
+        from test_build_menus import gba_rom
+
+        put(self.card/self.rom, gba_rom(1))
+        put(self.card/'Assets/gba/common/Chinese/Original.gba', gba_rom(2))
+        bios = 'Assets/gba/common/gba_bios.bin'
+        put(self.card/bios, bytes(16384))
+        old = self.inputs/'old-library'
+        build_menus.build(self.card, old, ['GBA'])
+        library = old/'libraries/GBA'
+        saved = delivery.read(library/'library-manifest.json')['roms'][0]
+        put(self.card/saved['save'], b'\x25'*65536)
+        put(self.card/saved['rtc'], b'\x36'*16)
+        shutil.copytree(library/'Assets', self.card/'Assets', dirs_exist_ok=True)
+
+        prefix = Path('Cores/pocketlab.GBA')
+        package = self.inputs/'GBA'
+        meta = {'author':'pocketlab', 'shortname':'GBA', 'platform_ids':['gbalab','gba'],
+                'description':'Synthetic upgrade fixture', 'url':'https://example.org',
+                'version':'new', 'date_release':'2026-11-14'}
+        video = {'video':{'magic':'APF_VER_1', 'scaler_modes':[
+            {'width':240,'height':160,'aspect_w':3,'aspect_h':2,'rotation':0,'mirror':0},
+            {'width':320,'height':288,'aspect_w':10,'aspect_h':9,'rotation':0,'mirror':0}]}}
+        for name in apf_metadata.REQUIRED_JSON:
+            kind = Path(name).stem
+            definition = {'magic':'APF_VER_1'}
+            if kind == 'variants':
+                definition['variant_list'] = []
+            delivery.write(package/'core'/prefix/name, {kind:definition})
+        delivery.write(package/'core'/prefix/'video.json', video)
+        delivery.write(package/'core'/prefix/'data.json', {'data':{'magic':'APF_VER_1', 'data_slots':[
+            {'id':value} for value in (100,4,1,10,11)]}})
+        delivery.write(package/'core'/prefix/'core.json', {'core':{'magic':'APF_VER_1', 'metadata':meta,
+            'framework':{'sleep_supported':False,'hardware':{'cartridge_adapter':-1}},
+            'cores':[{'filename':'gba.rbf_r'}]}})
+        binary = prefix/'gba.rbf_r'
+        put(package/'core'/binary, b'new synthetic core')
+        delivery.write(package/'build-receipt.json', {'core':'pocketlab.GBA','version':'new',
+            'menu_format':'GBAF2','minimum_reported_slack_ns':1,
+            'files':[delivery.snapshot(path, path.relative_to(package/'core').as_posix())
+                     for path in (package/'core').rglob('*') if path.is_file()]})
+        shutil.copytree(package/'core'/prefix, self.card/prefix, dirs_exist_ok=True)
+        put(self.card/binary, b'old synthetic core')
+
+        rom = self.card/'Assets/gba/common/Chinese/Original.gba'
+        renamed = self.card/'Assets/gba/common/New folder/中文.gba'
+        renamed.parent.mkdir()
+        rom.rename(renamed)
+        out = self.root/'new-library'
+        build_menus.build(self.card, out, ['GBA'], packages=self.inputs)
+        before = snapshot(self.card)
+        original_data = delivery.read(self.card/prefix/'data.json')
+        update = delivery.module('experiments/gba_coverflow/update.py')
+        with patch.object(delivery, 'module', return_value=update), patch.object(update, 'KNOWN_SOURCE', {delivery.sha(self.card/binary)}):
+            changed = delivery.read(self.card/prefix/'data.json')
+            changed['data']['data_slots'][2]['address'] = '0x0'
+            delivery.write(self.card/prefix/'data.json', changed)
+            with self.assertRaisesRegex(ValueError, 'data-slot bindings'):
+                delivery.prepare(self.card, out/'delivery.json', self.root/'bad-data')
+            delivery.write(self.card/prefix/'data.json', original_data)
+            result = delivery.prepare(self.card, out/'delivery.json', self.staging)
+        self.assertEqual(snapshot(self.card), before)
+        self.assertEqual(result['components']['GBA']['operation'], 'core_upgrade_with_library_refresh')
+        self.assertIn(bios, {row['path'] for row in result['guards']})
+        self.assertTrue(any('/libs/' in row['path'] and row['previous_sha256'] is None for row in result['changes']))
+        delivery.apply(self.card, self.staging, self.backup)
+        self.assertEqual((self.card/binary).read_bytes(), b'new synthetic core')
+        self.assertEqual((self.card/saved['save']).read_bytes(), before[saved['save']])
+        self.assertEqual((self.card/saved['rtc']).read_bytes(), before[saved['rtc']])
+        delivery.rollback(self.card, self.backup, execute=True)
+        self.assertEqual(snapshot(self.card), before)
 
 
 if __name__ == '__main__':

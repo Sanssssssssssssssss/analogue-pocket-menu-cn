@@ -1,6 +1,12 @@
 # 各机种独立的中文可视化菜单
 
-2026-11-02 当前结果：GBA、NES、GG、SMS、SG-1000 独立候选均复用已认可的 CoverFlow，完成离线接口及完整编译／时序检查；尚未上机。见[完整交付状态](COMPLETE-DELIVERY.md)及[世嘉适配](../experiments/sega_coverflow/README.md)。本页其余内容保留早期反馈和备份证据；其中 `.4` 整页滑动、NES 静态页已经由 CoverFlow 候选取代。
+2026-11-08 当前结果：十组独立菜单已有本地预览包和通用建库、备份安装工具。GB/GBC 为已获实机反馈的公开版本；NES、GG 有单机菜单、动画和基本启动反馈。GBA `.9`、PCE、MD、SFC、CPS2 完成离线编译、时序和接口检查，实机验收待完成。最新范围见[完整交付状态](COMPLETE-DELIVERY.md)、[GBA](../experiments/gba_coverflow/README.md)和[主机适配](../experiments/console_coverflow/README.md)。
+
+The current preview covers ten independent menu groups. See [delivery status](COMPLETE-DELIVERY.md) for tested scope and hardware acceptance. The notes below are the dated 2026-11-01 history, including superseded slide renderers and the earlier SNES timing failure.
+
+## 2026-11-01 历史记录
+
+以下保留当时的反馈和备份证据。`.4` 整页滑动、NES 静态页和 SFC 负时序原型均已由后续 CoverFlow 候选取代；下文的“当前”“本轮”和“尚未完成”指当日状态。
 
 2026-11-01，当前开发方向：保留官方 openFPGA 的机种入口与 Change Core；进入机种后，用该机种自己的原生 FPGA 核心显示中文游戏库。GB/GBC 和 GBA 分别维护，不继续合并入口或替换系统首页。
 

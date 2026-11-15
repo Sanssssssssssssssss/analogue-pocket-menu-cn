@@ -3,10 +3,12 @@
 """Plan or apply a confined, backed-up installation; never writes saves/firmware."""
 import argparse
 import ctypes
+import errno
 from datetime import datetime, timezone
 import json
 import os
 from pathlib import Path, PurePosixPath
+import re
 import shutil
 import tempfile
 from build_library import sha
@@ -31,7 +33,8 @@ def safe_path(root, rel):
 
 def confined(root, rel):
     target=safe_path(root,rel)
-    if not (rel in EXACT or any(rel.startswith(p) for p in PREFIXES)):
+    if not (rel in EXACT or any(rel.startswith(p) for p in PREFIXES)
+            or re.fullmatch(r'Assets/gbclab/cheat/[0-9a-f]{20}\.cht', rel)):
         raise ValueError(f'Path outside menu installation scope: {rel}')
     return target
 
@@ -163,6 +166,40 @@ def publish(source, target, expected):
         if sha(target)!=expected: raise ValueError('Destination readback mismatch')
     finally:
         if temporary.exists(): temporary.unlink()
+
+
+def publish_new(source, target, expected):
+    """Create a verified new file without replacing a late-arriving save."""
+    target.parent.mkdir(parents=True, exist_ok=True)
+    descriptor, name = tempfile.mkstemp(prefix='.pocket-menu-', dir=target.parent)
+    temporary = Path(name)
+    try:
+        with os.fdopen(descriptor, 'wb') as out, source.open('rb') as incoming:
+            shutil.copyfileobj(incoming, out)
+            out.flush()
+            os.fsync(out.fileno())
+        if sha(temporary) != expected:
+            raise ValueError('Temporary file readback mismatch')
+        if os.name == 'nt':
+            # Unlike os.replace, Windows rename atomically refuses an existing name.
+            os.rename(temporary, target)
+        else:
+            try:
+                os.link(temporary, target)
+            except OSError as error:
+                if error.errno not in (errno.EPERM, errno.EOPNOTSUPP, errno.ENOSYS):
+                    raise
+                # FAT/exFAT may not implement hard links. Exclusive creation still
+                # prevents replacement; an interrupted new seed remains for review.
+                with target.open('xb') as out, temporary.open('rb') as incoming:
+                    shutil.copyfileobj(incoming, out)
+                    out.flush()
+                    os.fsync(out.fileno())
+        if sha(target) != expected:
+            raise ValueError('Destination readback mismatch')
+    finally:
+        if temporary.exists():
+            temporary.unlink()
 
 def apply(card, package, library, backup):
     card,backup=Path(card).resolve(),Path(backup).resolve()

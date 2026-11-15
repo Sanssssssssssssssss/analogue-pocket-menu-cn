@@ -7,12 +7,13 @@ import hashlib
 import importlib.util
 import json
 from pathlib import Path, PurePosixPath
+import re
 import shutil
 import struct
 import zlib
 from functools import lru_cache
 from PIL import Image, ImageDraw
-from menu_icons import LABELS, cover_bytes, kind
+from menu_icons import LABELS, cover_bytes, kind, folder_label
 
 ROOT = Path(__file__).resolve().parents[1]
 FONT_SHA = 'e66385c79a0b8b24a466f3129930e08a966a935b4bf3b28c6bb17a9df9bf791d'
@@ -64,7 +65,8 @@ def path_bytes(value):
     parts = PurePosixPath(value).parts
     if not value.startswith('/') or '\\' in value or '..' in parts or '\0' in value or len(value.encode()) >= 256:
         raise ValueError(f'Invalid APF path: {value}')
-    if len(parts) < 5 or parts[1] not in ('Assets', 'Saves') or parts[2] not in ('gb', 'gbc', 'gbclab') or parts[3] != 'common':
+    common = len(parts) >= 5 and parts[1] in ('Assets', 'Saves') and parts[2] in ('gb', 'gbc', 'gbclab') and parts[3] == 'common'
+    if not common and not re.fullmatch(r'/Assets/gbclab/cheat/[0-9a-f]{20}\.cht', value):
         raise ValueError(f'Undeclared APF platform path: {value}')
     return value.encode().ljust(256, b'\0')
 
@@ -134,7 +136,7 @@ def pack(entries, glyphs, log_id, warnings):
     return (struct.pack('<4sHHHH4x',b'GBCV',9,len(entries),128,80)+base.index_block([e.get('sort_title',e['title']) for e in entries])+
             b''.join(tables+art+paths)+path_bytes(f'{SAVES}/meta/{log_id}.log')+path_bytes(f'{SAVES}/meta/{log_id}.cfg'))
 
-def build(card, out, titles=None, covers=None, bios=None):
+def build(card, out, titles=None, covers=None, bios=None, *, skip_invalid=False):
     card, out = Path(card).resolve(), Path(out).resolve()
     if out.exists() or contained(out,card) or contained(card,out):
         raise ValueError('Output must be a new folder outside the input card/copy')
@@ -147,6 +149,7 @@ def build(card, out, titles=None, covers=None, bios=None):
         raise ValueError('Covers directory does not exist')
     nodes = {'': {'title':'游戏库','children':set(),'games':[]}}
     inventory = []
+    excluded = []
     warnings = []
     def add_node(key, title):
         if key in nodes:
@@ -170,6 +173,11 @@ def build(card, out, titles=None, covers=None, bios=None):
             path_bytes('/'+relative)
             raw = file.read_bytes()
             if not 0x150 <= len(raw) <= 8*1024*1024:
+                if skip_invalid:
+                    excluded.append({'path':relative, 'bytes':len(raw),
+                                     'sha256':hashlib.sha256(raw).hexdigest(),
+                                     'reason':'ROM size outside supported 336..8388608 bytes'})
+                    continue
                 raise ValueError(f'Unsupported ROM size: {relative}')
             digest = hashlib.sha256(raw).hexdigest()
             key = platform+'/'+file.relative_to(base_dir).parent.as_posix()
@@ -177,7 +185,7 @@ def build(card, out, titles=None, covers=None, bios=None):
             for n in range(1,len(PurePosixPath(key).parts)+1):
                 sub = '/'.join(PurePosixPath(key).parts[:n])
                 leaf=PurePosixPath(sub).name
-                add_node(sub,LABELS.get(leaf,leaf))
+                add_node(sub,folder_label(leaf))
             cover = covers/Path(relative).with_suffix('.png') if covers else None
             if cover and (not cover.is_file()): cover=None
             if cover and not contained(cover,covers): raise ValueError('Cover resolves outside cover root')
@@ -187,7 +195,7 @@ def build(card, out, titles=None, covers=None, bios=None):
             inventory.append({'path':relative,'sha256':digest,'bytes':len(raw),'save':f'{SAVES}/{digest[:20]}.sav'})
     if not inventory:
         raise ValueError('No GB/GBC ROMs under Assets/gb/common or Assets/gbc/common')
-    unknown = set(titles)-{i['path'] for i in inventory}
+    unknown = set(titles)-{i['path'] for i in inventory+excluded}
     if unknown:
         raise ValueError(f'Title mapping references missing ROMs: {sorted(unknown)}')
     def node_id(key): return 'root' if not key else hashlib.sha256(key.encode()).hexdigest()[:16]
@@ -221,7 +229,7 @@ def build(card, out, titles=None, covers=None, bios=None):
     if bios: shutil.copy2(bios,out/ASSETS/'gbc_bios.bin')
     for rel in ('','meta','folders'): (out/SAVES.lstrip('/')/rel).mkdir(parents=True,exist_ok=True)
     receipt={'format':9,'rom_count':len(inventory),'pack_count':len(outputs),'rom_copies':0,'source_writes':0,
-             'source_refs':inventory,'warnings':warnings,'bios_included':bool(bios),
+             'source_refs':inventory,'excluded':excluded,'warnings':warnings,'bios_included':bool(bios),
              'files':[{'path':p.relative_to(out).as_posix(),'sha256':sha(p),'bytes':p.stat().st_size} for p in sorted(out.rglob('*')) if p.is_file()]}
     (out/'library-manifest.json').write_text(json.dumps(receipt,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
     return receipt
@@ -233,9 +241,10 @@ def main():
     p.add_argument('--titles',help='UTF-8 JSON mapping relative ROM paths to display titles')
     p.add_argument('--covers',help='Optional PNG tree matching ROM paths relative to card')
     p.add_argument('--bios',help='Your own 2304-byte GBC BIOS (optional; required before play)')
+    p.add_argument('--skip-invalid',action='store_true',help='Record and exclude unsupported ROM sizes; never modify input files')
     args=p.parse_args()
     try:
-        result=build(args.card,args.out,args.titles,args.covers,args.bios)
+        result=build(args.card,args.out,args.titles,args.covers,args.bios,skip_invalid=args.skip_invalid)
     except (OSError,ValueError) as error:
         p.exit(2,str(error)+'\n')
     print(json.dumps({k:result[k] for k in ('rom_count','pack_count','rom_copies','source_writes','bios_included')},ensure_ascii=False))

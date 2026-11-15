@@ -11,7 +11,23 @@ REJECTED_CANDIDATES={
     '5f8f36f9414f7efc056d8c9aedf59fe1eced262ef50a37eb1315b79c7c15fb84':
         'GBA CoverFlow .5 returned operation failed on hardware; accepted .3 was restored',
     '67b91aab041bdab26443bed34e856124fdaf50ec4f689afe5765aceaf3cf6a4d':
-        'GBA CoverFlow .6 freezes after opening a child page on hardware; covers missing and input unresponsive'
+        'GBA CoverFlow .6 freezes after opening a child page on hardware; covers missing and input unresponsive',
+    'd1d17a0c19216bf549cb07708e93bc5a7730c897e1d7df34ccd7427b2a8b13dc':
+        'GBA CoverFlow .7 intermittently reports operation failed during use on hardware',
+    '24306de872a9bab19d52b518940bfa18fd79eabbb0c76e9386302be52f35194b':
+        'SNES CoverFlow .2 is black before the menu; menu refresh exceeds the APF video limit',
+    '1bf2efba4aec704faed20570a444ae8604b3055767007a930b2285e16dee3848':
+        'CPS2 CoverFlow .1 is black before the menu on hardware',
+}
+VALIDATION_REJECTED_CANDIDATES={
+    'df5c40d7c78904510516fb93c19834e521fb008be9453053220472fdd3f4f66f':
+        'CPS1 intermediate build inherits the reproduced native EEPROM ERASE_ALL initialization defect',
+    '02c532fe66f8db2016cfcf085265bde7351c6ef9cfb8cfc61c5480230a742ad2':
+        'CPS1.5 intermediate build inherits the reproduced native EEPROM ERASE_ALL initialization defect',
+    '5f52732fb8ebe51e0f5cc7c8c2e424535cc32939edd564908224381ac6680e20':
+        'CPS2 intermediate .3 inherits the reproduced native EEPROM ERASE_ALL initialization defect',
+    '9b02d9deaa37ed4312c18259dcacc289e462d092c7e411ff4e44a85cfba3fb03':
+        'CPS2 .2 fails native SPI parameter/NVRAM readback and per-game configuration in protocol simulation',
 }
 
 
@@ -22,6 +38,8 @@ def check_candidate_bitstream(path):
     digest=h.hexdigest()
     if digest in REJECTED_CANDIDATES:
         raise ValueError('Device-rejected APF candidate: '+REJECTED_CANDIDATES[digest])
+    if digest in VALIDATION_REJECTED_CANDIDATES:
+        raise ValueError('Validation-rejected APF candidate: '+VALIDATION_REJECTED_CANDIDATES[digest])
     return digest
 
 

@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: MIT
 """Original pixel illustrations for native Pocket menu covers; no runtime logic."""
 from functools import lru_cache
+import re
 from PIL import Image, ImageDraw
 
 LABELS = {
@@ -10,11 +11,52 @@ LABELS = {
     '6.PUZZLE TABLE': '益智桌面', '7.STRATEGY': '策略模拟', '8.OTHER': '其他游戏',
     '9.ALL GAMES': '全量备选', '9.ADVENTURE': '冒险解谜',
     '90.Originals': '原版备选', '90.Hacks': '改版作品', '99.Versions': '备选版本',
+    '8.HACKS': '改版作品', '99.Classics': '经典精选', 'GG ALL GAME': '全部游戏',
 }
 
 
+# Display aliases are independent of folder numbering, paths and save identities.
+FOLDER_SERIES = {
+    'zelda': '塞尔达传说', 'the legend of zelda': '塞尔达传说',
+    'golden sun': '黄金太阳', 'fire emblem': '火焰纹章', 'castlevania': '恶魔城',
+    'pokemon': '宝可梦', 'pokémon': '宝可梦', 'final fantasy': '最终幻想',
+    'dragon quest': '勇者斗恶龙', 'metroid': '密特罗德', 'mega man': '洛克人',
+    'wario': '瓦力欧', 'yoshi': '耀西', 'mario': '马力欧', 'kirby': '星之卡比',
+    'donkey kong': '森喜刚', 'sonic and tails': '索尼克与塔尔斯', 'sonic': '索尼克',
+    'shining': '光明系列', 'phantasy star': '梦幻之星', 'mana': '圣剑传说',
+    'chrono': '时空系列', 'harvest moon': '牧场物语', 'tales': '传说系列',
+    'ys': '伊苏', 'earthbound': '地球冒险', 'super robot wars': '超级机器人大战',
+    'gundam': '高达', 'dragon ball': '龙珠', 'digimon': '数码宝贝',
+    'naruto': '火影忍者', 'one piece': '海贼王', 'yu-gi-oh': '游戏王',
+    'contra': '魂斗罗', 'ninja gaiden': '忍者龙剑传', 'tmnt': '忍者神龟',
+    'double dragon': '双截龙', 'streets of rage': '怒之铁拳', 'shinobi': '忍者系列',
+    'bomberman': '炸弹人', 'wonder boy': '神奇小子', 'klonoa': '风之克罗诺亚',
+    'saga': '沙加系列', 'langrisser': '梦幻模拟战', 'advance wars': '高级战争',
+    'metal gear': '合金装备', 'metal slug': '合金弹头', 'resident evil': '生化危机',
+    'street fighter': '街头霸王', 'king of fighters': '拳皇', 'samurai shodown': '侍魂',
+    'batman': '蝙蝠侠', 'spider-man': '蜘蛛侠', 'mickey and donald': '米奇与唐老鸭',
+    'adventure island': '冒险岛', 'bonk': '原人系列', 'r-type': '异形战机',
+    'gradius': '宇宙巡航机', 'tetris': '俄罗斯方块', 'pac-man': '吃豆人',
+    'bubble bobble': '泡泡龙', 'puyo puyo': '魔法气泡', 'kunio': '热血系列',
+    'goemon': '大盗五右卫门', 'shin megami tensei': '真女神转生',
+    'ghosts n goblins': '魔界村', 'doraemon': '哆啦A梦', 'sailor moon': '美少女战士',
+    'ultraman': '奥特曼', 'saint seiya': '圣斗士星矢', 'jurassic park': '侏罗纪公园',
+    'aleste': 'ALESTE 系列', 'neutopia': 'NEUTOPIA 系列', 'shantae': '香缇',
+    'pitfall': '丛林冒险', 'lode runner': '淘金者', 'breath of fire': '龙战士',
+    'boktai': '我们的太阳', 'detective conan': '名侦探柯南',
+}
+
+
+def folder_label(name):
+    """Translate known categories and series while preserving unknown names."""
+    if name in LABELS:
+        return LABELS[name]
+    bare = re.sub(r'^\d+[. _-]+', '', name).strip().casefold()
+    return FOLDER_SERIES.get(bare, name)
+
+
 def kind(name):
-    name = LABELS.get(name, name)
+    name = folder_label(name)
     for word, icon in (
         ('GBC', 'gbc'), ('GBA', 'gba'), ('GB', 'gb'), ('SNES', 'snes'), ('NES', 'nes'),
         ('SFC', 'snes'), ('FC', 'nes'), ('返回', 'back'), ('格斗', 'fighting'),

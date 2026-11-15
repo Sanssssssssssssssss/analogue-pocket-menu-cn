@@ -34,7 +34,7 @@ set_max_delay 10.000 -from [get_ports {sram_dq[*]}] -to $cf_sram_clock
 set_min_delay -10.000 -from [get_ports {sram_dq[*]}] -to $cf_sram_clock
 '''
 
-def controller(text,exit_paths=1,cellram=False,associative=False):
+def controller(text,exit_paths=1,cellram=False,associative=False,cover_recovery=False):
     if associative and not cellram:raise ValueError('Physical upload fence required for associative GBA cache')
     text=replace(text,'// GBAF1 page reader and GBA launch/save lifecycle, clocked by the APF bridge.',
         '// GBAF2 CoverFlow adapter; inherited GBA launch, ordinary save and RTC lifecycle.')
@@ -165,7 +165,54 @@ def controller(text,exit_paths=1,cellram=False,associative=False):
             'cf_art_game<=cf_wanted_game;cf_loaded_slot<=cf_wanted_slot;cf_chunk<=0;state<=CF_ART_REQ;')
         text=replace(text,"32'h42000000+({25'd0,cf_art_game[6:0]}<<16)+cf_chunk_offset,",
             "32'h42000000+({29'd0,cf_loaded_slot}<<16)+cf_chunk_offset,")
+    if associative or cover_recovery:
+        if not cellram:raise ValueError('Cover recovery requires the upload drain fence')
+        text=replace(text,'reg [10:0] cf_art_game=0;',
+            'reg [10:0] cf_art_game=0;\n    reg cf_art_unavailable=0;')
+        text=replace(text,'    task automatic paint(','''    task automatic skip_cover_art;
+        begin
+            // An incomplete atlas may have overwritten an old slot. Keep the
+            // titles and controls working with placeholders until the next Run.
+            cf_art_unavailable<=1;cf_invalidate<=1;state<=MENU;
+        end
+    endtask
+    task automatic paint(''')
+        text=replace(text,'cf_invalidate<=0;cf_commit<=0;cf_go<=0;cf_generation<=0;',
+            'cf_invalidate<=0;cf_commit<=0;cf_go<=0;cf_generation<=0;cf_art_unavailable<=0;')
+        text=replace(text,"if(cf_fetch_fault)fail(8'h74);",'if(!cf_art_unavailable && cf_fetch_fault)skip_cover_art();',2)
+        text=replace(text,'else if(cf_want_art && !game_bound && io_idle)',
+            'else if(!cf_art_unavailable && cf_want_art && !game_bound && io_idle)')
+        text=replace(text,"CF_ART_DONE:if(result!=0)fail(8'h70);",
+            'CF_ART_DONE:if(result!=0 || cf_fetch_fault)skip_cover_art();')
+        text=replace(text,"else if(timer>=(FRAME_TIMEOUT<TIMEOUT ? FRAME_TIMEOUT:TIMEOUT))fail(8'h71);",
+            'else if(timer>=(FRAME_TIMEOUT<TIMEOUT ? FRAME_TIMEOUT:TIMEOUT))skip_cover_art();')
     return text
+
+def retry_art(text):
+    """Retry optional art only after transport, cache and raster have drained."""
+    text=replace(text,'reg cf_art_unavailable=0;', '''reg cf_art_unavailable=0;
+    reg [1:0] cf_art_retries=0,cf_recovery_frames=0;
+    localparam CF_RECOVER_FRAME=54,CF_RECOVER_CLEAR=55,CF_RECOVER_DRAIN=56;''')
+    text=replace(text,'cf_art_unavailable<=1;cf_invalidate<=1;state<=MENU;', '''cf_art_unavailable<=1;cf_invalidate<=1;timer<=0;cf_recovery_frames<=0;
+            if(cf_art_retries<2)begin cf_art_retries<=cf_art_retries+1'b1;state<=CF_RECOVER_FRAME;end
+            else state<=MENU;''')
+    text=replace(text,'cf_generation<=0;cf_art_unavailable<=0;',
+        'cf_generation<=0;cf_art_unavailable<=0;cf_art_retries<=0;cf_recovery_frames<=0;')
+    text=replace(text,'else begin selected<=0;cf_pending<=0;cf_invalidate<=1;cf_menu<=1;cf_level_target<=0;state<=RECORD_REQ;end',
+        'else begin selected<=0;cf_pending<=0;cf_invalidate<=1;cf_menu<=1;cf_level_target<=0;cf_art_unavailable<=0;cf_art_retries<=0;state<=RECORD_REQ;end')
+    return replace(text,'            53:state<=MENU;', '''            53:state<=MENU;
+            // Two raster ticks retire every old visible-slot snapshot. No APF
+            // command is in flight here: only completed optional reads retry.
+            CF_RECOVER_FRAME:begin
+                if(cf_frame_tick && cf_recovery_frames<2)cf_recovery_frames<=cf_recovery_frames+1'b1;
+                if(cf_recovery_frames==2 && cf_mem_idle && io_idle)state<=CF_RECOVER_CLEAR;
+                else if(timer>=FRAME_TIMEOUT)state<=MENU;
+            end
+            CF_RECOVER_CLEAR:begin cf_invalidate<=1;timer<=0;state<=CF_RECOVER_DRAIN;end
+            CF_RECOVER_DRAIN:if(timer>=SETTLE_CYCLES && cf_mem_idle && io_idle && !cf_fetch_fault)begin
+                    cf_art_unavailable<=0;state<=MENU;
+                end else if(timer>=FRAME_TIMEOUT)state<=MENU;''')
+
 
 def share_color_blend(text):
     a=text.index('reg [23:0] h_out;');z=text.index('always @(posedge clk_vid) begin\n    hr_hs<=0;',a)
@@ -187,10 +234,80 @@ end
 '''+text[z:]
 
 
+def retime_cpu(text):
+    # The existing multiply state has four clocks (wait=3..0). Keep its
+    # architectural timing and put the arithmetic stages in those clocks.
+    text=replace(text,'   signal mul_product       : unsigned(63 downto 0);','''   signal mul_signed_mode   : std_logic;
+   signal mul_low_low       : unsigned(31 downto 0);
+   signal mul_low_high      : signed(33 downto 0);
+   signal mul_high_low      : signed(33 downto 0);
+   signal mul_high_high     : signed(33 downto 0);
+   signal mul_middle        : signed(34 downto 0);
+   signal mul_product       : unsigned(63 downto 0);
+
+   function sum_three(a,b,c : signed(34 downto 0)) return signed is
+      variable carry : signed(34 downto 0);
+   begin
+      carry := shift_left((a and b) or (a and c) or (b and c),1);
+      return (a xor b xor c) + carry;
+   end function;''')
+    text=replace(text,'                           mul_stage <= MULCALCMUL;\n                           mul_wait  <= 3;',
+                 '                           mul_signed_mode <= execute_mul_long and execute_mul_signed;\n'
+                 '                           mul_stage <= MULCALCMUL;\n                           mul_wait  <= 3;')
+    text=replace(text,'''                        if (execute_mul_long = '0' or execute_mul_signed = '0') then
+                           mul_product <= mul_op1 * mul_op2;
+                        else
+                           mul_product <= unsigned(signed(mul_op1) * signed(mul_op2));
+                        end if;
+                        mul_result <= mul_product;''','''                        case mul_wait is
+                           when 3 =>
+                              mul_low_low <= mul_op1(15 downto 0) * mul_op2(15 downto 0);
+                              mul_low_high <= signed('0' & mul_op1(15 downto 0)) *
+                                 signed((mul_signed_mode and mul_op2(31)) & mul_op2(31 downto 16));
+                              mul_high_low <= signed((mul_signed_mode and mul_op1(31)) & mul_op1(31 downto 16)) *
+                                 signed('0' & mul_op2(15 downto 0));
+                              mul_high_high <= signed((mul_signed_mode and mul_op1(31)) & mul_op1(31 downto 16)) *
+                                 signed((mul_signed_mode and mul_op2(31)) & mul_op2(31 downto 16));
+                           when 2 =>
+                              mul_middle <= sum_three(signed(resize(mul_low_low(31 downto 16),35)),
+                                 resize(mul_low_high,35),resize(mul_high_low,35));
+                           when 1 =>
+                              mul_product <= (unsigned(mul_high_high(31 downto 0)) +
+                                 unsigned(resize(mul_middle(34 downto 16),32))) &
+                                 unsigned(mul_middle(15 downto 0)) & mul_low_low(15 downto 0);
+                           when 0 => mul_result <= mul_product;
+                        end case;''')
+    # Select ADD/ADC during the arithmetic stage, before the writeback mux.
+    at=text.index('      variable mul_low_sum')
+    text=text[:at]+'''      variable add_carry : std_logic;
+      variable add_sum : unsigned(33 downto 0);
+'''+text[at:]
+    start=text.index('                           when alu_add =>',text.index('                     when ALUCALC'))
+    end=text.index('                           when alu_sub_withcarry =>',start)
+    text=text[:start]+'''                           when alu_add | alu_add_withcarry =>
+                              add_carry := '0';
+                              if execute_functions_detail=alu_add_withcarry then add_carry := Flag_Carry; end if;
+                              add_sum := ('0' & alu_op1 & add_carry) + ('0' & alu_op2 & add_carry);
+                              alu_result_add <= add_sum(33 downto 1);
+                              alu_result <= add_sum(32 downto 1);
+
+                           when alu_sub =>
+                              alu_result <= alu_op1 - alu_op2;
+
+'''+text[end:]
+    return replace(text,'''                        if (execute_functions_detail = alu_add or execute_functions_detail = alu_add_withcarry) then
+                           calc_result <= alu_result_add(31 downto 0);
+                        else
+                           calc_result <= alu_result;
+                        end if;''','''                        calc_result <= alu_result;''')
+
+
 def prepare(source,out):
     out=base.prepare(source,out,True)
+    cpu=out/'src/fpga/gba/gba_cpu.vhd'
+    cpu.write_text(retime_cpu(cpu.read_text(encoding='utf8')),encoding='utf8',newline='\n')
     core=out/'src/fpga/core';top=core/'core_top.sv'
-    (core/'gba_menu.sv').write_text(controller((core/'gba_menu.sv').read_text(encoding='utf8'),cellram=True,associative=True),encoding='utf8',newline='\n')
+    (core/'gba_menu.sv').write_text(retry_art(controller((core/'gba_menu.sv').read_text(encoding='utf8'),cellram=True,associative=True)),encoding='utf8',newline='\n')
     sys.path.insert(0,str(ROOT/'experiments/coverflow_shared'))
     from prepare_assoc import build as shared_prepare
     shared=shared_prepare(ROOT/'.work/coverflow-delivery'/('assoc-'+out.name))

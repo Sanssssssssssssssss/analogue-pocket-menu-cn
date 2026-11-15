@@ -97,7 +97,7 @@ class FilenameInstall(unittest.TestCase):
         for kind, value in contents.items():
             delivery.write(core/(kind+'.json'), value)
         put(core/(platform+'.rbf_r'), b'synthetic '+platform.encode()+b' bitstream')
-        delivery.write(package/f'core/Platforms/{ns}.json', {})
+        delivery.write(package/f'core/Platforms/{ns}.json', {'platform': {'name':name,'category':'Handhelds'}})
         put(package/f'core/Platforms/_images/{ns}.bin', b'synthetic icon')
         delivery.write(package/'build-receipt.json', {'core': 'pocketlab.'+short, 'version': 'fixture',
                        'minimum_slack_ns': 1, 'minimum_reported_slack_ns': 1, 'timing_records': 72,

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: MIT
-"""Plan/apply a backed-up F1->F2 update of an existing GBA menu entry.
+"""Plan/apply a backed-up CoverFlow update of an existing GBA menu entry.
 
 Only the owned bitstream/version, appended menu scaler and menu packs change.
 Original game/save identities, game display modes and settings are preserved.
@@ -16,7 +16,11 @@ sha,safe_path,identity,publish=base.sha,base.safe_path,base.identity,base.publis
 from display_styles import configure as configure_display
 from apf_metadata import REQUIRED_JSON,check_candidate_bitstream
 CORE='Cores/pocketlab.GBA/'
-KNOWN_SOURCE={'73226a39e7fd25429ef939d0fd2668902b28674823c9ec65e1a0f0da13771af8'}
+KNOWN_SOURCE={
+    '73226a39e7fd25429ef939d0fd2668902b28674823c9ec65e1a0f0da13771af8',
+    'd1d17a0c19216bf549cb07708e93bc5a7730c897e1d7df34ccd7427b2a8b13dc',
+    '3d162bbfb88ff0992f71be06eba429fd206b74989c7fe4ba4a1468e3b7be90dc',
+}
 MENU_MODE={'width':320,'height':288,'aspect_w':10,'aspect_h':9,'rotation':0,'mirror':0}
 
 def allowed(root,rel):
@@ -38,7 +42,7 @@ def records(path):
         if any(len(row)!=1024 or row[:4]!=b'ENT1' for row in rows):raise ValueError('Invalid launch records')
     return version,[row[:16]+row[24:] for row in rows]
 
-def stage(card,package,library,out,display_profile=False):
+def stage(card,package,library,out,display_profile=False,*,rebuild_library=False):
     card,package,library,out=map(lambda p:Path(p).resolve(),(card,package,library,out))
     if out.exists() or any(out.is_relative_to(p) or p.is_relative_to(out) for p in (card,package,library)):raise ValueError('Fresh separate staging required')
     ident=identity(card)
@@ -52,27 +56,47 @@ def stage(card,package,library,out,display_profile=False):
         rel=CORE+filename;record=by_name.get(rel);path=safe_path(package/'core',rel)
         if record is None or path.stat().st_size!=record['bytes'] or sha(path)!=record['sha256']:
             raise ValueError('Candidate APF definition missing or changed: '+rel)
-    candidate=base.check_core(package/'core'/CORE)['metadata']
+    packaged_core=base.check_core(package/'core'/CORE)
+    candidate=packaged_core['metadata']
     if candidate['version']!=build['version']:raise ValueError('Candidate version differs from build receipt')
     current=allowed(card,binary)
-    if sha(current) not in KNOWN_SOURCE | {item['sha256']}:raise ValueError('Current core is not the retained accepted source or this candidate')
-    base.check_core(current.parent)
+    if sha(current) not in KNOWN_SOURCE | {item['sha256']}:
+        raise ValueError('Current core is outside the verified update paths')
+    current_core=base.check_core(current.parent)
     slots=json.loads(safe_path(card,CORE+'data.json').read_text())['data']['data_slots']
     if [s['id'] for s in slots]!=[100,4,1,10,11]:raise ValueError('Installed APF slot layout differs')
     for row in lib['roms']:
         if not row['path'].startswith('Assets/gba/common/'):raise ValueError('ROM outside GBA library')
         p=safe_path(card,row['path'])
         if p.stat().st_size!=row['bytes'] or sha(p)!=row['sha256']:raise ValueError('ROM changed since library preparation: '+row['path'])
+    if (current_core['cores']!=packaged_core['cores']
+            or current_core['metadata']['platform_ids']!=candidate['platform_ids']):
+        raise ValueError('GBA update changes the core identity')
+    packaged_slots=json.loads(safe_path(package/'core',CORE+'data.json').read_bytes())['data']['data_slots']
+    if slots!=packaged_slots:
+        raise ValueError('GBA update changes existing data-slot bindings')
+    bios=safe_path(card,'Assets/gba/common/gba_bios.bin')
+    if bios.stat().st_size!=16384:
+        raise ValueError('Provide your own 16384-byte BIOS in existing GBA assets')
+    from menu_bindings import existing,validate
+    guards=[{'path':bios.relative_to(card).as_posix(),'bytes':16384,'sha256':sha(bios)}]
+    if rebuild_library:
+        validate(library,lib,'GBA','GBAF2')
+        old_version,_=records(allowed(card,'Assets/gbalab/common/menu.bin'))
+        guards.extend(existing(card,'GBA',refs=lib['roms'],menu_format=f'GBAF{old_version}'))
     pages=[]
     for item_page in lib['files']:
         rel=item_page['path'];new=allowed(library,rel);old=allowed(card,rel)
         if new.stat().st_size!=item_page['bytes'] or sha(new)!=item_page['sha256']:raise ValueError('Staged menu changed')
-        old_version,old_records=records(old);new_version,new_records=records(new)
-        if new_version!=2 or old_records!=new_records:raise ValueError('Launch/save/RTC identity changed: '+rel)
+        if not rebuild_library:
+            _,old_records=records(old);new_version,new_records=records(new)
+            if new_version!=2 or old_records!=new_records:
+                raise ValueError('Menu format or launch/save/RTC identity changed: '+rel)
         pages.append((rel,new,item_page))
     metadata=json.loads(allowed(card,CORE+'core.json').read_text())
     metadata['core']['metadata'].update(version=candidate['version'],date_release=candidate['date_release'])
-    video=json.loads(allowed(card,CORE+'video.json').read_text())
+    original_video=allowed(card,CORE+'video.json').read_bytes()
+    video=json.loads(original_video)
     modes=video['video']['scaler_modes']
     if len(modes) not in (1,2) or (modes[0]['width'],modes[0]['height'],modes[0]['aspect_w'],modes[0]['aspect_h'])!=(240,160,3,2):raise ValueError('Game scaler settings differ')
     if len(modes)==2 and modes[1]!=MENU_MODE:raise ValueError('Existing scaler slot 1 is occupied')
@@ -82,15 +106,22 @@ def stage(card,package,library,out,display_profile=False):
     for rel,p,record in [(binary,allowed(package/'core',binary),item),*pages]:
         dest=allowed(out,rel);dest.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(p,dest)
     for rel,value in [(CORE+'core.json',metadata),(CORE+'video.json',video)]:
-        p=allowed(out,rel);p.parent.mkdir(parents=True,exist_ok=True);p.write_text(json.dumps(value,indent=2)+'\n')
+        p=allowed(out,rel);p.parent.mkdir(parents=True,exist_ok=True)
+        if rel.endswith('/video.json') and video==json.loads(original_video):
+            p.write_bytes(original_video)
+        else:
+            p.write_text(json.dumps(value,indent=2)+'\n')
     for p in sorted(x for x in out.rglob('*') if x.is_file()):
-        rel=p.relative_to(out).as_posix();previous=sha(allowed(card,rel));digest=sha(p)
+        rel=p.relative_to(out).as_posix();target=allowed(card,rel);digest=sha(p)
+        previous=sha(target) if target.exists() else None
         if previous!=digest:changes.append({'path':rel,'sha256':digest,'bytes':p.stat().st_size,'previous_sha256':previous})
     changes.sort(key=lambda c:(c['path']==binary,c['path']==CORE+'core.json',c['path']))
     result={'identity':ident,'changes':changes,'core_version':build['version'],'status':'staged_only','roms_verified':len(lib['roms']),'roms':lib['roms'],
         'pages_checked':len(pages),'game_scaler_modes_preserved':True,'game_display_modes_preserved':not display_profile,
         'display_profile_updated':display_profile,'OS_display_choice_writes':0,'save_writes':0,'rom_writes':0,'firmware_writes':0,'hardware_playtest':'pending'}
-    (out/'update-plan.json').write_text(json.dumps(result,indent=2)+'\n')
+    result['guards']=guards
+    if not rebuild_library:
+        (out/'update-plan.json').write_text(json.dumps(result,indent=2)+'\n')
     return result
 
 def apply(card,staging,backup):
@@ -98,12 +129,16 @@ def apply(card,staging,backup):
     if backup.exists() or any(backup.is_relative_to(p) or p.is_relative_to(backup) for p in (card,staging)):raise ValueError('Fresh separate backup required')
     result=json.loads((staging/'update-plan.json').read_text())
     if identity(card)!=result['identity']:raise ValueError('Different card')
+    for row in result.get('guards',[]):
+        path=safe_path(card,row['path'])
+        if path.stat().st_size!=row['bytes'] or sha(path)!=row['sha256']:raise ValueError('Required asset changed after staging')
     for row in result['roms']:
         if not row['path'].startswith('Assets/gba/common/'):raise ValueError('ROM outside GBA library')
         path=safe_path(card,row['path'])
         if path.stat().st_size!=row['bytes'] or sha(path)!=row['sha256']:raise ValueError('ROM changed after staging')
     for c in result['changes']:
         if sha(allowed(card,c['path']))!=c['previous_sha256'] or sha(allowed(staging,c['path']))!=c['sha256']:raise ValueError('Card/staging changed after plan')
+        if c['path']==CORE+'gba.rbf_r':check_candidate_bitstream(allowed(staging,c['path']))
     if shutil.disk_usage(card).free<sum(c['bytes'] for c in result['changes'])+32*1024**2:raise ValueError('Insufficient card space')
     progress=[p for name in ('Saves/gbalab','Saves/gba') for p in (card/name).rglob('*') if p.is_file()]
     needed=sum(allowed(card,c['path']).stat().st_size for c in result['changes'])+sum(p.stat().st_size for p in progress)+1024**2
@@ -141,6 +176,7 @@ def rollback(card,backup,execute=False):
         actual=sha(allowed(card,c['path']))
         if actual==c['previous_sha256']:continue
         if actual!=c['sha256'] or sha(allowed(backup/'previous',c['path']))!=c['previous_sha256']:raise ValueError('Changed file; refusing rollback')
+        if execute and c['path']==CORE+'gba.rbf_r':check_candidate_bitstream(allowed(backup/'previous',c['path']))
         changes.append(c)
     if execute:
         for c in changes:

@@ -14,7 +14,7 @@ visual=importlib.util.module_from_spec(spec);spec.loader.exec_module(visual)
 ASSETS='Assets/neslab/common';SAVES='Saves/neslab/common'
 
 def path_bytes(value,platform='nes',namespace='neslab'):
-    if (platform,namespace) not in [('nes','neslab'),('snes','snescn')]:raise ValueError('Unknown menu profile')
+    if (platform,namespace) not in [('nes','neslab'),('snes','snescn'),('pce','pcelab'),('genesis','mdclab'),('jtcps2','cpslab')]:raise ValueError('Unknown menu profile')
     if not value.startswith('/') or len(value.encode('utf8'))>=256:raise ValueError('Invalid APF path length')
     parts=PurePosixPath(value).parts
     if '..' in parts or '\\' in value or ':' in value or '\0' in value:raise ValueError('Unsafe APF path')

@@ -14,7 +14,7 @@ from PIL import Image, ImageDraw, ImageEnhance, ImageOps
 ROOT=Path(__file__).resolve().parents[2]
 sys.path.insert(0,str(ROOT/'tools'))
 import build_library as gb
-from menu_icons import LABELS, icon_image, kind
+from menu_icons import LABELS, icon_image, kind, folder_label
 
 PLATFORM='gbalab'
 ASSETS=f'Assets/{PLATFORM}/common'
@@ -35,8 +35,7 @@ def path_field(value):
 
 def text(image,value,y,color='#e8e6dd',center=True):
     glyphs=gb.font()
-    width,raw,clipped,missing=gb.columns(value,glyphs)
-    if missing:raise ValueError('Unavailable title characters: '+''.join(missing))
+    width,raw,_,_=gb.columns(value,glyphs)
     if width>232:raise ValueError('Display line exceeds 232 pixels')
     x=(240-width)//2 if center else 4
     draw=ImageDraw.Draw(image)
@@ -143,7 +142,7 @@ def build(card,out,titles=None,covers=None,folder_titles=None,skip_invalid=False
         parent=key.rsplit('/',1)[0] if '/' in key else ''
         ensure(parent)
         leaf=key.rsplit('/',1)[-1]
-        nodes[key]={'title':folder_titles.get(key,'GBA 游戏库' if key=='gba' else LABELS.get(leaf,leaf)),'parent':parent,'children':set(),'games':[]}
+        nodes[key]={'title':folder_titles.get(key,'GBA 游戏库' if key=='gba' else folder_label(leaf)),'parent':parent,'children':set(),'games':[]}
         nodes[parent]['children'].add(key)
     for file in sorted(base.rglob('*')):
         if not file.is_file() or file.suffix.lower()!='.gba':continue

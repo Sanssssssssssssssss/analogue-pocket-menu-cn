@@ -19,6 +19,9 @@ class UpdateSafety(unittest.TestCase):
         self.root=Path(self.temp.name);self.card=self.root/'card';self.card.mkdir()
         (self.card/'Analogue_Pocket.json').write_text(json.dumps({'product':'Analogue Pocket'}))
         games=self.card/'Assets/gba/common';games.mkdir(parents=True);(games/'Synthetic.gba').write_bytes(rom())
+        # A synthetic BIOS-sized fixture exercises the required-asset guard;
+        # no proprietary BIOS is used by these installation tests.
+        (games/'gba_bios.bin').write_bytes(bytes(16384))
         self.f1=self.root/'f1';old.build(self.card,self.f1)
         shutil.copytree(self.f1/'Assets',self.card/'Assets',dirs_exist_ok=True)
         self.f2=self.root/'f2';new.upgrade(self.f1,self.f2)

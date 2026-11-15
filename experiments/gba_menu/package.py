@@ -89,11 +89,11 @@ def stage(build,out,sources,motion=False,coverflow=False):
     for name in ('audio.json','input.json','interact.json','variants.json','video.json'):
         shutil.copy2(upstream/name,dst/name)
     meta=json.loads((upstream/'core.json').read_text())['core']
-    version='0.2.0-gba.7' if coverflow else '0.2.0-gba.4' if motion else '0.2.0-gba.3'
+    version='0.2.0-gba.10' if coverflow else '0.2.0-gba.4' if motion else '0.2.0-gba.3'
     meta['metadata'].update(platform_ids=['gbalab','gba'],shortname='GBA',
         description='Chinese GBA menu. L+R+Select: pause, save and return.',
         author='pocketlab',url='https://github.com/Sanssssssssssssssss/analogue-pocket-menu-cn',
-        version=version,date_release='2026-11-03' if coverflow else '2026-11-01' if motion else '2026-10-31')
+        version=version,date_release='2026-11-15' if coverflow else '2026-11-01' if motion else '2026-10-31')
     meta['framework']['sleep_supported']=False
     meta['cores']=[{'name':'default','id':0,'filename':'gba.rbf_r'}]
     (dst/'core.json').write_text(json.dumps({'core':meta},indent=2)+'\n')
@@ -133,7 +133,10 @@ def stage(build,out,sources,motion=False,coverflow=False):
     # No user BIOS, ROM or progress is ever copied by this packager.
     sources={p.relative_to(build).as_posix():sha(p) for p in (build/'src').rglob('*') if p.is_file() and not any(t in p.parts for t in ('build','db','incremental_db','output_files'))}
     sources['src/fpga/build/ap_core.qsf']=sha(build/'src/fpga/build/ap_core.qsf')
+    sources['src/fpga/build/ap_core.qpf']=sha(build/'src/fpga/build/ap_core.qpf')
     sources['src/fpga/build/gba_menu_error.hex']=sha(build/'src/fpga/build/gba_menu_error.hex')
+    if coverflow:
+        sources['src/fpga/build/font_cn.hex']=sha(build/'src/fpga/build/font_cn.hex')
     receipt={'core':CORE,'version':version,'hardware_playtest':'pending_coverflow_and_save_return' if coverflow else 'pending_motion_retest' if motion else 'pending_framebuffer_ownership_retest',
              'motion_candidate':motion,
              'coverflow_candidate':coverflow,'menu_format':'GBAF2' if coverflow else 'GBAF1',

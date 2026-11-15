@@ -18,7 +18,8 @@ SAVES='Saves/neslab/common/'
 def allowed(root,rel):
     if not (re.fullmatch(r'Cores/pocketlab\.NES/(?:core|data|audio|input|interact|variants|video)\.json',rel)
         or rel==CORE+'nes.rbf_r' or rel in ('Platforms/neslab.json','Platforms/_images/neslab.bin',ASSETS+'menu.bin')
-        or re.fullmatch(ASSETS+r'libs/[0-9a-f]{16}\.bin',rel) or re.fullmatch(SAVES+r'[0-9a-f]{20}\.sav',rel)):
+        or re.fullmatch(ASSETS+r'libs/[0-9a-f]{16}\.bin',rel) or re.fullmatch(SAVES+r'[0-9a-f]{20}\.sav',rel)
+        or re.fullmatch(r'Assets/neslab/cheat/[0-9a-f]{20}\.cht',rel)):
         raise ValueError('Outside isolated NES namespace: '+rel)
     return safe_path(root,rel)
 
@@ -36,13 +37,19 @@ def verify_roms(card,refs):
     return by_name
 
 
-def plan(card,package,library,offline_source=False,refresh=False):
+def plan(card,package,library,offline_source=False,refresh=False,upgrade_out=None):
     card,package,library=map(lambda p:Path(p).resolve(),(card,package,library))
     if any(p.is_relative_to(card) or card.is_relative_to(p) for p in (package,library)):raise ValueError('Staging must be outside card')
     ident={'root':str(card),'scope':'read-only offline archive; actual card identity required before writes'} if offline_source else identity(card)
     build=json.loads((package/'build-receipt.json').read_text())
     lib=json.loads((library/'library-manifest.json').read_text(encoding='utf8'))
     if build.get('core')!='pocketlab.NES' or build.get('menu_format')!='GBAF2/NES' or lib.get('format')!='GBAF2/NES' or build['minimum_slack_ns']<0 or build['timing_records']<40:raise ValueError('Matching timing-checked NES CoverFlow components required')
+    native_cheats = build.get('features') == ['PLCH1']
+    if build.get('features', []) != lib.get('features', []):
+        raise ValueError('NES library and native feature core must use the same schema')
+    if native_cheats:
+        import core_candidates
+        core_candidates.validate(package, 'NES')
     refs=verify_roms(card,lib['source_refs']);changes=[];seen=set()
     for root,manifest in [(package/'core',build),(library,lib)]:
         for item in manifest['files']:
@@ -57,7 +64,7 @@ def plan(card,package,library,offline_source=False,refresh=False):
     meta=check_core(package/'core'/CORE)
     if meta['metadata']['platform_ids']!=['neslab','nes'] or meta['framework']['sleep_supported']:raise ValueError('Unexpected platform/sleep profile')
     slots=json.loads((package/'core'/CORE/'data.json').read_text())['data']['data_slots']
-    if [s['id'] for s in slots]!=[100,0,10,11]:raise ValueError('APF datatable order differs')
+    if [s['id'] for s in slots]!=[100,0,10,11]+([12] if native_cheats else []):raise ValueError('APF datatable order differs')
     pages={c['path'] for c in changes if c['path'].startswith(ASSETS)}
     for rel in pages:
         raw=allowed(library,rel).read_bytes()
@@ -75,7 +82,8 @@ def plan(card,package,library,offline_source=False,refresh=False):
                 source=refs.get(values[0].lstrip('/'))
                 if source is None or int.from_bytes(row[8:12],'little')!=source['bytes']:raise ValueError('Menu ROM identity missing')
                 tag=source['sha256'][:20]
-                if values[1:]!=['/'+SAVES+tag+'.sav','/'+SAVES+tag+'.rtc']:raise ValueError('Foreign progress identity')
+                third='/Assets/neslab/cheat/'+tag+'.cht' if native_cheats else '/'+SAVES+tag+'.rtc'
+                if values[1:]!=['/'+SAVES+tag+'.sav',third]:raise ValueError('Foreign progress identity')
                 save=values[1].lstrip('/')
                 path=allowed(library,save) if save.casefold() in seen else allowed(card,save)
                 if not path.is_file() or path.stat().st_size!=262144:raise ValueError('Seeded progress missing')
@@ -85,9 +93,21 @@ def plan(card,package,library,offline_source=False,refresh=False):
     result={'identity':ident,'changes':changes,'source_refs':lib['source_refs'],'core_version':build['version'],
         'status':'offline_validation_only' if offline_source else 'plan_only','source_writes':0,'firmware_writes':0,'original_save_writes':0,'hardware_acceptance':'pending'}
     if refresh:
-        guards=menu_bindings.existing(card,'NES',refs=lib['source_refs'])
-        result.update(refresh_library_plan(card,package/'core',changes,CORE))
+        matches={ref['sha256'][:20]:False for ref in lib['source_refs']}
+        matches.update({row['rom_sha256'][:20]:True for row in lib.get('cheats',[])})
+        guards=menu_bindings.existing(card,'NES',new_cheats=matches,refs=lib['source_refs'])
+        if native_cheats and sha(card/CORE/'nes.rbf_r') != sha(package/'core'/CORE/'nes.rbf_r'):
+            if upgrade_out is None:
+                raise ValueError('Native NES upgrade requires the backed-up batch delivery workflow')
+            result.update(core_candidates.upgrade(card,package,changes,CORE,'NES',upgrade_out))
+        else:
+            result.update(refresh_library_plan(card,package/'core',changes,CORE))
         result['guards']+=guards
+    for ref in lib.get('cheat_source_refs', []):
+        actual=allowed(card,ref['path'])
+        if not ref['path'].startswith('Assets/neslab/cheat/') or actual.stat().st_size!=ref['bytes'] or sha(actual)!=ref['sha256']:
+            raise ValueError('Retained cheat source changed')
+        result.setdefault('guards',[]).append(ref)
     return result
 
 

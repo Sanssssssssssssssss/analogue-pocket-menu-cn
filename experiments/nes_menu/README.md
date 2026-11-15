@@ -1,5 +1,7 @@
 # FC / NES 原生中文菜单候选
 
+本页记录早期静态菜单基础。2026-11-08 交付使用[独立 CoverFlow 版本](../nes_coverflow/README.md)，已有单机菜单、动画和基本启动反馈；当前范围见[完整交付状态](../../docs/COMPLETE-DELIVERY.md)。下文的静态页面和未验收状态属于早期记录。This page documents the earlier static-menu baseline; use the linked CoverFlow candidate for the current preview.
+
 独立核心 `pocketlab.NES`，使用原生 NES FPGA 实现。上游为 [agg23/openfpga-NES](https://github.com/agg23/openfpga-NES/tree/be5f1303a0df15d012155cb248b6174bb81e64b6)，不修改原 NES 核心或官方系统。
 
 `prepare_build.py` 校验固定 ZIP 的 SHA256，在 `.work` 新目录接入菜单、加载、视频和普通存档接口。`library.py` 从卡的 NES 精选目录生成本地菜单页，仅引用卡上 ROM，跳过备选目录与相同字节的重复文件。中文名称和封面由调用方提供，缺图保留占位。
