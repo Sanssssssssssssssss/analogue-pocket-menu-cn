@@ -2,6 +2,8 @@
 
 The 2026-11-16 development batch adds [Pokémon Mini](docs/ADDITIONAL-CORES.md), bringing the preview to 18 native menu groups including WonderSwan / Color, Supervision, Atari 2600 / 7800, Arduboy and CPS1 / CPS1.5. Mini passes offline animation, transfer, compilation and independent SRAM review; device acceptance remains pending. Neo Geo's Chinese menu remains research without a fully verified installable package. Each menu retains its native FPGA engine and a separate launch entry. Enable **Settings → Analogue OS → Group openFPGA** to collect Chinese menus under **CN Menu**, alongside the original core categories.
 
+`v0.5.0-preview.2` updates Windows artwork lookup: an unrecognized filename can use an unambiguous Chinese display alias, while conflicting names and ambiguous editions retain placeholders. The 18 core packages are unchanged. The frozen EXE passes independent prepare, install and rollback checks.
+
 GBA `.10` adds image-upload synchronization and bounded recovery; SNES `.3` corrects the menu refresh rate; CPS2 `.3` repairs APF completion, path/save read timing and per-game instance configuration. All three CPS candidates also repair native EEPROM ERASE_ALL initialization. The installer blocks intermediate binaries rejected by protocol validation. Offline checks precede delivery; physical acceptance of these repairs and new cores is pending. Historical failures remain in [device feedback](docs/DEVICE-FEEDBACK-2026-11-03.md), the [GBA records](experiments/gba_coverflow/README.md) and [console experiments](experiments/console_coverflow/README.md).
 
 The public stable release supports GB/GBC. Earlier GBA, NES and GG experiments have single-device launch feedback. See [development status](docs/COMPLETE-DELIVERY.md) for the current native previews, timing checks and hardware acceptance.
@@ -20,7 +22,7 @@ This image is output from the actual menu RTL simulation, using synthetic entrie
 
 ## Status
 
-**v0.1.2-public.1 is the GB/GBC reference release.** Its bitstream is identical to the 0.1.2 lab build whose Chinese menu, GB/GBC launch and folder-transition flash fix were user-confirmed on a Pocket running Analogue OS 2.5. The 18 native menu groups and Windows assistant are separately published as **v0.5.0-preview.1**, a development preview whose added cores still need device acceptance.
+**v0.1.2-public.1 is the GB/GBC reference release.** Its bitstream is identical to the 0.1.2 lab build whose Chinese menu, GB/GBC launch and folder-transition flash fix were user-confirmed on a Pocket running Analogue OS 2.5. The 18 native menu groups and Windows assistant are separately published as **v0.5.0-preview.2**, a development preview whose added cores still need device acceptance.
 
 - Chinese menu text and independent Unicode display titles, without renaming ROMs.
 - Folder navigation: A opens, B returns, including at the root.
@@ -34,7 +36,7 @@ Since 2026-11-01, the project has used [independent menus for each native core](
 
 ## Install
 
-For Windows, download `PocketLab-Windows-2026-11-16-preview.zip` from the [18-core development preview](https://github.com/Sanssssssssssssssss/analogue-pocket-menu-cn/releases/tag/v0.5.0-preview.1), check the accompanying `SHA256SUMS.txt`, extract the whole folder and run `PocketLab.exe`. Python is included.
+For Windows, download `PocketLab-Windows-2026-11-16-preview2.zip` from the [18-core development preview](https://github.com/Sanssssssssssssssss/analogue-pocket-menu-cn/releases/tag/v0.5.0-preview.2), check the accompanying `SHA256SUMS.txt`, extract the whole folder and run `PocketLab.exe`. Python is included.
 
 1. Keep your own ROMs under each platform's `Assets/<platform>/common/`, including subfolders. Select the newly connected card and a local workspace in the assistant.
 2. Inspect systems, prepare the library, and review excluded files, artwork and ordinary-save matches. Filenames supply titles; optional aliases and covers are not required to build a menu.
