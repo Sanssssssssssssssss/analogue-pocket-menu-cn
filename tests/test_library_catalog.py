@@ -98,6 +98,106 @@ class LibraryCatalog(unittest.TestCase):
                 store.get('https://raw.githubusercontent.com/owner/repo/main/absent.png')
         self.assertEqual(len(calls), 1)
 
+    def test_chinese_alias_finds_work_art_without_claiming_rom_identity(self):
+        aliases = self.root/'titles.json'
+        aliases.write_text(json.dumps({self.rel: '演示游戏 (汉化版)'}), encoding='utf8')
+        def fetch(url, limit):
+            return b'' if url.endswith('.dat') else self.fetch(url, limit)
+        result = catalog.enrich(self.card, self.root/'hinted', self.cache,
+                                local_titles=aliases, fetch=fetch)
+        row = result['games'][0]
+        self.assertEqual(result['matched_covers'], 1)
+        self.assertEqual(row['local_artwork_hint'], 'Demo')
+        self.assertEqual(row['title'], '演示游戏 (汉化版)')
+        self.assertFalse(row['content_identity_confirmed'])
+        self.assertEqual((self.card/self.rel).read_bytes(), self.rom)
+
+    def test_ambiguous_chinese_alias_does_not_choose_a_work(self):
+        aliases = self.root/'titles.json'
+        aliases.write_text(json.dumps({self.rel: '演示游戏'}), encoding='utf8')
+        def fetch(url, limit):
+            if url.endswith('.dat'):
+                return b''
+            if url.endswith('.csv'):
+                return 'Name EN,Name CN\nDemo,演示游戏\nDifferent sequel,演示游戏\n'.encode()
+            return self.fetch(url, limit)
+        result = catalog.enrich(self.card, self.root/'ambiguous', self.cache,
+                                local_titles=aliases, fetch=fetch)
+        self.assertEqual(result['matched_covers'], 0)
+        self.assertIsNone(result['games'][0]['local_artwork_hint'])
+        self.assertFalse(any(url.endswith('.png') for url in self.calls))
+
+    def test_local_display_alias_cannot_override_a_content_identified_work(self):
+        aliases = self.root/'titles.json'
+        aliases.write_text(json.dumps({self.rel: '另一个游戏'}), encoding='utf8')
+        def fetch(url, limit):
+            if url.endswith('.csv'):
+                return 'Name EN,Name CN\nDemo (USA),演示游戏\nOther game,另一个游戏\n'.encode()
+            if '/git/trees/' in url:
+                return json.dumps({'sha':'b'*40,'truncated':False,'tree':[
+                    {'type':'blob','path':'Named_Boxarts/Other game.png'}]}).encode()
+            return self.fetch(url, limit)
+        result = catalog.enrich(self.card, self.root/'content-first', self.cache,
+                                local_titles=aliases, fetch=fetch)
+        self.assertTrue(result['games'][0]['content_identity_confirmed'])
+        self.assertIsNone(result['games'][0]['local_artwork_hint'])
+        self.assertEqual(result['matched_covers'], 0)
+
+    def test_local_display_alias_preserves_a_catalog_recognized_filename(self):
+        recognized = 'Assets/gba/common/Demo (USA).gba'
+        (self.card/self.rel).rename(self.card/recognized)
+        aliases = self.root/'titles.json'
+        aliases.write_text(json.dumps({recognized: '另一个游戏'}), encoding='utf8')
+        def fetch(url, limit):
+            if url.endswith('.csv'):
+                return 'Name EN,Name CN\nDemo (USA),演示游戏\nOther game,另一个游戏\n'.encode()
+            if '/git/trees/' in url:
+                return json.dumps({'sha':'b'*40,'truncated':False,'tree':[
+                    {'type':'blob','path':'Named_Boxarts/Other game.png'}]}).encode()
+            return self.fetch(url, limit)
+        result = catalog.enrich(self.card, self.root/'filename-first', self.cache,
+                                local_titles=aliases, fetch=fetch)
+        self.assertIsNone(result['games'][0]['local_artwork_hint'])
+        self.assertEqual(result['matched_covers'], 0)
+
+    def test_conflicting_catalog_translations_do_not_make_a_known_file_unknown(self):
+        recognized = 'Assets/gba/common/Demo (USA).gba'
+        (self.card/self.rel).rename(self.card/recognized)
+        aliases = self.root/'titles.json'
+        aliases.write_text(json.dumps({recognized: '另一个游戏'}), encoding='utf8')
+        def fetch(url, limit):
+            if url.endswith('.dat'):
+                return b''
+            if url.endswith('.csv'):
+                return 'Name EN,Name CN\nDemo (USA),演示甲\nDemo (USA),演示乙\nOther game,另一个游戏\n'.encode()
+            if '/git/trees/' in url:
+                return json.dumps({'sha':'b'*40,'truncated':False,'tree':[
+                    {'type':'blob','path':'Named_Boxarts/Other game.png'}]}).encode()
+            return self.fetch(url, limit)
+        result = catalog.enrich(self.card, self.root/'conflicting-cn', self.cache,
+                                local_titles=aliases, fetch=fetch)
+        self.assertIsNone(result['games'][0]['local_artwork_hint'])
+        self.assertEqual(result['matched_covers'], 0)
+
+    def test_conflicting_chinese_work_names_do_not_enable_a_different_alias(self):
+        recognized = 'Assets/gba/common/演示游戏.gba'
+        (self.card/self.rel).rename(self.card/recognized)
+        aliases = self.root/'titles.json'
+        aliases.write_text(json.dumps({recognized: '另一个游戏'}), encoding='utf8')
+        def fetch(url, limit):
+            if url.endswith('.dat'):
+                return b''
+            if url.endswith('.csv'):
+                return 'Name EN,Name CN\nDemo,演示游戏\nDifferent sequel,演示游戏\nOther game,另一个游戏\n'.encode()
+            if '/git/trees/' in url:
+                return json.dumps({'sha':'b'*40,'truncated':False,'tree':[
+                    {'type':'blob','path':'Named_Boxarts/Other game.png'}]}).encode()
+            return self.fetch(url, limit)
+        result = catalog.enrich(self.card, self.root/'conflicting-work', self.cache,
+                                local_titles=aliases, fetch=fetch)
+        self.assertIsNone(result['games'][0]['local_artwork_hint'])
+        self.assertEqual(result['matched_covers'], 0)
+
 
 if __name__ == '__main__':
     unittest.main()
