@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.5.0-preview.2 — 2026-11-16
+
+- Fix missing artwork for unresolved filenames with an unambiguous Chinese display alias. Known names, content matches, translation conflicts and ambiguous artwork remain protected.
+- Rebuild the Windows assistant from the reviewed source. Independent frozen EXE checks cover preparation, installation, rollback and preservation of existing and newly created saves.
+- Keep all 18 native core packages unchanged. Neo Geo Chinese CoverFlow is still under timing review and is not bundled in this release.
+
+
 ## Experiment branch — GBA acceptance and Chinese captions, 2026-10-31
 
 - One Pocket user confirmed Chinese menus and game launch in `0.2.0-gba.3`; ordinary saves, RTC and save-return remain unconfirmed.

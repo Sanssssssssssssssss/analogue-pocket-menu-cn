@@ -6,6 +6,8 @@
 
 2026-11-16 开发批次加入 [Pokémon Mini](docs/ADDITIONAL-CORES.md)，与 WonderSwan / Color、Supervision、Atari 2600 / 7800、Arduboy、CPS1 / CPS1.5 等组成 18 组原生中文菜单。Mini 已通过离线动画、读写、编译和独立 SRAM 复核，实机仍待验收。Neo Geo 的中文菜单继续研究，尚无通过完整检查的安装包。CN 菜单可用官方分类集中显示：**Settings → Analogue OS → Group openFPGA → On**，然后进入 **CN Menu**。
 
+`v0.5.0-preview.2` 更新 Windows 助手的封面匹配：原文件名未识别时，可用唯一对应作品的中文别名补查；同名冲突和多版本图片继续保留占位图。18 组核心与前一预览版相同，实际 EXE 的准备、安装和回退已通过独立检查。
+
 GBA `.10` 增加图像上传同步与有限重试；SFC `.3` 修正菜单刷新率；CPS2 `.3` 修正 APF 完成握手、文件路径与存档读取时序，以及每次启动的实例配置。三个 CPS 候选还修正了原生 EEPROM 全片擦除的初始化遗漏。已被协议验证拒绝的中间位流会被安装助手拦截。新修复和新增核心经过离线检查后交付，实机效果仍待确认。历史失败版本与检查边界保留在[设备反馈](docs/DEVICE-FEEDBACK-2026-11-03.md)、[GBA 记录](experiments/gba_coverflow/README.md)及[主机核心记录](experiments/console_coverflow/README.md)。公开稳定二进制仍限 GB/GBC。
 
 ![本项目原生 RTL 输出的中文菜单预览](docs/images/menu-preview.png)
@@ -29,7 +31,7 @@ GBA `.10` 增加图像上传同步与有限重试；SFC `.3` 修正菜单刷新�
 | WS / Supervision / Atari / Arduboy / CPS1 / CPS1.5 / Pokémon Mini | 新增原生开发候选；游戏目录、存档边界和分类方法见[说明](docs/ADDITIONAL-CORES.md)。 |
 | Analogue OS 系统首页、系统设置汉化 | 不在当前功能范围；中文菜单运行于各机种的独立核心内 |
 
-GB/GBC 基础版为 **`v0.1.2-public.1`**，FPGA 程序与已获单机验收的 `0.1.2-cn-lab` 相同。18 组原生菜单和 Windows 助手作为 **`v0.5.0-preview.1` 开发预览**单独发布，新增核心仍需实机验收。启动游戏时的短暂闪屏和加载延迟不能据此宣称全部解决。
+GB/GBC 基础版为 **`v0.1.2-public.1`**，FPGA 程序与已获单机验收的 `0.1.2-cn-lab` 相同。18 组原生菜单和 Windows 助手作为 **`v0.5.0-preview.2` 开发预览**单独发布，新增核心仍需实机验收。启动游戏时的短暂闪屏和加载延迟不能据此宣称全部解决。
 
 历史记录：[GBA / NES / SNES 接口实验](experiments/multi_system/README.md)和[早期独立 GBA 核心接入](experiments/gba_menu/README.md)保留开发过程。`0.2.0-gba.3` 曾获单机中文菜单与游戏启动确认；这份旧版反馈不代表当前预览候选的完整验收。当前可安装的 18 组 Windows 开发预览见下方下载，普通存档、RTC、保存返回和游戏兼容性仍按机种分别记录与验收。
 
@@ -43,7 +45,7 @@ GB/GBC 的[机种图标菜单](docs/MACHINE-MENU.md)提供掌机图标 → 分�
 
 ## 快速开始
 
-Windows 用户下载 [18 组核心开发预览](https://github.com/Sanssssssssssssssss/analogue-pocket-menu-cn/releases/tag/v0.5.0-preview.1)中的 `PocketLab-Windows-2026-11-16-preview.zip`，核对同页 `SHA256SUMS.txt`，完整解压后运行 `PocketLab.exe`，无需安装 Python。
+Windows 用户下载 [18 组核心开发预览](https://github.com/Sanssssssssssssssss/analogue-pocket-menu-cn/releases/tag/v0.5.0-preview.2)中的 `PocketLab-Windows-2026-11-16-preview2.zip`，核对同页 `SHA256SUMS.txt`，完整解压后运行 `PocketLab.exe`，无需安装 Python。
 
 1. 把自备 ROM 放在相应 `Assets/<平台>/common/` 下，可使用子文件夹；在助手中选择本次连接的卡与电脑工作目录。
 2. 识别机种，准备游戏库并查看排除项、图文和旧存档报告。中文文件名直接显示；封面与别名可选，不含这些资料也能建库。
