@@ -310,8 +310,22 @@ def enrich(card, out, cache, systems=None, *, online=True, local_titles=None, lo
                     hinted_title, art_name, _ = resolve_name(hint, exact, stems, inverse)
                     if not chinese(rom.stem):
                         title, match = hinted_title, 'instance_name'
+            # Conflicting translations still identify a known catalog name;
+            # ambiguity must not enable a different local-alias artwork match.
+            unresolved_name = (match == 'filename' and art_name == rom.stem
+                               and key(rom.stem) not in exact
+                               and key(base(rom.stem)) not in stems
+                               and key(base(rom.stem)) not in inverse)
             if relative in aliases:
                 title, match = aliases[relative], 'local_alias'
+            # A retained Chinese display name can identify a representative
+            # cover even when the original filename is romanized. Only use a
+            # unique catalog work, and never contradict a content match.
+            local_art_hint = None
+            if relative in aliases and canonical is None and unresolved_name:
+                works = inverse.get(key(base(title)), set())
+                if len(works) == 1:
+                    local_art_hint = next(iter(works))
             titles[relative] = title
             destination = delivery.safe_path(out/'covers', str(Path(relative).with_suffix('.png')).replace('\\', '/'))
             cover_source = None
@@ -330,7 +344,11 @@ def enrich(card, out, cache, systems=None, *, online=True, local_titles=None, lo
                         source_issue(platform, 'artwork_index', exc)
                 # Exact or unique-title-family matches; ambiguous editions stay visible in the report.
                 names = list(dict.fromkeys([art_name, canonical, rom.stem]))
-                urls = thumbnail_urls(artwork[platform], names) if artwork[platform] else []
+                # Exhaust filename/content matches before considering the
+                # local display hint; a box image is not ROM identification.
+                urls = list(thumbnail_urls(artwork[platform], names)) if artwork[platform] else []
+                if artwork[platform] and local_art_hint:
+                    urls.extend(thumbnail_urls(artwork[platform], [local_art_hint]))
                 for url in dict.fromkeys(urls):
                     try:
                         raw = image_bytes(store.get(url, 4*1024*1024))
@@ -348,7 +366,8 @@ def enrich(card, out, cache, systems=None, *, online=True, local_titles=None, lo
                     except (OSError, ValueError) as exc:
                         source_issue(platform, 'artwork', exc)
             rows.append({'path': relative, 'title': title, 'match': match, 'cover': cover_source,
-                         'content_identity_confirmed': bool(canonical)})
+                         'content_identity_confirmed': bool(canonical),
+                         'local_artwork_hint': local_art_hint})
             if progress:
                 progress(len(rows), total, title)
     (out/'covers').mkdir(exist_ok=True)
