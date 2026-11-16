@@ -74,6 +74,7 @@ def allowed(root, rel, component):
     if component == 'WS':
         valid |= rel in {assets+'bw.rom',assets+'color.rom'}
     if component == 'NEOGEO':
+        valid |= rel == core+'licenses/FX68K-NOTICE.md'
         valid |= rel == assets+'bindings.json'
         valid |= bool(re.fullmatch(re.escape(assets)+r'plans/[0-9a-f]{24}\.ngp', rel))
         valid |= rel == 'Saves/ng/common/backup.bak'

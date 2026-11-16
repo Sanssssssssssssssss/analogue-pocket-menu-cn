@@ -9,7 +9,7 @@ Current release: **GB/GBC native Chinese menu**, with a device-confirmed impleme
 3. Complete grouped hardware acceptance of [GBA `.10`](../experiments/gba_coverflow/README.md), including CoverFlow navigation, cover-error recovery, ordinary saves, RTC and return. The old whole-page slide renderer is historical. The new candidate preserves CoverFlow interaction and supports verified upgrades from compatible earlier menus.
 4. Complete hardware gameplay and save checks of the [native console candidates](../experiments/console_coverflow/README.md). The new standard-NTSC SFC candidate passes timing; the earlier prototype's negative timing remains documented as history. Each core retains its native loading and save integration.
 
-当前十八组本地预览共用文件名建库和备份更新工具。Pokémon Mini 已增加独立 SRAM 复核；Neo Geo 的中文菜单继续修正内存控制，暂不发布安装包。下一步统一上机核对动画、游戏启动及存档。公开稳定版仍为 GB/GBC，未把离线通过计为实机通过。
+当前十九组预览共用文件名建库和备份更新工具。Neo Geo 已完成独立菜单、原生多槽装载、存档绑定及离线时序和外部内存复核；下一步统一上机核对动画、游戏启动、声音及保存。公开稳定版仍为 GB/GBC，其他机种为开发预览。
 
 Chip32 can select a bitstream during loading. The current [public host/target interface](https://www.analogue.co/developer/docs/openfpga/host-target-commands) does not expose a general command for a running menu to launch another installed core. An offline dispatcher experiment passed seven VM cases, but the simulator only logs CORE/HOST operations and the host explicitly triggers reload. That is not proof of automatic switching on a Pocket.
 

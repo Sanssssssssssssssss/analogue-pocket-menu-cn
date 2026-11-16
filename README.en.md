@@ -1,8 +1,8 @@
 # Analogue Pocket CoverFlow Chinese Menu
 
-The 2026-11-16 development batch adds [Pokémon Mini](docs/ADDITIONAL-CORES.md), bringing the preview to 18 native menu groups including WonderSwan / Color, Supervision, Atari 2600 / 7800, Arduboy and CPS1 / CPS1.5. Mini passes offline animation, transfer, compilation and independent SRAM review; device acceptance remains pending. Neo Geo's Chinese menu remains research without a fully verified installable package. Each menu retains its native FPGA engine and a separate launch entry. Enable **Settings → Analogue OS → Group openFPGA** to collect Chinese menus under **CN Menu**, alongside the original core categories.
+The 2026-11-16 preview adds [native Neo Geo CoverFlow](docs/NEOGEO.md), bringing the bundle to 19 menu groups. Neo Geo retains the original FPGA engine, instance configuration and save formats, with Unicode titles, artwork and eight-pose scrolling. Both clock modes pass the scoped offline timing and external-memory review; Pocket acceptance remains pending. Enable **Settings → Analogue OS → Group openFPGA** and open **CN Menu**.
 
-`v0.5.0-preview.2` updates Windows artwork lookup: an unrecognized filename can use an unambiguous Chinese display alias, while conflicting names and ambiguous editions retain placeholders. The 18 core packages are unchanged. The frozen EXE passes independent prepare, install and rollback checks.
+`v0.6.0-preview.1` adds the Neo Geo package and retains the previous 18 groups. The assistant can use an unambiguous Chinese display alias to look up missing artwork; conflicts and ambiguous editions retain placeholders. Supply your own games, BIOS, saves and library artwork.
 
 GBA `.10` adds image-upload synchronization and bounded recovery; SNES `.3` corrects the menu refresh rate; CPS2 `.3` repairs APF completion, path/save read timing and per-game instance configuration. All three CPS candidates also repair native EEPROM ERASE_ALL initialization. The installer blocks intermediate binaries rejected by protocol validation. Offline checks precede delivery; physical acceptance of these repairs and new cores is pending. Historical failures remain in [device feedback](docs/DEVICE-FEEDBACK-2026-11-03.md), the [GBA records](experiments/gba_coverflow/README.md) and [console experiments](experiments/console_coverflow/README.md).
 
@@ -22,7 +22,7 @@ This image is output from the actual menu RTL simulation, using synthetic entrie
 
 ## Status
 
-**v0.1.2-public.1 is the GB/GBC reference release.** Its bitstream is identical to the 0.1.2 lab build whose Chinese menu, GB/GBC launch and folder-transition flash fix were user-confirmed on a Pocket running Analogue OS 2.5. The 18 native menu groups and Windows assistant are separately published as **v0.5.0-preview.2**, a development preview whose added cores still need device acceptance.
+**v0.1.2-public.1 is the GB/GBC reference release.** Its bitstream is identical to the 0.1.2 lab build whose Chinese menu, GB/GBC launch and folder-transition flash fix were user-confirmed on a Pocket running Analogue OS 2.5. The 19 native menu groups and Windows assistant are separately published as **v0.6.0-preview.1**, a development preview whose added cores still need device acceptance.
 
 - Chinese menu text and independent Unicode display titles, without renaming ROMs.
 - Folder navigation: A opens, B returns, including at the root.
@@ -30,13 +30,13 @@ This image is output from the actual menu RTL simulation, using synthetic entrie
 - Local v9 library generation, installation plan, verified backup, file readback and rollback. The Windows assistant prepares locally and writes after **Backup and install**; the GB/GBC reference CLI uses `--apply`.
 - Hardware acceptance covers the reported GB/GBC menu, folder navigation and game launch. The native previews require separate gameplay and save verification. Occasional flash and loading delay can occur at game handoff.
 
-Historical records: the [GBA / NES / SNES interface experiments](experiments/multi_system/README.md) and [early standalone GBA integration](experiments/gba_menu/README.md) document earlier development. GBA `0.2.0-gba.3` received single-device menu and game-launch confirmation; that report does not certify the current preview candidates. The installable 18-group Windows preview is linked below. Ordinary saves, RTC, save-and-return and game compatibility require separate per-core acceptance.
+Historical records: the [GBA / NES / SNES interface experiments](experiments/multi_system/README.md) and [early standalone GBA integration](experiments/gba_menu/README.md) document earlier development. GBA `0.2.0-gba.3` received single-device menu and game-launch confirmation; that report does not certify the current preview candidates. The installable 19-group Windows preview is linked below. Ordinary saves, RTC, save-and-return and game compatibility require separate per-core acceptance.
 
 Since 2026-11-01, the project has used [independent menus for each native core](docs/PER-SYSTEM-MENUS.md), retaining the official openFPGA system list and Change Core. Analogue OS home/settings translation and an automatic cross-core launcher are outside the current implementation.
 
 ## Install
 
-For Windows, download `PocketLab-Windows-2026-11-16-preview2.zip` from the [18-core development preview](https://github.com/Sanssssssssssssssss/analogue-pocket-menu-cn/releases/tag/v0.5.0-preview.2), check the accompanying `SHA256SUMS.txt`, extract the whole folder and run `PocketLab.exe`. Python is included.
+For Windows, download `PocketLab-Windows-2026-11-16-neogeo.zip` from the [19-core development preview](https://github.com/Sanssssssssssssssss/analogue-pocket-menu-cn/releases/tag/v0.6.0-preview.1), check the accompanying `SHA256SUMS.txt`, extract the whole folder and run `PocketLab.exe`. Python is included.
 
 1. Keep your own ROMs under each platform's `Assets/<platform>/common/`, including subfolders. Select the newly connected card and a local workspace in the assistant.
 2. Inspect systems, prepare the library, and review excluded files, artwork and ordinary-save matches. Filenames supply titles; optional aliases and covers are not required to build a menu.

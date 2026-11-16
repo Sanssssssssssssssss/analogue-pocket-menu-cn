@@ -21,7 +21,7 @@ PROFILES = {
     'CPS15': dict(short='CPS15', namespace='c15lab', platform='jtcps15', binary='jtcps15', extra_platforms=['jtpatreon'],
                  family='cps1_coverflow', label='CPS1.5 / QSound', extensions={'.json'}),
     'NEOGEO': dict(short='NeoGeo', namespace='ngclab', platform='ng', binary='neogeo',
-                  family='neogeo_coverflow', label='Neo Geo 街机（研究中）', extensions={'.json'}),
+                  family='neogeo_coverflow', label='Neo Geo 街机（预览）', extensions={'.json'}),
 }
 CPS_SYSTEMS = frozenset(('CPS1', 'CPS15'))
 INSTANCE_SYSTEMS = CPS_SYSTEMS | {'NEOGEO'}
