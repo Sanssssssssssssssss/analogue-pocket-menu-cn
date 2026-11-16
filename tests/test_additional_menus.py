@@ -38,6 +38,8 @@ def package(root, system):
     for name, value in documents.items():
         delivery.write(dest/(name+'.json'), value)
     put(dest/(profile['binary']+'.rbf_r'), b'SYNTHETIC INSTALLER FIXTURE - NOT FPGA DATA')
+    if system == 'NEOGEO':
+        put(dest/'licenses/FX68K-NOTICE.md', b'Synthetic Neo Geo license notice')
     delivery.write(root/'core/Platforms'/f'{profile["namespace"]}.json', {'platform': {'name':system,'category':'CN Menu'}})
     source = root/'sources/fixture.txt'
     put(source, b'Synthetic fixture provenance')

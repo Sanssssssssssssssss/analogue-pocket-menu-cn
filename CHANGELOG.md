@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.6.0-preview.1 — 2026-11-16
+
+- Add native Neo Geo Chinese CoverFlow, bringing the Windows preview to 19 menu groups. Retain original multi-slot instances, BIOS requirements and 8 KiB / 64 KiB save formats.
+- Complete the scoped MVS/AES timing and SRAM/SDRAM/CellRAM review. Preserve the original failed guard analysis separately from the successful post-fit review; hardware acceptance remains pending.
+- Include the actual compiler inputs, original notices and executed reproduction tools. Keep the previous 18 core packages and Chinese-alias artwork matching behavior.
+
 ## v0.5.0-preview.2 — 2026-11-16
 
 - Fix missing artwork for unresolved filenames with an unambiguous Chinese display alias. Known names, content matches, translation conflicts and ambiguous artwork remain protected.

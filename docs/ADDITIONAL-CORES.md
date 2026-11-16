@@ -1,6 +1,6 @@
 # 更多原生中文菜单
 
-2026-11-15 开发批次适配下列原生菜单，复用 GB/GBC 的 CoverFlow 几何、封面滚动和中文标题层。2026-11-16 增加 Pokémon Mini 预览。新增候选须完成编译、总线及文件流程检查后才登记到安装助手；实机游戏、存档和显示仍需分别验收。Neo Geo 暂保留研究源码，不提供中文菜单核心包；可继续使用上游原版核心。
+2026-11-15 开发批次适配下列原生菜单，复用 GB/GBC 的 CoverFlow 几何、封面滚动和中文标题层。2026-11-16 增加 Pokémon Mini 和 Neo Geo 预览。新增候选须完成编译、总线及文件流程检查后才登记到安装助手；实机游戏、存档和显示仍需分别验收。Neo Geo 的输入格式、原生存档和使用方法见[专页](NEOGEO.md)。
 
 ## 入口与游戏目录
 
@@ -13,7 +13,7 @@
 | ARDUBOY | `Assets/arduboy/common` | 普通 `.hex`，FX 外置数据未适配 | 每款游戏独立 1024 字节 EEPROM；旧全局 EEPROM 不会自动覆盖到每款游戏 |
 | CPS1 / CPS15 | `Assets/jtcps1/common`、`Assets/jtcps15/common`，配合各自 `Assets/<平台>/jotego.<平台>` 中的实例 JSON | 实例所引用的 `.rom` | 识别实例的 ROM、按键、DIP 和核心配置；核对旧 128 字节 EEPROM 后，复制到独立存档。已有独立存档优先保留 |
 | POKEMINI，预览 | `Assets/poke_mini/common` | `.min` | 内置上游 freebios；每款游戏独立 8192 字节 EEPROM，缺档才生成擦除态种子；旧档不猜测导入 |
-| NEOGEO，研究阶段 | `Assets/ng/common` 和 `Assets/ng/Mazamars312.NeoGeo` | 原生多槽实例 JSON | 已实现实例、BIOS 和存档路径核对；新菜单硬件时序未通过，不提供核心包 |
+| NEOGEO，预览 | `Assets/ng/common` 和 `Assets/ng/Mazamars312.NeoGeo` | 原生多槽实例 JSON | 自备原 BIOS；沿用每实例 8 KiB 记忆卡及共享 64 KiB backup.bak，已有存档保留 |
 
 ROM 文件名默认直接成为标题，原有分类目录继续成为子菜单。街机从原实例读取游戏名与配置，不能把所有 ROM 当成相同硬件设置。可选中文别名和封面按相对路径匹配；缺图生成文字卡片。每页至多 127 个游戏加返回，超量自动分页。添加、删除、改名后重新建库；核心尚不在运行时扫描任意文件夹。
 
@@ -44,7 +44,7 @@ python tools/group_cn_menus.py apply --card X:/ --backup D:/PocketBackups/cn-gro
 
 Pokémon Mini 预览修复原生除法及 LCD 颜色运算的长路径，保留原时钟、CPU 节奏及 3:2 游戏显示。完整四角时序最低 +0.042 ns；穷举除法、逐拍 CPU/视频、117 帧真实 APF 导航、EEPROM 和安装回退验证通过。封面 SRAM 独立审查扣除发收时钟插入差后最小余量 7.749 ns，未含未测板线/负载和未配置的时钟不确定度。游戏中 L+R+Select 可暂停或保存返回；没有即时存档与睡眠支持。需自备 `.min`，包不带游戏；实机游玩与保存仍待验收。详见[Mini 构建与验证](../experiments/pokemonmini_coverflow/README.md)。
 
-Neo Geo 已完成多槽游戏实例和原生存档绑定工具。独立修正内存时钟后，四角检查仍有 SDRAM 输入 setup −2.150 ns、输出 hold −0.976 ns，以及未闭合的配置跨时钟路径，所以未登记中文菜单位流。不要把建库成功理解为硬件菜单可用。
+Neo Geo 已接入原生引擎的多槽装载、原格式保存读取和 320×224 CoverFlow。MVS/AES 两模式四角共 472 项时序记录、SRAM、SDRAM 和两片 CellRAM 预算通过独立离线复核。实际拟合输入、检查断言修订、附加布线目标和真实要求分别留档；最小实际余量 +0.101 ns。1121 项继承事件时钟边界及未测板级条件仍在收据中，实机验收待完成。见[使用及构建说明](NEOGEO.md)。
 
 Arduboy 保留上游的一个软件 OLED SPI 时钟，CPS 保留部分上游音频及视频逻辑时钟；这些路径仍有未完整建模的边界。收据中的正时序余量覆盖实际已约束路径，不等于全部电路的物理签核。新增总线、存档和参数读取分别通过真实 RTL 接口的合成数据仿真，不能替代原生游戏实机验收。
 
@@ -54,7 +54,7 @@ NGPC、Lynx、Vectrex 和 PCE CD 尚未提供新的 CoverFlow 包：分别还受
 
 ## English
 
-This batch adapts the native menu integrations listed above. The 2026-11-16 Pokemon Mini preview fixes the native divider and LCD paths and passes four-corner compilation, CPU/video equivalence, APF navigation, EEPROM and synthetic installer checks. Physical gameplay and saves remain pending; its external SRAM review excludes unmeasured board/loading and unconfigured clock uncertainty. Supply your own `.min` games. Neo Geo remains source research without a Chinese menu package while its SDRAM and configuration timing is unresolved. Use the original asset directories and rebuild libraries after changing files. Filenames supply titles; optional path-based aliases and covers are supported. Arcade menus read original instance configurations. Missing covers get text cards. Select only systems with games and matching packages.
+This batch adapts the native menu integrations listed above. The 2026-11-16 Pokemon Mini preview fixes the native divider and LCD paths and passes four-corner compilation, CPU/video equivalence, APF navigation, EEPROM and synthetic installer checks. Physical gameplay and saves remain pending; its external SRAM review excludes unmeasured board/loading and unconfigured clock uncertainty. Supply your own `.min` games. Neo Geo now has a native preview with original multi-slot instances and save formats; its two-mode four-corner review covers 472 timing records and SRAM/SDRAM/CellRAM budgets. Original failed guard analysis and successful post-fit analysis are kept separately. Inherited event-clock and board boundaries remain explicit; device acceptance is pending. See [Neo Geo](NEOGEO.md). Use the original asset directories and rebuild libraries after changing files. Filenames supply titles; optional path-based aliases and covers are supported. Arcade menus read original instance configurations. Missing covers get text cards. Select only systems with games and matching packages.
 
 Enable **Settings → Analogue OS → Group openFPGA** to collect these entries under **CN Menu**. The group uses official platform metadata; core folders and save bindings retain their original locations. The grouping command backs up changed platform files and supports `restore`.
 

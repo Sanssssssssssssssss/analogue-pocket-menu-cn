@@ -46,5 +46,11 @@
       "receipt_sha256": "5ff266ff3a0d0c08ce36e4fa87c465013e86a4d7d7ee9fd604bb465274faacb6",
       "hardware_acceptance": "pending"
     }
+  },
+  "NEOGEO": {
+    "ce9e5964b44e5f02a93d3d32ed1969eb30d82c4223ece2539a4f7e21691bb3ef": {
+      "receipt_sha256": "491003170ce44cf1aa42eac5fa1d0ab0b445f715b5712c1ef34fb23809abda87",
+      "hardware_acceptance": "pending"
+    }
   }
 }

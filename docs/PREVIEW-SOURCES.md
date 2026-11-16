@@ -34,3 +34,9 @@ Use your own Quartus Prime 22.1std.2 installation and run `quartus_sh --flow com
 The separate 2026-11-16 Pokemon Mini preview provides 86 actual build inputs, including project/IP files and all font, FreeBIOS and microcode initializers. Its evidence includes four-corner reports and an independent SRAM launch/capture review. The divider and LCD replacements were compared with native RTL. Registration binds the exact bitstream and receipt; hardware acceptance remains pending. The previously frozen Desktop3 bundle is unchanged and does not gain Mini automatically.
 
 The prepared GBA source has its embedded BIOS initializer cleared. Users supply their own external BIOS. Personal games, saves, proprietary compilers and licensed simulation models are not included. Preserve the upstream terms described in [LICENSE.md](../LICENSE.md).
+
+## Neo Geo
+
+`packages/NEOGEO/sources/` 附 696 文件的实际源输入与复核补件。原拟合 SDC、原源码收据保留；完整清单覆盖新增断言补丁、两类约束及已实际执行的复核脚本。请一起阅读 `BUILD-NEOGEO.txt` 和 `BUILD-REANALYSIS.md`。新位流需要新复核；不能将原编译退出 3 改写成成功。
+
+The Neo Geo package includes its actual fit inputs, original receipt, exact guard patch and executed post-fit tools. Both BUILD documents explain the original failed guard analysis and the separate successful timing review. The full source inventory includes the original FX68K author notice and GPL-3.0 text. Rebuilding requires a new review for the resulting binary.
